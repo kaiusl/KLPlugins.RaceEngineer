@@ -1,0 +1,15 @@
+{
+  "NumPreviousValuesStored": 15,
+  "DataLocation": "PluginsData\\RaceEngineerPlugin",
+  "AccDataLocation": "C:\\Users\\kalla\\Documents\\Assetto Corsa Competizione",
+  "TempColor": ["#87cefa","#00ff7f","#00ff7f", "#e60000"],
+  "TyreTempColorDefValues": [70.0,80.0,90.0,100.0],
+  "BrakeTempColorDefValues": [200.0,300.0,500.0,700.0],
+  "PresColor": ["#87cefa","#00ff7f","#00ff7f","#e60000"],
+  "TyrePresColorDefValues": [26.5,27.25,27.75,28.5],
+  "TimeColor": ["#00ff7f","#F8F8FF","#e60000"],
+  "TimeGraphColor": ["#00ff7f","#F8F8FF","#e60000"],
+  "TimeColorDeltaValues": [-1.0,0.0,1.0],
+  "FuelGraphColor": ["#00ff7f","#F8F8FF","#e60000"],
+  "FuelGraphColorValues": [-1.0,0.0,1.0]
+}

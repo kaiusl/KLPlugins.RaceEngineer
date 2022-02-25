@@ -1,0 +1,16 @@
+{ 
+    "Tyres": {
+        "dry_compound": {
+            "IdealPres": { "F": 27.2, "R": 27.2},
+            "IdealPresRange": {"F": 0.25, "R": 0.25},
+            "IdealTemp": {"F": 80.0, "R": 80.0},
+            "IdealTempRange": {"F": 10.0, "R": 10.0}
+        },
+        "wet_compound": {
+            "IdealPres": { "F": 30.0, "R": 30.0},
+            "IdealPresRange": {"F": 0.55, "R": 0.5},
+            "IdealTemp": {"F": 50.0, "R": 50.0},
+            "IdealTempRange": {"F": 10.0, "R": 10.0}
+        }
+    }
+}
