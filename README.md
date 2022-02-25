@@ -1,1 +1,1 @@
-RaceEngineerPlugin
+# RaceEngineerPlugin - SimHub race strategy helper
