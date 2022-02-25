@@ -4,7 +4,7 @@ using SimHub.Plugins;
 namespace RaceEngineerPlugin.Track {
 
     public class Track {
-        private const string TAG = "RACE ENGINEER (Track): ";
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Track): ";
         public string Name { get; private set; }
 
         public void Reset() {
@@ -24,14 +24,16 @@ namespace RaceEngineerPlugin.Track {
             if (newTrackName != null) {
                 var hasChanged = Name != newTrackName;
                 if (hasChanged) {
-                    LogInfo($"Track changed from {Name} to {newTrackName}");
+                    LogInfo($"Track changed from '{Name}' to '{newTrackName}'");
                     Name = newTrackName;
                 }
             }
         }
 
         private void LogInfo(string msq) {
-            SimHub.Logging.Current.Info(TAG + msq);
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
+            }
         }
 
 

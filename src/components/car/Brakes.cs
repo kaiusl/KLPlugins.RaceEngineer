@@ -6,7 +6,7 @@ using RaceEngineerPlugin.Color;
 
 namespace RaceEngineerPlugin.Car {
     public class Brakes {
-        private const string TAG = "RACE ENGINEER (Brakes): ";
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Car.Brakes): ";
         public int PadLaps { get; private set; }
         public int PadNr { get; private set; }
         public WheelsStats TempOverLap { get; }
@@ -36,7 +36,7 @@ namespace RaceEngineerPlugin.Car {
                     || Math.Abs(prevPadLife[3] - (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife04")) > 0.1);
 
                 if (havePressuresChanged) {
-                    LogInfo(String.Format("Brake pads changed."));
+                    LogInfo("Brake pads changed.");
                     PadNr += 1;
                     PadLaps = 0;
                 }
@@ -71,7 +71,9 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void LogInfo(string msq) {
-            SimHub.Logging.Current.Info(TAG + msq);
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
+            }
         }
 
 

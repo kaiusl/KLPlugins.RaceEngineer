@@ -42,6 +42,7 @@ namespace RaceEngineerPlugin {
         public double[] TimeColorDeltaValues { get; set; }
         public string[] FuelGraphColor { get; set; }
         public double[] FuelGraphColorValues { get; set; }
+        public bool Log { get; set; }
 
         public Settings() {
             NumPreviousValuesStored = 15;
@@ -57,6 +58,7 @@ namespace RaceEngineerPlugin {
             TimeColorDeltaValues = new double[] { -1.0, 0.0, 1.0 };
             FuelGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
             FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
+            Log = false;
         }
     }
 }

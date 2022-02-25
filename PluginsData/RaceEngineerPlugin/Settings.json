@@ -11,5 +11,6 @@
   "TimeGraphColor": ["#00ff7f","#F8F8FF","#e60000"],
   "TimeColorDeltaValues": [-1.0,0.0,1.0],
   "FuelGraphColor": ["#00ff7f","#F8F8FF","#e60000"],
-  "FuelGraphColorValues": [-1.0,0.0,1.0]
+  "FuelGraphColorValues": [ -1.0, 0.0, 1.0 ],
+  "Log": false
 }

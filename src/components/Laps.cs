@@ -6,7 +6,7 @@ using RaceEngineerPlugin.Deque;
 namespace RaceEngineerPlugin.Laps {
 
     public class Laps {
-        private const string TAG = "RACE ENGINEER (Laps): ";
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Laps): ";
 
         public double LastTime { get; private set; }
         public FixedSizeDequeStats PrevTimes { get; private set; }
@@ -22,6 +22,7 @@ namespace RaceEngineerPlugin.Laps {
         }
 
         public void Reset() {
+            LogInfo("Laps.Reset()");
             PrevTimes.Clear();
             maxTime = 1000;
             LastTime = 0.0;
@@ -39,16 +40,8 @@ namespace RaceEngineerPlugin.Laps {
             int trackGrip = RaceEngineerPlugin.GAME.IsACC ? (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus") : -1;
 
             foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+                LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 PrevTimes.AddToFront(pd.lapTime);
-            }
-        }
-
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
-            StintLaps += 1;
-            LastTime = data.NewData.LastLapTime.TotalSeconds;
-            if (booleans.OldData.SaveLap && booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
-                PrevTimes.AddToFront(LastTime);
-                maxTime = PrevTimes.Min + 30;
             }
         }
 
@@ -57,8 +50,20 @@ namespace RaceEngineerPlugin.Laps {
             StintLaps = 0;
         }
 
+        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
+            StintLaps += 1;
+            LastTime = data.NewData.LastLapTime.TotalSeconds;
+            if (booleans.OldData.SaveLap && booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
+                LogInfo($"Added laptime '{LastTime}' to deque.");
+                PrevTimes.AddToFront(LastTime);
+                maxTime = PrevTimes.Min + 30;
+            }
+        }
+
         private void LogInfo(string msq) {
-            SimHub.Logging.Current.Info(TAG + msq);
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
+            }
         }
 
 

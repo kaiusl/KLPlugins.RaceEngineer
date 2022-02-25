@@ -58,7 +58,7 @@ namespace RaceEngineerPlugin.Car
 
     public class PitStrategy { 
         public int fuelToAdd { get; set; }
-        public Tyres tyres { get; set; }
+        public TyreSetup tyres { get; set; }
         public int tyreSet { get; set; }
         public int frontBrakePadCompound { get; set; }
         public int rearBrakePadCompound { get; set; }

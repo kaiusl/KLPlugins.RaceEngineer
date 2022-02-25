@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Nito.Collections;
 
 namespace RaceEngineerPlugin.Deque {
@@ -45,11 +46,16 @@ namespace RaceEngineerPlugin.Deque {
     /// We also want to have some statistics over the previous values. 
     /// </summary>
     public class FixedSizeDequeStats : FixedSizeDeque {
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (FixedSizeDequeStats): ";
         public Stats.Stats Stats { get; }
         public double Min { get => Stats.Min; }
         public double Max { get => Stats.Max; }
         public double Avg { get => Stats.Avg; }
         public double Std { get => Stats.Std; }
+
+        private double median = -1.0;
+        private double q1 = -1.0;
+        private double q3 = -1.0;
 
         private double sum = 0.0;
         private double sumOfSquares = 0.0;
@@ -85,6 +91,11 @@ namespace RaceEngineerPlugin.Deque {
                 sumOfSquares -= oldData * oldData;
             }
             Data.AddToFront(value);
+            string txt = "Data = [";
+            foreach (var a in Data) {
+                txt += $"{a:0.000}, ";
+            }
+            LogInfo(txt + "]");
             sum += value;
             sumOfSquares += value * value;
 
@@ -92,6 +103,35 @@ namespace RaceEngineerPlugin.Deque {
             SetMin(value);
             SetMax(value);
             Stats.Std = Math.Sqrt(sumOfSquares / Count - Avg*Avg);
+            SetMedian(value);
+            LogInfo($"Avg set to '{Stats.Avg}', std set to '{Stats.Std}', median set to '{median}', (q1, q3) set to ('{q1}', '{q3}')");
+        }
+
+        private void SetMedian(double value) {
+            if (median == -1.0) {
+                median = value;
+            } else {
+                var b = Data.ToArray();
+                Array.Sort(b);
+
+                median = GetMedian(b);
+
+                if (b.Length > 2) {
+                    var i = b.Length / 2;
+                    q1 = GetMedian(b.Take(i).ToArray());
+                    q3 = GetMedian(b.Reverse().Take(i).ToArray());
+                }                
+            }
+        }
+
+        private double GetMedian(double[] v) {
+            if (v.Length % 2 == 0) {
+                var i = v.Length / 2;
+                return (v[i - 1] + v[i]) / 2.0;
+            } else {
+                return v[v.Length / 2];
+            }
+
         }
 
         private void SetMin(double value) {
@@ -106,11 +146,14 @@ namespace RaceEngineerPlugin.Deque {
                         minId = i;
                     }
                 }
+                LogInfo($"Min set to '{Stats.Min}', minId = '{minId}'");
             } else if (minId == -1 || value < Min) { // Otherwise we can simply compare with current minimum value
                 Stats.Min = value;
                 minId = 0;
+                LogInfo($"Min set to '{Stats.Min}'.");
             } else { // If new value was larger, index of minimum value is shifted by one
                 minId++;
+                LogInfo($"New value not min, minId = '{minId}'");
             }
         }
 
@@ -126,11 +169,20 @@ namespace RaceEngineerPlugin.Deque {
                         maxId = i;
                     }
                 }
+                LogInfo($"Max set to '{Stats.Max}', maxId = '{maxId}'");
             } else if (maxId == -1 || value > Max) { // Otherwise we can simply compare with current minimum value
                 Stats.Max = value;
                 maxId = 0;
+                LogInfo($"Max set to '{Stats.Max}'");
             } else { // If new value was smaller, index of max value is shifted by one
                 maxId++;
+                LogInfo($"New value not max, maxId = '{maxId}'");
+            }
+        }
+
+        private void LogInfo(string msq) {
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
             }
         }
 

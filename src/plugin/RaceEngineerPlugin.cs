@@ -10,6 +10,9 @@ namespace RaceEngineerPlugin {
     [PluginAuthor("Kaius Loos")]
     [PluginName("RaceEngineerPlugin")]
     public class RaceEngineerPlugin : IPlugin, IDataPlugin, IWPFSettingsV2 {
+        public const string PLUGIN_NAME = "RACE ENGINEER";
+        private const string TAG = PLUGIN_NAME + " (RaceEngineerPlugin): ";
+
         public RaceEngineerPluginSettings Settings;
         public PluginManager PluginManager { get; set; }
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.sdkmenuicon);
@@ -51,6 +54,8 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         /// <param name="data"></param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
+            if (GAME.IsUnknown) { return; } // Unknown game is running, do nothing
+
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
                     if (!values.booleans.NewData.IsGameRunning) {
@@ -122,7 +127,7 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
-            SimHub.Logging.Current.Info("Starting plugin");
+            LogInfo("Starting plugin");
             Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
 
             // DataCorePlugin should be built before, thus this property should be available.
@@ -233,7 +238,6 @@ namespace RaceEngineerPlugin {
             // Declare an action which can be called
             this.AddAction("IncrementSpeedWarning", (a, b) => {
                 Settings.SpeedWarningLevel++;
-                SimHub.Logging.Current.Info("Speed warning changed");
             });
 
             // Declare an action which can be called
@@ -248,6 +252,12 @@ namespace RaceEngineerPlugin {
                 return TimeSpan.Zero;
             } else {
                 return TimeSpan.FromSeconds(seconds);
+            }
+        }
+
+        private void LogInfo(string msq) {
+            if (SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
             }
         }
 

@@ -12,7 +12,7 @@ namespace RaceEngineerPlugin.Database
 	/// Handles data collection/storing for plugin.
 	/// </summary>
 	public class Database {
-		private const string TAG = "EXTRA INFO (Database): ";
+		private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Database): ";
 		private SQLiteConnection conn;
 
 		private SQLiteCommand insertEventCmd;
@@ -37,6 +37,7 @@ namespace RaceEngineerPlugin.Database
 				insertEventCmd = eventsTable.CreateInsertCmdWReturning(conn, EVENT_ID);
 				insertStintCmd = stintsTable.CreateInsertCmdWReturning(conn, STINT_ID);
 				insertLapCmd = lapsTable.CreateInsertCmd(conn);
+				LogInfo($"Opened database from '{location}'");
 			} catch (Exception ex) {
 				LogInfo($"Failed to open DB. location={location} Error msq: {ex}");
 			}
@@ -45,12 +46,12 @@ namespace RaceEngineerPlugin.Database
 		public void Dispose() {
 			conn.Close();
 			conn.Dispose();
+			LogInfo("Database closed.");
 		}
 
-		/////////////////////////////////
-		// Tables
+        #region TABLE DEFINITIONS
 
-		private const string EVENT_ID = "event_id";
+        private const string EVENT_ID = "event_id";
 		private const string CAR_ID = "car_id";
 		private const string TRACK_ID = "track_id";
 		private const string START_TIME = "start_time";
@@ -208,11 +209,11 @@ namespace RaceEngineerPlugin.Database
 			new DBField(IS_INLAP, "INTEGER"),
 		});
 
+        #endregion
 
-		/////////////////////////////////
-		// Inserts
+        #region INSERTS
 
-		private void SetParam(SQLiteCommand cmd, string name, object value) {
+        private void SetParam(SQLiteCommand cmd, string name, object value) {
 			cmd.Parameters.AddWithValue($"@{name}", value);
 		}
 
@@ -226,7 +227,6 @@ namespace RaceEngineerPlugin.Database
 
 		public void InsertEvent(string carName, string trackName) {
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
-			LogInfo($"Inserted event: car={carName}, track={trackName} @ {stime}");
 
 			SetParam(insertEventCmd, CAR_ID, carName);
 			SetParam(insertEventCmd, TRACK_ID, trackName);
@@ -446,9 +446,11 @@ namespace RaceEngineerPlugin.Database
 			LogInfo(txt);
 
 		}
+        #endregion
 
+        #region QUERIES
 
-		public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
+        public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
 			string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
 			if (0 < trackGrip && trackGrip < 3) {
 				conds += "('Green', 'Fast', 'Optimum')";
@@ -491,19 +493,25 @@ namespace RaceEngineerPlugin.Database
 			var result = cmd.ExecuteScalar();
 			if (result != null) {
 				var tmp = (long)result; // This cannot reasonably be out of int range
-				LogInfo($"Fitted tyre set {tyreSet} is used for {tmp} laps.");
+				LogInfo($"Fitted tyre set '{tyreSet}' is used for '{tmp}' laps.");
 				return (int)tmp;
 			} else {
-				LogInfo($"Fitted tyre set {tyreSet} is new.");
+				LogInfo($"Fitted tyre set '{tyreSet}' is new.");
 				return 0;
 			}
 		}
+        #endregion
 
-		private void LogInfo(string msq) {
-			SimHub.Logging.Current.Info(TAG + msq);
+        private void LogInfo(string msq) {
+			if (RaceEngineerPlugin.SETTINGS.Log) {
+				SimHub.Logging.Current.Info(TAG + msq);
+			}
 		}
 	}
 
+	/// <summary>
+	/// Definition of database table and methods to create some methods
+	/// </summary>
 	class DBTable {
 		public string name;
 		public DBField[] fields;

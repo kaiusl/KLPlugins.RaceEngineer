@@ -2,6 +2,10 @@ using GameReaderCommon;
 using SimHub.Plugins;
 
 namespace RaceEngineerPlugin.Booleans {
+
+    /// <summary>
+    /// Hold single set of boolean values
+    /// </summary>
     public class Bools {
         public bool IsInPitLane { get; private set; }
         public bool IsOnTrack { get; private set; }
@@ -141,8 +145,11 @@ namespace RaceEngineerPlugin.Booleans {
     }
 
 
-
-    public class Booleans { 
+    /// <summary>
+    /// Hold current and previous boolean values 
+    /// </summary>
+    public class Booleans {
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Booleans): ";
         public Bools NewData { get; private set; }
         public Bools OldData { get; private set; }
 
@@ -151,22 +158,15 @@ namespace RaceEngineerPlugin.Booleans {
             OldData = new Bools();
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
-            OldData.Update(NewData);
-            NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
-        }
-
-        public void Reset(string sessionTypeName) { 
+        public void Reset(string sessionTypeName) {
+            LogInfo("Booleans.Reset()");
             OldData.Reset(null);
             NewData.Reset(sessionTypeName);
         }
 
         public void RaceStartStintAdded() {
+            LogInfo("Booleans.RaceStartStintAdded()");
             NewData.RaceStartStintAdded();
-        }
-
-        public void OnNewSession(string sessionTypeName) {
-            NewData.OnSessionChange(sessionTypeName);
         }
 
         public void OnGameNotRunning() {
@@ -177,6 +177,21 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnNewEvent(sessionTypeName);
             OldData.OnNewEvent(sessionTypeName);
         }
-       
+
+        public void OnNewSession(string sessionTypeName) {
+            NewData.OnSessionChange(sessionTypeName);
+        }
+
+        public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
+            OldData.Update(NewData);
+            NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
+        }
+
+        private void LogInfo(string msq) {
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
+            }
+        }
+
     }
 }

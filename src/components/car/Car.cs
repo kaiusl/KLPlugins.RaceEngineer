@@ -44,7 +44,7 @@ namespace RaceEngineerPlugin.Car {
     /// Store and update car related values
     /// </summary>
     public class Car {
-        private const string TAG = "RACE ENGINEER (Car): ";
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Car.Car): ";
         public string Name { get; private set; }
         public CarInfo Info { get; private set; }
         public CarSetup Setup { get; private set; }
@@ -53,6 +53,7 @@ namespace RaceEngineerPlugin.Car {
         public Fuel Fuel { get; private set; }
 
         public Car() {
+            LogInfo("Created new Car");
             Name = null;
             Info = null;
             Setup = null;
@@ -62,15 +63,17 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void Reset() {
+            LogInfo("Car.Reset()");
             Name = null;
             Info = null;
             Setup = null;
             Fuel.Reset();
         }
 
-        public void OnNewEvent(GameData data) {
+        public void OnNewEvent(PluginManager pm, GameData data, Database.Database db) {
             Reset();
             CheckChange(data.NewData.CarModel);
+            Fuel.OnSessionChange(pm, Name, data.NewData.TrackId, db);
         }
 
         public void OnNewSession(PluginManager pm, string trackName, Database.Database db) {
@@ -101,7 +104,7 @@ namespace RaceEngineerPlugin.Car {
             Tyres.UpdateOverLapData(data, booleans);
             Brakes.UpdateOverLapData(data, booleans);
 
-            Fuel.OnUpdate(pm, data, booleans);
+            Fuel.OnRegularUpdate(pm, data, booleans);
 
         }
 
@@ -114,7 +117,7 @@ namespace RaceEngineerPlugin.Car {
             if (newName != null) {
                 var hasChanged = Name != newName;
                 if (hasChanged) {
-                    LogInfo($"Car changed from {Name} to {newName}");
+                    LogInfo($"Car changed from '{Name}' to '{newName}'");
                     Name = newName;
                     ReadInfo();
                 }
@@ -137,9 +140,9 @@ namespace RaceEngineerPlugin.Car {
 
             try {
                 Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
-                LogInfo($"Read car info from {fname}");
+                LogInfo($"Read car info from '{fname}'");
             } catch (IOException e) {
-                LogInfo($"Car changed. No information file. {e}");
+                LogInfo($"Car changed. No information file. Error: {e}");
                 Info = null;
             }
         }
@@ -148,16 +151,17 @@ namespace RaceEngineerPlugin.Car {
             string fname = $@"{RaceEngineerPlugin.SETTINGS.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
             try {
                 Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
-                LogInfo("Setup changed. Read new setup.");
+                LogInfo($"Setup changed. Read new setup from '{fname}'.");
             } catch (IOException e) {
-                LogInfo($"Setup changed. But cannot read new setup. {e}");
+                LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 Setup = null;
             }
         }
 
-
         private void LogInfo(string msq) {
-            SimHub.Logging.Current.Info(TAG + msq);
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
+            }
         }
 
     }
