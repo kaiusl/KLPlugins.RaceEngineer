@@ -47,18 +47,18 @@ namespace RaceEngineerPlugin.Car {
         private const string TAG = "RACE ENGINEER (Car): ";
         public string Name { get; private set; }
         public CarInfo Info { get; private set; }
-        public Setup.CarSetup Setup { get; private set; }
-        public Tyres.Tyres Tyres { get; private set; }
-        public Brakes.Brakes Brakes { get; private set; }
-        public Fuel.Fuel Fuel { get; private set; }
+        public CarSetup Setup { get; private set; }
+        public Tyres Tyres { get; private set; }
+        public Brakes Brakes { get; private set; }
+        public Fuel Fuel { get; private set; }
 
         public Car() {
             Name = null;
             Info = null;
             Setup = null;
-            Tyres = new Tyres.Tyres();
-            Brakes = new Brakes.Brakes();
-            Fuel = new Fuel.Fuel();
+            Tyres = new Tyres();
+            Brakes = new Brakes();
+            Fuel = new Fuel();
         }
 
         public void Reset() {
@@ -147,7 +147,7 @@ namespace RaceEngineerPlugin.Car {
         public void UpdateSetup(string trackName) {
             string fname = $@"{RaceEngineerPlugin.SETTINGS.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
             try {
-                Setup = JsonConvert.DeserializeObject<Setup.CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
+                Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 LogInfo("Setup changed. Read new setup.");
             } catch (IOException e) {
                 LogInfo($"Setup changed. But cannot read new setup. {e}");

@@ -1,4 +1,4 @@
-﻿namespace RaceEngineerPlugin {
+﻿namespace RaceEngineerPlugin.Game {
     public class Game {
         public const string AC_NAME = "AssettoCorsa";
         public const string ACC_NAME = "AssettoCorsaCompetizione";

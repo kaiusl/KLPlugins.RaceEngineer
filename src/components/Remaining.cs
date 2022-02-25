@@ -4,9 +4,9 @@
     /// Class to store and calculate current laps/time left in session and fuel needed.
     /// </summary>
     public class RemainingInSession {
-        public Stats time = new Stats();
-        public Stats laps= new Stats();
-        public Stats fuelNeeded = new Stats();
+        public Stats.Stats time = new Stats.Stats();
+        public Stats.Stats laps= new Stats.Stats();
+        public Stats.Stats fuelNeeded = new Stats.Stats();
 
         public void Reset() { 
             time.Reset(); 
@@ -14,7 +14,7 @@
             fuelNeeded.Reset();
         }
 
-        public void Update(Booleans.Booleans booleans, double timeLeft, double lapsLeft, Stats fuelUsed, Stats lapTime) {
+        public void Update(Booleans.Booleans booleans, double timeLeft, double lapsLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
             if (booleans.NewData.IsTimeLimitedSession) {
                 time.Set(timeLeft);
 
@@ -38,15 +38,15 @@
     /// Class to store and calculate time/laps left on current amount of fuel.
     /// </summary>
     public class RemainingOnFuel {
-        public Stats time = new Stats();
-        public Stats laps = new Stats();
+        public Stats.Stats time = new Stats.Stats();
+        public Stats.Stats laps = new Stats.Stats();
 
         public void Reset() {
             time.Reset();
             laps.Reset();
         }
 
-        public void Update(double fuelLeft, Stats fuelUsed, Stats lapTime) {
+        public void Update(double fuelLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
             laps.Min = fuelLeft / fuelUsed.Max;
             laps.Max = fuelLeft / fuelUsed.Min;
             laps.Avg = fuelLeft / fuelUsed.Avg;

@@ -24,7 +24,7 @@ namespace RaceEngineerPlugin {
 
         private const string SETTINGS_PATH = @"PluginsData\RaceEngineerPlugin\Settings.json";
         public static readonly Settings SETTINGS = ReadSettings();
-        public static Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
+        public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GAME_PATH; // Same as above
 
         private Values values;
@@ -127,7 +127,7 @@ namespace RaceEngineerPlugin {
 
             // DataCorePlugin should be built before, thus this property should be available.
             var gameName = (string)pluginManager.GetPropertyValue("DataCorePlugin.CurrentGame");
-            GAME = new Game(gameName);
+            GAME = new Game.Game(gameName);
             GAME_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
             values = new Values();
 
@@ -137,21 +137,21 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
 
-            Action<string, StatsBase, bool> addStats = (name, values, include_std) => {
-                this.AttachDelegate(name + StatsBase.names[0], () => values[0]);
-                this.AttachDelegate(name + StatsBase.names[1], () => values[1]);
-                this.AttachDelegate(name + StatsBase.names[2], () => values[2]);
+            Action<string, Stats.StatsBase, bool> addStats = (name, values, include_std) => {
+                this.AttachDelegate(name + Stats.StatsBase.names[0], () => values[0]);
+                this.AttachDelegate(name + Stats.StatsBase.names[1], () => values[1]);
+                this.AttachDelegate(name + Stats.StatsBase.names[2], () => values[2]);
                 if (include_std) {
-                    this.AttachDelegate(name + StatsBase.names[3], () => values[3]);
+                    this.AttachDelegate(name + Stats.StatsBase.names[3], () => values[3]);
                 }
             };
 
-            Action<string, StatsBase, bool> addStatsTimespan = (name, values, include_std) => {
-                this.AttachDelegate(name + StatsBase.names[0], () => fromSeconds(values[0]));
-                this.AttachDelegate(name + StatsBase.names[1], () => fromSeconds(values[1]));
-                this.AttachDelegate(name + StatsBase.names[2], () => fromSeconds(values[2]));
+            Action<string, Stats.StatsBase, bool> addStatsTimespan = (name, values, include_std) => {
+                this.AttachDelegate(name + Stats.StatsBase.names[0], () => fromSeconds(values[0]));
+                this.AttachDelegate(name + Stats.StatsBase.names[1], () => fromSeconds(values[1]));
+                this.AttachDelegate(name + Stats.StatsBase.names[2], () => fromSeconds(values[2]));
                 if (include_std) {
-                    this.AttachDelegate(name + StatsBase.names[3], () => fromSeconds(values[3]));
+                    this.AttachDelegate(name + Stats.StatsBase.names[3], () => fromSeconds(values[3]));
                 }
             };
 
@@ -171,19 +171,19 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + tyreNames[3], () => values[3]);
             };
 
-            Action<string, StatsBase, Color.ColorCalculator> addStatsWColor = (name, values, cc) => {
-                this.AttachDelegate(name + StatsBase.names[0], () => values[0]);
-                this.AttachDelegate(name + StatsBase.names[0] + "Color", () => cc.GetHexColor(values[0]));
+            Action<string, Stats.StatsBase, Color.ColorCalculator> addStatsWColor = (name, values, cc) => {
+                this.AttachDelegate(name + Stats.StatsBase.names[0], () => values[0]);
+                this.AttachDelegate(name + Stats.StatsBase.names[0] + "Color", () => cc.GetHexColor(values[0]));
 
-                this.AttachDelegate(name + StatsBase.names[1], () => values[1]);
-                this.AttachDelegate(name + StatsBase.names[1] + "Color", () => cc.GetHexColor(values[1]));
+                this.AttachDelegate(name + Stats.StatsBase.names[1], () => values[1]);
+                this.AttachDelegate(name + Stats.StatsBase.names[1] + "Color", () => cc.GetHexColor(values[1]));
 
-                this.AttachDelegate(name + StatsBase.names[2], () => values[2]);
-                this.AttachDelegate(name + StatsBase.names[2] + "Color", () => cc.GetHexColor(values[2]));
+                this.AttachDelegate(name + Stats.StatsBase.names[2], () => values[2]);
+                this.AttachDelegate(name + Stats.StatsBase.names[2] + "Color", () => cc.GetHexColor(values[2]));
 
             };
 
-            Action<string, WheelsStats, Color.ColorCalculator, Color.ColorCalculator> addTyresStats = (name, values, ccf, ccr) => {
+            Action<string, Stats.WheelsStats, Color.ColorCalculator, Color.ColorCalculator> addTyresStats = (name, values, ccf, ccr) => {
                 addStatsWColor(name + tyreNames[0], values[0], ccf);
                 addStatsWColor(name + tyreNames[1], values[1], ccf);
                 addStatsWColor(name + tyreNames[2], values[2], ccr);

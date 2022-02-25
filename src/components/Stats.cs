@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RaceEngineerPlugin {
+namespace RaceEngineerPlugin.Stats {
     /// <summary>
     /// Base class to build different statistics implementations
     /// </summary>

@@ -1,8 +1,9 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
+using RaceEngineerPlugin.Stats;
 
-namespace RaceEngineerPlugin.Tyres {
+namespace RaceEngineerPlugin.Car {
 
     public class Tyres {
         private const string TAG = "RACE ENGINEER (Tyres): ";
@@ -19,7 +20,7 @@ namespace RaceEngineerPlugin.Tyres {
 
         private WheelsRunningStats presRunning = new WheelsRunningStats();
         private WheelsRunningStats tempRunning = new WheelsRunningStats();
-        private Car.TyreInfo tyreInfo = null;
+        private TyreInfo tyreInfo = null;
 
         private double lastSampleTimeSec = DateTime.Now.Second;
 
@@ -63,7 +64,7 @@ namespace RaceEngineerPlugin.Tyres {
         }
 
 
-        public void CheckCompoundChange(PluginManager pluginManager, Car.Car car) {
+        public void CheckCompoundChange(PluginManager pluginManager, Car car) {
             string newTyreName = GetTyreCompound(pluginManager);
             if (newTyreName != null && newTyreName != Name && car.Info != null && car.Info.Tyres != null) {
                 if (car.Info != null && car.Info.Tyres != null) {

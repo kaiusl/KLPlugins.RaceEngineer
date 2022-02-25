@@ -1,6 +1,7 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
+using RaceEngineerPlugin.Deque;
 
 namespace RaceEngineerPlugin.Laps {
 

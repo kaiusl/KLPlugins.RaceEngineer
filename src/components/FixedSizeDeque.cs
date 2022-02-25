@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Nito.Collections;
 
-namespace RaceEngineerPlugin {
+namespace RaceEngineerPlugin.Deque {
 
     /// <summary>
     /// Deque that never grows larger than given size.
@@ -45,7 +45,7 @@ namespace RaceEngineerPlugin {
     /// We also want to have some statistics over the previous values. 
     /// </summary>
     public class FixedSizeDequeStats : FixedSizeDeque {
-        public Stats Stats { get; }
+        public Stats.Stats Stats { get; }
         public double Min { get => Stats.Min; }
         public double Max { get => Stats.Max; }
         public double Avg { get => Stats.Avg; }
@@ -61,7 +61,7 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="size">The size.</param>
         public FixedSizeDequeStats(int size) : base(size) {
-            Stats = new Stats();
+            Stats = new Stats.Stats();
         }
 
         new public void Clear() {

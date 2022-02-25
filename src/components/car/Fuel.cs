@@ -1,8 +1,9 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
+using RaceEngineerPlugin.Deque;
 
-namespace RaceEngineerPlugin.Fuel {
+namespace RaceEngineerPlugin.Car {
 
     public class Fuel {
         private const string TAG = "RACE ENGINEER (Fuel): ";

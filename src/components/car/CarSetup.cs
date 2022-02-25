@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RaceEngineerPlugin.Setup
+namespace RaceEngineerPlugin.Car
 {
     public class CarSetup
     {
@@ -15,13 +15,13 @@ namespace RaceEngineerPlugin.Setup
     }
 
     public class BasicSetup { 
-        public Tyres tyres { get; set; }
+        public TyreSetup tyres { get; set; }
         public Alignment alignment { get; set; }
         public Electronics electronics { get; set; }
         public Strategy strategy { get; set; }
     }
 
-    public class Tyres
+    public class TyreSetup
     {
         public int tyreCompound { get; set; }
         public int[] tyrePressure { get; set; }

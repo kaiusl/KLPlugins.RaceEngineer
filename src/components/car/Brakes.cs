@@ -1,14 +1,16 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
+using RaceEngineerPlugin.Stats;
+using RaceEngineerPlugin.Color;
 
-namespace RaceEngineerPlugin.Brakes {
+namespace RaceEngineerPlugin.Car {
     public class Brakes {
         private const string TAG = "RACE ENGINEER (Brakes): ";
         public int PadLaps { get; private set; }
         public int PadNr { get; private set; }
         public WheelsStats TempOverLap { get; }
-        public Color.ColorCalculator TempColor { get; private set; }
+        public ColorCalculator TempColor { get; private set; }
         
         private float[] prevPadLife = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f};
         private WheelsRunningStats tempRunning = new WheelsRunningStats();
@@ -18,7 +20,7 @@ namespace RaceEngineerPlugin.Brakes {
             PadLaps = 0;
             PadNr = 0;
             TempOverLap = new WheelsStats();
-            TempColor = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
+            TempColor = new ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
         }
 
         public void OnLapFinished() {
