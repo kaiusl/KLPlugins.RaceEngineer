@@ -49,11 +49,9 @@ namespace RaceEngineerPlugin.Car {
 
         public void OnLapFinished() { 
             SetLaps += 1;
-            UpdateIdealInputPressures();
-
             PresOverLap.Update(presRunning);
             TempOverLap.Update(tempRunning);
-
+            UpdateIdealInputPressures();
             presRunning.Reset();
             tempRunning.Reset();
         }

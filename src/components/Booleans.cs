@@ -7,6 +7,7 @@ namespace RaceEngineerPlugin.Booleans {
     /// Hold single set of boolean values
     /// </summary>
     public class Bools {
+        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Bools): ";
         public bool IsInPitLane { get; private set; }
         public bool IsOnTrack { get; private set; }
         public bool IsMoving { get; private set; }
@@ -18,7 +19,7 @@ namespace RaceEngineerPlugin.Booleans {
         public bool IsValidFuelLap { get; private set; }
         public bool IsTimeLimitedSession { get; private set; }
         public bool IsLapLimitedSession { get; private set; }
-        public bool SaveLap { get; private set; }
+        public bool SavePrevLap { get; private set; }
         public bool HasSetupChanged { get; private set; }
         public bool IsGameRunning { get; private set; }
         public bool IsRaceStartStintAdded { get; private set; }
@@ -41,7 +42,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsValidFuelLap = o.IsValidFuelLap;
             IsTimeLimitedSession = o.IsTimeLimitedSession;
             IsLapLimitedSession = o.IsLapLimitedSession;
-            SaveLap = o.SaveLap;
+            SavePrevLap = o.SavePrevLap;
             HasSetupChanged = o.HasSetupChanged;
             IsGameRunning = o.IsGameRunning;
             IsRaceStartStintAdded = o.IsRaceStartStintAdded;
@@ -49,7 +50,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsInLap = o.IsInLap;
         }
 
-        public void Update(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
+        public void Update(PluginManager pm, GameData data, double minLapTime, double fuelUsedPrevLapStart) {
             IsInPitLane = data.NewData.IsInPitLane == 1;
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
@@ -61,33 +62,35 @@ namespace RaceEngineerPlugin.Booleans {
             IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
             IsLapLimitedSession = data.NewData.RemainingLaps != 0;
             if (IsValidFuelLap && IsInPitLane) {
+                LogInfo("Set 'IsValidFuelLap = false'");
                 IsValidFuelLap = false;
             }
             double lastLapTime = data.NewData.LastLapTime.TotalSeconds;
 
-            SaveLap = lastLapTime > 0.0
+            SavePrevLap = lastLapTime > 0.0
                 && (double.IsNaN(minLapTime) || lastLapTime < minLapTime + 30)
                 && IsValidFuelLap
-                && fuelUsedLapStart != 0.0
-                && fuelUsedLapStart > data.NewData.Fuel;
+                && fuelUsedPrevLapStart != 0.0
+                && fuelUsedPrevLapStart > data.NewData.Fuel
+                && !IsInLap
+                && !IsOutLap;
+
+            if (HasFinishedLap) {
+                LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'minLapTime = {minLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {fuelUsedPrevLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
+            }
 
             IsGameRunning = data.GameRunning;
 
             if (!IsInLap && data.OldData.IsInPitLane == 0 && data.NewData.IsInPitLane == 1) {
                 if (IsMoving || (data.OldData.AirTemperature != 0 && data.NewData.AirTemperature == 0)) {
+                    LogInfo("Set 'IsInLap = true'");
                     IsInLap = true;
                 }
             }
 
             if (!IsOutLap && data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0) {
+                LogInfo("Set 'IsOutLap = true'");
                 IsOutLap = true;
-            }
-
-            if (HasFinishedLap) {
-                // HOTLAP doesn't have fuel usage, thus set isValidFuelLap = false in that case always, otherwise reset to valid lap in other cases
-                IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
-                IsOutLap = false;
-                IsInLap = false;
             }
         }
 
@@ -103,7 +106,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsValidFuelLap = false;
             IsTimeLimitedSession = false;
             IsLapLimitedSession = false;
-            SaveLap = false;
+            SavePrevLap = false;
             HasSetupChanged = false;
             IsGameRunning = false;
             IsRaceStartStintAdded = false;
@@ -112,7 +115,7 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void RaceStartStintAdded() {
-            IsRaceStartStintAdded |= true;
+            IsRaceStartStintAdded = true;
         }
 
         public void OnNewEvent(string sessionTypeName) { 
@@ -126,7 +129,7 @@ namespace RaceEngineerPlugin.Booleans {
             HasFinishedLap = false;
             IsSetupMenuVisible = false;
             IsFuelWarning = false;
-            SaveLap = false;
+            SavePrevLap = false;
             HasSetupChanged = false;
             IsGameRunning = true;
             IsRaceStartStintAdded = false;
@@ -137,9 +140,23 @@ namespace RaceEngineerPlugin.Booleans {
             IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
         }
 
+        public void OnLapFinished(GameData data) {
+            // HOTLAP doesn't have fuel usage, thus set isValidFuelLap = false in that case always, otherwise reset to valid lap in other cases
+            IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
+            IsOutLap = false;
+            IsInLap = false;
+            LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
+        }
+
         public void OnGameNotRunning() {
             if (IsGameRunning) { 
                 IsGameRunning = false;
+            }
+        }
+
+        private void LogInfo(string msq) {
+            if (RaceEngineerPlugin.SETTINGS.Log) {
+                SimHub.Logging.Current.Info(TAG + msq);
             }
         }
     }
@@ -185,6 +202,10 @@ namespace RaceEngineerPlugin.Booleans {
         public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
             OldData.Update(NewData);
             NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
+        }
+
+        public void OnLapFinished(GameData data) {
+            NewData.OnLapFinished(data);
         }
 
         private void LogInfo(string msq) {

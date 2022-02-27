@@ -65,7 +65,7 @@ namespace RaceEngineerPlugin {
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (data.NewData.SessionTypeName == "RACE" || data.NewData.SessionTypeName == "7" || data.NewData.SessionTypeName == "HOTLAP" && 
+            if ((data.NewData.SessionTypeName == "RACE" || data.NewData.SessionTypeName == "7" || data.NewData.SessionTypeName == "HOTLAP") && 
                 !booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving) 
             {
                 LogInfo("New stint on race/hotlap/hotstint start.");
@@ -78,9 +78,12 @@ namespace RaceEngineerPlugin {
 
             if (booleans.NewData.HasFinishedLap) {
                 LogInfo("Lap finished.");
+                booleans.OnLapFinished(data);
                 car.OnLapFinished(data, booleans);
                 laps.OnLapFinished(data, booleans);
-                db.InsertLap(pm, this, data);
+                if (laps.LastTime != 0) {
+                    db.InsertLap(pm, this, data);
+                }
             }
 
             if (data.OldData.SessionTypeName != data.NewData.SessionTypeName) {

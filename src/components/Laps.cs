@@ -53,7 +53,7 @@ namespace RaceEngineerPlugin.Laps {
         public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
             StintLaps += 1;
             LastTime = data.NewData.LastLapTime.TotalSeconds;
-            if (booleans.OldData.SaveLap && booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
+            if (booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
                 LogInfo($"Added laptime '{LastTime}' to deque.");
                 PrevTimes.AddToFront(LastTime);
                 maxTime = PrevTimes.Min + 30;

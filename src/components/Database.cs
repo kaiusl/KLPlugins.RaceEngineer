@@ -405,8 +405,9 @@ namespace RaceEngineerPlugin.Database
 				}
 			}
 
+
+			SetParam(insertLapCmd, IS_VALID, v.booleans.NewData.SavePrevLap);
 			// Need to use booleans.OldData which is the last point on finished lap
-			SetParam(insertLapCmd, IS_VALID, v.booleans.OldData.SaveLap);
 			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, v.booleans.OldData.IsValidFuelLap);
 			SetParam(insertLapCmd, IS_OUTLAP, v.booleans.OldData.IsOutLap);
 			SetParam(insertLapCmd, IS_INLAP, v.booleans.OldData.IsInLap);

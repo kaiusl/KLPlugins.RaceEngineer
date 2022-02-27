@@ -70,6 +70,11 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
+        public void OnNewEvent() {
+            PadNr = 0;
+            PadLaps = 0;
+        }
+
         private void LogInfo(string msq) {
             if (RaceEngineerPlugin.SETTINGS.Log) {
                 SimHub.Logging.Current.Info(TAG + msq);

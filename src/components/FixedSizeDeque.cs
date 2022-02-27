@@ -53,9 +53,11 @@ namespace RaceEngineerPlugin.Deque {
         public double Avg { get => Stats.Avg; }
         public double Std { get => Stats.Std; }
 
-        private double median = -1.0;
         private double q1 = -1.0;
         private double q3 = -1.0;
+
+        private double lowerBound = -1.0;
+        private double upperBound = -1.0;
 
         private double sum = 0.0;
         private double sumOfSquares = 0.0;
@@ -77,6 +79,10 @@ namespace RaceEngineerPlugin.Deque {
             sumOfSquares = 0.0;
             minId = -1;
             maxId = -1;
+            q1 = -1;
+            q3 = -1;
+            lowerBound = -1;
+            upperBound = -1;
         }
 
         // Add value, remove last if over size
@@ -103,25 +109,27 @@ namespace RaceEngineerPlugin.Deque {
             SetMin(value);
             SetMax(value);
             Stats.Std = Math.Sqrt(sumOfSquares / Count - Avg*Avg);
-            SetMedian(value);
-            LogInfo($"Avg set to '{Stats.Avg}', std set to '{Stats.Std}', median set to '{median}', (q1, q3) set to ('{q1}', '{q3}')");
+            SetBounds(value);
+            LogInfo($@"Avg set to '{Stats.Avg}', 
+    std set to '{Stats.Std}', 
+    (q1, q3) set to ('{q1}', '{q3}'),
+    (lowerBound, upperBound) set to ('{lowerBound}', '{upperBound}')");
         }
 
-        private void SetMedian(double value) {
-            if (median == -1.0) {
-                median = value;
-            } else {
-                var b = Data.ToArray();
-                Array.Sort(b);
+        private void SetBounds(double value) {
+            var b = Data.ToArray();
+            Array.Sort(b);
 
-                median = GetMedian(b);
+            if (b.Length > 2) {
+                var i = b.Length / 2;
+                q1 = GetMedian(b.Take(i).ToArray());
+                q3 = GetMedian(b.Reverse().Take(i).ToArray());
 
-                if (b.Length > 2) {
-                    var i = b.Length / 2;
-                    q1 = GetMedian(b.Take(i).ToArray());
-                    q3 = GetMedian(b.Reverse().Take(i).ToArray());
-                }                
-            }
+                var iqr = q3 - q1;
+
+                lowerBound = q1 - 3 * iqr;
+                upperBound = q3 + 3 * iqr;
+            }  
         }
 
         private double GetMedian(double[] v) {

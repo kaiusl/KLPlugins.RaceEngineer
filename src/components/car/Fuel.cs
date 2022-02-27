@@ -81,8 +81,9 @@ namespace RaceEngineerPlugin.Car {
         public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
             LastUsedPerLap = (double)RemainingAtLapStart - data.NewData.Fuel;
             RemainingAtLapStart = data.NewData.Fuel;
+            LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
 
-            if (booleans.NewData.HasFinishedLap && booleans.OldData.SaveLap && booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
+            if (booleans.NewData.HasFinishedLap && booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
                 LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
                 PrevUsedPerLap.AddToFront(LastUsedPerLap);
             }

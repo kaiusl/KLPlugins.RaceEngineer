@@ -73,6 +73,7 @@ namespace RaceEngineerPlugin.Car {
         public void OnNewEvent(PluginManager pm, GameData data, Database.Database db) {
             Reset();
             CheckChange(data.NewData.CarModel);
+            Brakes.OnNewEvent();
             Fuel.OnSessionChange(pm, Name, data.NewData.TrackId, db);
         }
 
