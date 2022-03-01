@@ -86,12 +86,12 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void OnLapFinished(GameData data, Booleans.Booleans booleans) { 
-            Tyres.OnLapFinished();
+            Tyres.OnLapFinished(data.NewData.AirTemperature, data.NewData.RoadTemperature);
             Brakes.OnLapFinished();
             Fuel.OnLapFinished(data, booleans);
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans, string trackName) {
+        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans, string trackName, Database.Database db) {
             CheckChange(data.NewData.CarModel);
             
             if (!booleans.NewData.IsMoving && (Setup == null || (booleans.OldData.IsSetupMenuVisible && !booleans.NewData.IsSetupMenuVisible))) {
@@ -99,7 +99,7 @@ namespace RaceEngineerPlugin.Car {
             }
 
             Brakes.CheckPadChange(pm, data);
-            Tyres.CheckCompoundChange(pm, this);
+            Tyres.CheckCompoundChange(pm, this, trackName, db);
             Tyres.CheckPresChange(data);
 
             Tyres.UpdateOverLapData(data, booleans);

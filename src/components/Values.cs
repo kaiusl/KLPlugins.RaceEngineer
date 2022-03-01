@@ -55,7 +55,7 @@ namespace RaceEngineerPlugin {
         public void OnRegularUpdate(PluginManager pm, GameData data) {
             booleans.OnRegularUpdate(pm, data, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
             track.OnRegularUpdate(data);
-            car.OnRegularUpdate(pm, data, booleans, track.Name);
+            car.OnRegularUpdate(pm, data, booleans, track.Name, db);
 
             // New stint starts at the pit exit. (ignore is session changes, for example from Qualy->Race this jump also happens but is undesired)
             if (data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0

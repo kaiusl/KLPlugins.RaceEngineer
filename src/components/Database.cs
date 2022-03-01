@@ -501,9 +501,43 @@ namespace RaceEngineerPlugin.Database
 				return 0;
 			}
 		}
-        #endregion
 
-        private void LogInfo(string msq) {
+		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound) {
+			var cmd = new SQLiteCommand(conn);
+			string duct;
+			if (tyre < 2) {
+				duct = BRAKE_DUCT_FRONT;
+			} else {
+				duct = BRAKE_DUCT_REAR;
+			}
+			cmd.CommandText = $@"
+				SELECT s.{TYRE_PRES_IN}_{TYRES[tyre]}, l.{TYRE_PRES_AVG}_{TYRES[tyre]}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {lapsTable.name} AS l
+				INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
+				INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
+				WHERE e.car_id == '{car}' AND e.track_id == '{track}' AND l.stint_lap_nr > 2 AND l.stint_lap_nr < 11 AND s.{TYRE_COMPOUND} == '{compound}'";
+			if (-1 < brakeDuct && brakeDuct < 7) {
+				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
+			}
+
+			//SimHub.Logging.Current.Info($"Queried: {cmd.CommandText}");
+
+			SQLiteDataReader rdr = cmd.ExecuteReader();
+			List<double> y = new List<double>();
+			List<double[]> x = new List<double[]>();
+
+			while (rdr.Read()) {
+				y.Add(rdr.GetDouble(0));
+				x.Add(new double[] { 1.0, rdr.GetDouble(1), rdr.GetDouble(2), rdr.GetDouble(3) });
+			}
+
+			return Tuple.Create(x, y);
+		}
+
+
+
+		#endregion
+
+		private void LogInfo(string msq) {
 			if (RaceEngineerPlugin.SETTINGS.Log) {
 				SimHub.Logging.Current.Info(TAG + msq);
 			}
