@@ -4,25 +4,25 @@
 
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
-- [ ] Detect punctures and add the amount to db.
-    - [x] Add implementation
-    - [ ] Test implementation
 - [ ] Rework loading of previous data to be more representative of current condition.
     - [ ] How to handle not enough data? Widen requirements? Don't load?
 - [ ] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.
-- [ ] Add options to enable/disable different components, like colors, min/max/avg/std
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
+    - First data update takes long (~100ms) but it's okay as nothing happend in game then.
     - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
     - Most expensive are db commits. Takes around 3-10ms which is a bit much.
-        - Tried to use single transaction for lap and stint inserts. Works sometimes but not always. Figure out why.
+        - Tried to use single transaction for lap and stint inserts. Works sometimes but not always. Figure out why!!!
             - Is there any query between which messes up our single transaction?
             - Something random?
             - With single transaction, lap finish takes around 0.5ms
         - Cache inserts statements into list and insert later?
             - In this case we need to keep track of tyre sets and laps driven with each tyre set. Maybe something else?
+    - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
+
 #### *DONE!*
 
+- [x] Add options to enable/disable different components, like colors, min/max/avg/std
 - [x] Remove outliers from the lap and fuel data
     - [x] How to handle ecu changes? 
     
@@ -43,6 +43,9 @@
         For example crashing doesn't change fuel consumption that much whereas laptime is much lower.
 
         Note that changes in track conditions are then represented by min/max values and average takes some time to catch up to real conditions, but I suppose that's logical.
+- [x] Detect punctures and add the amount to db.
+    - [x] Add implementation
+    - [x] Test implementation
            
           
 
