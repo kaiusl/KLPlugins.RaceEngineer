@@ -6,33 +6,43 @@ using RaceEngineerPlugin.Deque;
 namespace RaceEngineerPlugin.Car {
 
     public class Fuel {
-        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Car.Fuel): ";
-
         public double Remaining { get; private set; }
         public double RemainingAtLapStart { get; private set; }
         public double LastUsedPerLap { get; private set; }
         public FixedSizeDequeStats PrevUsedPerLap { get; private set; }
 
         public Fuel() { 
-            PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored);
+            PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.None);
         }
 
         public void Reset() {
-            LogInfo("Fuel.Reset()");
+            RaceEngineerPlugin.LogInfo("Fuel.Reset()");
             Remaining = 0.0;
             RemainingAtLapStart = 0.0;
             LastUsedPerLap = 0.0;
             PrevUsedPerLap.Clear();
         }
 
+        #region On... METHODS
 
         public void OnSessionChange(PluginManager pm, string carName, string trackName, Database.Database db) {
             Reset();
             int trackGrip = RaceEngineerPlugin.GAME.IsACC ? (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus") : -1;
 
             foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
-                LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
+                RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
                 PrevUsedPerLap.AddToFront(pd.fuelUsed);
+            }
+        }
+
+        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
+            LastUsedPerLap = (double)RemainingAtLapStart - data.NewData.Fuel;
+            RemainingAtLapStart = data.NewData.Fuel;
+            RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+
+            if (booleans.NewData.HasFinishedLap && booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
+                RaceEngineerPlugin.LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
+                PrevUsedPerLap.AddToFront(LastUsedPerLap);
             }
         }
 
@@ -50,7 +60,7 @@ namespace RaceEngineerPlugin.Car {
             // This happens when we jump to pits, reset fuel
             if (data.OldData.Fuel != 0.0 && data.NewData.Fuel == 0.0) {
                 RemainingAtLapStart = 0.0;
-                LogInfo($"Reset fuel at lap start to '{RemainingAtLapStart}'");
+                RaceEngineerPlugin.LogInfo($"Reset fuel at lap start to '{RemainingAtLapStart}'");
             }
 
             if (booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
@@ -67,35 +77,21 @@ namespace RaceEngineerPlugin.Car {
 
                 if (set_lap_start_fuel) {
                     RemainingAtLapStart = data.NewData.Fuel;
-                    LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+                    RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
                 }
             }
 
             if (data.NewData.IsInPitLane == 1 && data.OldData.Fuel != 0 && data.NewData.Fuel != 0 && Math.Abs(data.OldData.Fuel - data.NewData.Fuel) > 0.5) {
                 RemainingAtLapStart += Remaining - data.OldData.Fuel;
-                LogInfo($"Added {Remaining - data.OldData.Fuel} liters of fuel.");
-                LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+                RaceEngineerPlugin.LogInfo($"Added {Remaining - data.OldData.Fuel} liters of fuel.\n Set fuel at lap start to '{RemainingAtLapStart}'");
             }
         }
 
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
-            LastUsedPerLap = (double)RemainingAtLapStart - data.NewData.Fuel;
-            RemainingAtLapStart = data.NewData.Fuel;
-            LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+        #endregion
 
-            if (booleans.NewData.HasFinishedLap && booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
-                LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
-                PrevUsedPerLap.AddToFront(LastUsedPerLap);
-            }
-        }
+        #region PRIVATE METHODS
 
-        private void LogInfo(string msq) {
-            if (RaceEngineerPlugin.SETTINGS.Log) {
-                SimHub.Logging.Current.Info(TAG + msq);
-            }
-        }
-
-
+        #endregion
 
     }
 

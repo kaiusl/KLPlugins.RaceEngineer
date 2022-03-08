@@ -6,8 +6,7 @@ namespace RaceEngineerPlugin.Booleans {
     /// <summary>
     /// Hold single set of boolean values
     /// </summary>
-    public class Bools {
-        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Bools): ";
+    public class BooleansBase {
         public bool IsInPitLane { get; private set; }
         public bool IsOnTrack { get; private set; }
         public bool IsMoving { get; private set; }
@@ -26,11 +25,11 @@ namespace RaceEngineerPlugin.Booleans {
         public bool IsOutLap { get; private set; }
         public bool IsInLap { get; private set; }
 
-        public Bools() {
+        public BooleansBase() {
             Reset(null);
         }
 
-        public void Update(Bools o) {
+        public void Update(BooleansBase o) {
             IsInPitLane = o.IsInPitLane;
             IsOnTrack = o.IsOnTrack;
             IsMoving = o.IsMoving;
@@ -62,7 +61,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
             IsLapLimitedSession = data.NewData.RemainingLaps != 0;
             if (IsValidFuelLap && IsInPitLane) {
-                LogInfo("Set 'IsValidFuelLap = false'");
+                RaceEngineerPlugin.LogInfo("Set 'IsValidFuelLap = false'");
                 IsValidFuelLap = false;
             }
             double lastLapTime = data.NewData.LastLapTime.TotalSeconds;
@@ -76,20 +75,20 @@ namespace RaceEngineerPlugin.Booleans {
                 && !IsOutLap;
 
             if (HasFinishedLap) {
-                LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'minLapTime = {minLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {fuelUsedPrevLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
+                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'minLapTime = {minLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {fuelUsedPrevLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
             }
 
             IsGameRunning = data.GameRunning;
 
             if (!IsInLap && data.OldData.IsInPitLane == 0 && data.NewData.IsInPitLane == 1) {
                 if (IsMoving || (data.OldData.AirTemperature != 0 && data.NewData.AirTemperature == 0)) {
-                    LogInfo("Set 'IsInLap = true'");
+                    RaceEngineerPlugin.LogInfo("Set 'IsInLap = true'");
                     IsInLap = true;
                 }
             }
 
             if (!IsOutLap && data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0) {
-                LogInfo("Set 'IsOutLap = true'");
+                RaceEngineerPlugin.LogInfo("Set 'IsOutLap = true'");
                 IsOutLap = true;
             }
         }
@@ -145,7 +144,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
             IsOutLap = false;
             IsInLap = false;
-            LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
+            RaceEngineerPlugin.LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
         }
 
         public void OnGameNotRunning() {
@@ -154,11 +153,6 @@ namespace RaceEngineerPlugin.Booleans {
             }
         }
 
-        private void LogInfo(string msq) {
-            if (RaceEngineerPlugin.SETTINGS.Log) {
-                SimHub.Logging.Current.Info(TAG + msq);
-            }
-        }
     }
 
 
@@ -166,23 +160,22 @@ namespace RaceEngineerPlugin.Booleans {
     /// Hold current and previous boolean values 
     /// </summary>
     public class Booleans {
-        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Booleans): ";
-        public Bools NewData { get; private set; }
-        public Bools OldData { get; private set; }
+        public BooleansBase NewData { get; private set; }
+        public BooleansBase OldData { get; private set; }
 
         public Booleans() { 
-            NewData = new Bools();
-            OldData = new Bools();
+            NewData = new BooleansBase();
+            OldData = new BooleansBase();
         }
 
         public void Reset(string sessionTypeName) {
-            LogInfo("Booleans.Reset()");
+            RaceEngineerPlugin.LogInfo("Booleans.Reset()");
             OldData.Reset(null);
             NewData.Reset(sessionTypeName);
         }
 
         public void RaceStartStintAdded() {
-            LogInfo("Booleans.RaceStartStintAdded()");
+            RaceEngineerPlugin.LogInfo("Booleans.RaceStartStintAdded()");
             NewData.RaceStartStintAdded();
         }
 
@@ -199,19 +192,13 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnSessionChange(sessionTypeName);
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
-            OldData.Update(NewData);
-            NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
-        }
-
         public void OnLapFinished(GameData data) {
             NewData.OnLapFinished(data);
         }
 
-        private void LogInfo(string msq) {
-            if (RaceEngineerPlugin.SETTINGS.Log) {
-                SimHub.Logging.Current.Info(TAG + msq);
-            }
+        public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
+            OldData.Update(NewData);
+            NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
         }
 
     }

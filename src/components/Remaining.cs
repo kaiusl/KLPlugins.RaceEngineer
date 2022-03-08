@@ -14,7 +14,7 @@
             fuelNeeded.Reset();
         }
 
-        public void Update(Booleans.Booleans booleans, double timeLeft, double lapsLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
+        public void OnRegularUpdate(Booleans.Booleans booleans, double timeLeft, double lapsLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
             if (booleans.NewData.IsTimeLimitedSession) {
                 time.Set(timeLeft);
 
@@ -46,7 +46,7 @@
             laps.Reset();
         }
 
-        public void Update(double fuelLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
+        public void OnRegularUpdate(double fuelLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
             laps.Min = fuelLeft / fuelUsed.Max;
             laps.Max = fuelLeft / fuelUsed.Min;
             laps.Avg = fuelLeft / fuelUsed.Avg;

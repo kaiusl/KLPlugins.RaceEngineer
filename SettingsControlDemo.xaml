@@ -9,11 +9,9 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
     <Grid>
-        <styles:SHSection Title="RACE ENGINEER PLUGIN OPTIONS">
-            <StackPanel>
-                <TextBlock Text="TODO\n"/>
-                <TextBlock Text="Currently settings are in '..\Simhub\PluginsData\RaceEngineerPlugin\Settings.json'."/>
-            </StackPanel>
-        </styles:SHSection>
+        <StackPanel>
+            <TextBlock Text="TODO\n"/>
+            <TextBlock Text="Currently settings are in '..\Simhub\PluginsData\RaceEngineerPlugin\Settings.json'."/>
+        </StackPanel>
     </Grid>
 </UserControl>

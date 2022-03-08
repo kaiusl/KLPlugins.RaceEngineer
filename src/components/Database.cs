@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using GameReaderCommon;
@@ -12,15 +13,17 @@ namespace RaceEngineerPlugin.Database
 	/// Handles data collection/storing for plugin.
 	/// </summary>
 	public class Database {
-		private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Database): ";
 		private SQLiteConnection conn;
 
 		private SQLiteCommand insertEventCmd;
 		private SQLiteCommand insertStintCmd;
 		private SQLiteCommand insertLapCmd;
 
+		private SQLiteTransaction transaction;
+
 		private long eventId;
 		private long stintId;
+		private int numCommands = 0;
 
 		public Database() {
 			var location = $@"{RaceEngineerPlugin.SETTINGS.DataLocation}\{RaceEngineerPlugin.GAME.Name}\data.db";
@@ -37,16 +40,45 @@ namespace RaceEngineerPlugin.Database
 				insertEventCmd = eventsTable.CreateInsertCmdWReturning(conn, EVENT_ID);
 				insertStintCmd = stintsTable.CreateInsertCmdWReturning(conn, STINT_ID);
 				insertLapCmd = lapsTable.CreateInsertCmd(conn);
-				LogInfo($"Opened database from '{location}'");
+
+				RaceEngineerPlugin.LogInfo($"Opened database from '{location}'");
 			} catch (Exception ex) {
-				LogInfo($"Failed to open DB. location={location} Error msq: {ex}");
+				RaceEngineerPlugin.LogInfo($"Failed to open DB. location={location} Error msq: {ex}");
 			}
 		}
 
 		public void Dispose() {
-			conn.Close();
-			conn.Dispose();
-			LogInfo("Database closed.");
+			if (transaction != null) {
+				transaction.Commit();
+				transaction.Dispose();
+			}
+			if (conn != null) {
+				conn.Close();
+				conn.Dispose();
+				conn = null;
+			}
+		}
+
+		~Database() {
+			if (transaction != null) {
+				transaction.Commit();
+				transaction.Dispose();
+			}
+			if (conn != null) {
+				conn.Close();
+				conn.Dispose();
+				conn = null;
+			}
+		}
+
+		public void CommitTransaction() {
+			if (transaction != null && numCommands != 0) {
+				RaceEngineerPlugin.LogInfo("Commited db transaction");
+				transaction.Commit();
+				transaction.Dispose();
+				transaction = null;
+				numCommands = 0;
+			}
 		}
 
         #region TABLE DEFINITIONS
@@ -84,7 +116,7 @@ namespace RaceEngineerPlugin.Database
 			new DBField(SESSION_TYPE, "TEXT"),
 			new DBField(STINT_NR, "INTEGER"),
 			new DBField(START_TIME, "TEXT"),
-			new DBField(TYRE_COMPOUND, "INTEGER"),
+			new DBField(TYRE_COMPOUND, "TEXT"),
 			new DBField(TYRE_PRES_IN + $"_{TYRES[0]}", "REAL"),
 			new DBField(TYRE_PRES_IN + $"_{TYRES[1]}", "REAL"),
 			new DBField(TYRE_PRES_IN + $"_{TYRES[2]}", "REAL"),
@@ -121,6 +153,7 @@ namespace RaceEngineerPlugin.Database
 		private const string TYRE_PRES_AVG = "tyre_pres_avg";
 		private const string TYRE_PRES_MIN = "tyre_pres_min";
 		private const string TYRE_PRES_MAX = "tyre_pres_max";
+		private const string TYRE_PRES_LOSS = "tyre_pres_loss";
 		private const string TYRE_TEMP_AVG = "tyre_temp_avg";
 		private const string TYRE_TEMP_MIN = "tyre_temp_min";
 		private const string TYRE_TEMP_MAX = "tyre_temp_max";
@@ -132,6 +165,7 @@ namespace RaceEngineerPlugin.Database
 		private const string ABS = "abs";
 		private const string TC = "tc";
 		private const string TC2 = "tc2";
+		private const string ECU_MAP = "ecu_map";
 		private const string TRACK_GRIP_STATUS = "track_grip_status";
 		private const string IS_VALID = "is_valid";
 		private const string IS_VALID_FUEL_LAP = "is_valid_fuel_lap";
@@ -163,6 +197,10 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TYRE_PRES_MAX + $"_{TYRES[1]}", "REAL"),
 			new DBField(TYRE_PRES_MAX + $"_{TYRES[2]}", "REAL"),
 			new DBField(TYRE_PRES_MAX + $"_{TYRES[3]}", "REAL"),
+			new DBField(TYRE_PRES_LOSS + $"_{TYRES[0]}", "REAL"),
+			new DBField(TYRE_PRES_LOSS + $"_{TYRES[1]}", "REAL"),
+			new DBField(TYRE_PRES_LOSS + $"_{TYRES[2]}", "REAL"),
+			new DBField(TYRE_PRES_LOSS + $"_{TYRES[3]}", "REAL"),
 
 			new DBField(TYRE_TEMP_AVG + $"_{TYRES[0]}", "REAL"),
 			new DBField(TYRE_TEMP_AVG + $"_{TYRES[1]}", "REAL"),
@@ -202,6 +240,7 @@ namespace RaceEngineerPlugin.Database
 			new DBField(ABS, "INTEGER"),
 			new DBField(TC, "INTEGER"),
 			new DBField(TC2, "INTEGER"),
+			new DBField(ECU_MAP, "INTEGER"),
 			new DBField(TRACK_GRIP_STATUS, "TEXT"),
 			new DBField(IS_VALID, "INTEGER"),
 			new DBField(IS_VALID_FUEL_LAP, "INTEGER"),
@@ -214,7 +253,7 @@ namespace RaceEngineerPlugin.Database
         #region INSERTS
 
         private void SetParam(SQLiteCommand cmd, string name, object value) {
-			cmd.Parameters.AddWithValue($"@{name}", value);
+			cmd.Parameters["@" + name].Value = value.ToString();
 		}
 
 		private void SetParam(SQLiteCommand cmd, string name, bool value) {
@@ -226,16 +265,18 @@ namespace RaceEngineerPlugin.Database
 		}
 
 		public void InsertEvent(string carName, string trackName) {
+			if (transaction == null) {
+				transaction = conn.BeginTransaction();
+			}
+
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
 			SetParam(insertEventCmd, CAR_ID, carName);
 			SetParam(insertEventCmd, TRACK_ID, trackName);
 			SetParam(insertEventCmd, START_TIME, stime);
 
-			insertEventCmd.Prepare();
-
 			eventId = (long)insertEventCmd.ExecuteScalar();
-			insertEventCmd.Reset();
+			numCommands++;
 
 			var debugCmd = new SQLiteCommand(conn);
 			debugCmd.CommandText = $"SELECT * FROM {eventsTable.name} ORDER BY rowid DESC LIMIT 1";
@@ -247,10 +288,13 @@ namespace RaceEngineerPlugin.Database
 				txt += $"\n\t{rdr.GetName(i)} = {rdr.GetValue(i)}";
 			}
 
-			LogInfo(txt);
+			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertStint(PluginManager pm, Values v, GameData data) {
+			if (transaction == null) {
+				transaction = conn.BeginTransaction();
+			}
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
 			SetParam(insertStintCmd, EVENT_ID, eventId);
@@ -267,7 +311,6 @@ namespace RaceEngineerPlugin.Database
 				SetParam(insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", v.car.Tyres.CurrentInputPres[i]);
 			}
 			
-
 			if (RaceEngineerPlugin.GAME.IsACC) {
 				int tyreset = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
 				SetParam(insertStintCmd, BRAKE_PAD_FRONT, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.frontBrakeCompound") + 1);
@@ -305,10 +348,9 @@ namespace RaceEngineerPlugin.Database
 				SetParam(insertStintCmd, CASTER + $"_{TYRES[1]}", v.car.Setup.basicSetup.alignment.casterRF);
 			}
 
-			insertStintCmd.Prepare();
-
 			stintId = (long)insertStintCmd.ExecuteScalar();
-			insertStintCmd.Reset();
+			//insertStintCmd.Reset();
+			numCommands++;
 
 			// Debug
 			var debugCmd = new SQLiteCommand(conn);
@@ -340,10 +382,14 @@ namespace RaceEngineerPlugin.Database
 				}
 			}
 
-			LogInfo(txt);
+			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertLap(PluginManager pm, Values v, GameData data) {
+			if (transaction == null) {
+				transaction = conn.BeginTransaction();
+			}
+
 			SetParam(insertLapCmd, STINT_ID, stintId);
 			SetParam(insertLapCmd, SESSION_LAP_NR, data.NewData.CompletedLaps);
 			SetParam(insertLapCmd, STINT_LAP_NR, v.laps.StintLaps);
@@ -360,6 +406,7 @@ namespace RaceEngineerPlugin.Database
 				SetParam(insertLapCmd, TYRE_PRES_AVG + tyre, v.car.Tyres.PresOverLap[i].Avg);
 				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, v.car.Tyres.PresOverLap[i].Min);
 				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, v.car.Tyres.PresOverLap[i].Max);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, v.car.Tyres.PresLoss[i]);
 
 				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, v.car.Tyres.TempOverLap[i].Avg);
 				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, v.car.Tyres.TempOverLap[i].Min);
@@ -369,11 +416,12 @@ namespace RaceEngineerPlugin.Database
 				SetParam(insertLapCmd, BRAKE_TEMP_MIN + tyre, v.car.Brakes.TempOverLap[i].Min);
 				SetParam(insertLapCmd, BRAKE_TEMP_MAX + tyre, v.car.Brakes.TempOverLap[i].Max);
 
-				SetParam(insertLapCmd, TYRE_LIFE_LEFT + tyre);
+				SetParam(insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
 			}
 			
 			SetParam(insertLapCmd, ABS, data.NewData.ABSLevel);
 			SetParam(insertLapCmd, TC, data.NewData.TCLevel);
+			SetParam(insertLapCmd, ECU_MAP, data.NewData.EngineMap);
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
 				SetParam(insertLapCmd, TC2, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut"));
@@ -412,10 +460,8 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, IS_OUTLAP, v.booleans.OldData.IsOutLap);
 			SetParam(insertLapCmd, IS_INLAP, v.booleans.OldData.IsInLap);
 
-			insertLapCmd.Prepare();
-
-			insertLapCmd.ExecuteScalar();
-			insertLapCmd.Reset();
+			insertLapCmd.ExecuteNonQuery();
+			numCommands++;
 
 			// Debug log inserted values
 			var debugCmd = new SQLiteCommand(conn);
@@ -444,7 +490,7 @@ namespace RaceEngineerPlugin.Database
 				}
 			}
 
-			LogInfo(txt);
+			RaceEngineerPlugin.LogInfo(txt);
 
 		}
         #endregion
@@ -452,6 +498,7 @@ namespace RaceEngineerPlugin.Database
         #region QUERIES
 
         public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
+			CommitTransaction();
 			string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
 			if (0 < trackGrip && trackGrip < 3) {
 				conds += "('Green', 'Fast', 'Optimum')";
@@ -481,7 +528,8 @@ namespace RaceEngineerPlugin.Database
 			return list;
 		}
 
-		public int GetLapsOnTyreset(int tyreSet) { 
+		public int GetLapsOnTyreset(int tyreSet) {
+			CommitTransaction();
 			var cmd = new SQLiteCommand(conn);
 			cmd.CommandText = $@"
 				SELECT l.{TYRESET_LAP_NR} FROM {lapsTable.name} AS l
@@ -494,15 +542,16 @@ namespace RaceEngineerPlugin.Database
 			var result = cmd.ExecuteScalar();
 			if (result != null) {
 				var tmp = (long)result; // This cannot reasonably be out of int range
-				LogInfo($"Fitted tyre set '{tyreSet}' is used for '{tmp}' laps.");
+				RaceEngineerPlugin.LogInfo($"Fitted tyre set '{tyreSet}' is used for '{tmp}' laps.");
 				return (int)tmp;
 			} else {
-				LogInfo($"Fitted tyre set '{tyreSet}' is new.");
+				RaceEngineerPlugin.LogInfo($"Fitted tyre set '{tyreSet}' is new.");
 				return 0;
 			}
 		}
 
 		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound) {
+			CommitTransaction();
 			var cmd = new SQLiteCommand(conn);
 			string duct;
 			if (tyre < 2) {
@@ -518,8 +567,6 @@ namespace RaceEngineerPlugin.Database
 			if (-1 < brakeDuct && brakeDuct < 7) {
 				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
 			}
-
-			//SimHub.Logging.Current.Info($"Queried: {cmd.CommandText}");
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();
 			List<double> y = new List<double>();
@@ -537,11 +584,6 @@ namespace RaceEngineerPlugin.Database
 
 		#endregion
 
-		private void LogInfo(string msq) {
-			if (RaceEngineerPlugin.SETTINGS.Log) {
-				SimHub.Logging.Current.Info(TAG + msq);
-			}
-		}
 	}
 
 	/// <summary>
@@ -595,6 +637,17 @@ namespace RaceEngineerPlugin.Database
 
 			var cmd = new SQLiteCommand(conn);
 			cmd.CommandText = $@"INSERT INTO {this.name}({String.Join(", ", fields)}) VALUES({String.Join(", ", atfields)})";
+
+			foreach (var f in this.fields) {
+				if (f.type == "TEXT") {
+					cmd.Parameters.AddWithValue("@" + f.name, "");
+				} else if (f.type == "INTEGER") {
+					cmd.Parameters.AddWithValue("@" + f.name, 0);
+				} else {
+					cmd.Parameters.AddWithValue("@" + f.name, 0.0);
+                }
+			}
+
 			return cmd;
 		}
 
@@ -611,6 +664,17 @@ namespace RaceEngineerPlugin.Database
 
 			var cmd = new SQLiteCommand(conn);
 			cmd.CommandText = $@"INSERT INTO {this.name}({String.Join(", ", fields)}) VALUES({String.Join(", ", atfields)}) returning {returning_field}";
+
+			foreach (var f in this.fields) {
+				if (f.type == "TEXT") {
+					cmd.Parameters.AddWithValue("@" + f.name, "");
+				} else if (f.type == "INTEGER") {
+					cmd.Parameters.AddWithValue("@" + f.name, 0);
+				} else {
+					cmd.Parameters.AddWithValue("@" + f.name, 0.0);
+				}
+			}
+
 			return cmd;
 		}
 	}

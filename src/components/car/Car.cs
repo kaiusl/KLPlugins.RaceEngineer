@@ -44,7 +44,6 @@ namespace RaceEngineerPlugin.Car {
     /// Store and update car related values
     /// </summary>
     public class Car {
-        private const string TAG = RaceEngineerPlugin.PLUGIN_NAME + " (Car.Car): ";
         public string Name { get; private set; }
         public CarInfo Info { get; private set; }
         public CarSetup Setup { get; private set; }
@@ -53,7 +52,7 @@ namespace RaceEngineerPlugin.Car {
         public Fuel Fuel { get; private set; }
 
         public Car() {
-            LogInfo("Created new Car");
+            RaceEngineerPlugin.LogInfo("Created new Car");
             Name = null;
             Info = null;
             Setup = null;
@@ -63,12 +62,14 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void Reset() {
-            LogInfo("Car.Reset()");
+            RaceEngineerPlugin.LogInfo("Car.Reset()");
             Name = null;
             Info = null;
             Setup = null;
             Fuel.Reset();
         }
+
+        #region On... METHODS
 
         public void OnNewEvent(PluginManager pm, GameData data, Database.Database db) {
             Reset();
@@ -98,27 +99,25 @@ namespace RaceEngineerPlugin.Car {
                 UpdateSetup(trackName);
             }
 
-            Brakes.CheckPadChange(pm, data);
-            Tyres.CheckCompoundChange(pm, this, trackName, db);
-            Tyres.CheckPresChange(data);
-
-            Tyres.UpdateOverLapData(data, booleans);
-            Brakes.UpdateOverLapData(data, booleans);
-
+            Tyres.OnRegularUpdate(pm, data, this, booleans, trackName, db);
+            Brakes.OnRegularUpdate(pm, data, booleans);
             Fuel.OnRegularUpdate(pm, data, booleans);
-
         }
+
+        #endregion
+
+        #region PRIVATE METHODS
 
         /// <summary>
         /// Check if car has changed and update accordingly
         /// </summary>
         /// <param name="newName"></param>
         /// <returns></returns>
-        public bool CheckChange(string newName) {
+        private bool CheckChange(string newName) {
             if (newName != null) {
                 var hasChanged = Name != newName;
                 if (hasChanged) {
-                    LogInfo($"Car changed from '{Name}' to '{newName}'");
+                    RaceEngineerPlugin.LogInfo($"Car changed from '{Name}' to '{newName}'");
                     Name = newName;
                     ReadInfo();
                 }
@@ -141,29 +140,25 @@ namespace RaceEngineerPlugin.Car {
 
             try {
                 Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
-                LogInfo($"Read car info from '{fname}'");
+                RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
             } catch (IOException e) {
-                LogInfo($"Car changed. No information file. Error: {e}");
+                RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
                 Info = null;
             }
         }
 
-        public void UpdateSetup(string trackName) {
+        private void UpdateSetup(string trackName) {
             string fname = $@"{RaceEngineerPlugin.SETTINGS.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
             try {
                 Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
-                LogInfo($"Setup changed. Read new setup from '{fname}'.");
+                RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
             } catch (IOException e) {
-                LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
+                RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 Setup = null;
             }
         }
 
-        private void LogInfo(string msq) {
-            if (RaceEngineerPlugin.SETTINGS.Log) {
-                SimHub.Logging.Current.Info(TAG + msq);
-            }
-        }
+        #endregion
 
     }
 }

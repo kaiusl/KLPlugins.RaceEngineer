@@ -43,6 +43,7 @@ namespace RaceEngineerPlugin {
         public string[] FuelGraphColor { get; set; }
         public double[] FuelGraphColorValues { get; set; }
         public bool Log { get; set; }
+        public bool ShowAllLaps { get; set; }
 
         public Settings() {
             NumPreviousValuesStored = 15;
@@ -59,6 +60,7 @@ namespace RaceEngineerPlugin {
             FuelGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
             FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
             Log = false;
+            ShowAllLaps = false;
         }
     }
 }

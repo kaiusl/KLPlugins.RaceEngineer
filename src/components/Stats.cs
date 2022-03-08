@@ -1,29 +1,37 @@
-﻿using SimHub.Plugins.OutputPlugins.Dash.GLCDTemplating;
+﻿using MathNet.Numerics.Statistics;
+using SimHub.Plugins.OutputPlugins.Dash.GLCDTemplating;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RaceEngineerPlugin.Stats {
     /// <summary>
     /// Base class to build different statistics implementations
     /// </summary>
-    public abstract class StatsBase {
-        private const int SIZE = 4;
-        public static readonly string[] names = new string[SIZE] { "Min", "Max", "Avg", "Std" };
+    public class Stats {
+        public static readonly string[] names = new string[SIZE] { "Min", "Max", "Avg", "Std", "Median", "Q1", "Q3" };
         public double[] Data { get; }
-
-        public StatsBase() {
-            Data = new double[SIZE] { double.NaN, double.NaN, double.NaN, double.NaN };
-        }
-
-        public StatsBase(StatsBase o) {
-            o.Data.CopyTo(Data, 0);
-        }
-
         public double Min { get => Data[0]; set => Data[0] = value; }
         public double Max { get => Data[1]; set => Data[1] = value; }
         public double Avg { get => Data[2]; set => Data[2] = value; }
-
         public double Std { get => Data[3]; set => Data[3] = value; }
+        public double Median { get => Data[4]; set => Data[4] = value; }
+        public double Q1 { get => Data[5]; set => Data[5] = value; }
+        public double Q3 { get => Data[6]; set => Data[6] = value; }
+
+        private const int SIZE = 7;
+
+        public Stats() {
+            Data = new double[SIZE] { double.NegativeInfinity, double.PositiveInfinity, double.NaN, 0.0, double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+        }
+
+        public Stats(Stats o) {
+            o.Data.CopyTo(Data, 0);
+        }
+
+        public Stats(RunningStatistics o) {
+            Set(o);
+        }
 
         public void Reset() {
             for (int i = 0; i < SIZE; i++) {
@@ -31,80 +39,27 @@ namespace RaceEngineerPlugin.Stats {
             }
         }
 
-        public double this[int key] {
-            get => Data[key];
-        }
-    }
-
-    /// <summary>
-    /// Holder for statistics values. Values are simply set and must be calculated separately.
-    /// </summary>
-    public class Stats : StatsBase {
-
-        public Stats() : base() { }
-
-        public Stats(Stats o) : base(o) { }
-
-        public Stats(RunningStats o) : base(o) { }
-
         public void Set(double value) {
             Min = value;
             Max = value;
             Avg = value;
             Std = 0.0;
+            Median = value;
+            Q1 = double.NegativeInfinity;
+            Q3 = double.PositiveInfinity;
         }
 
-        public void Set(double min, double max, double avg, double std) {
-            Min = min;
-            Max = max;
-            Avg = avg;
-            Std = std;
+        public void Set(RunningStatistics o) {
+            Min = o.Minimum;
+            Max = o.Maximum;
+            Avg = o.Mean;
+            Std = o.StandardDeviation;
         }
 
-        public void Set(RunningStats o) {
-            Min = o.Min;
-            Max = o.Max;
-            Avg = o.Avg;
-            Std = o.Std;
-        }
-    }
-
-    /// <summary>
-    /// Implementation of running statistics. Statistics are updated directly and data points are not kept. 
-    /// </summary>
-    public class RunningStats : StatsBase {
-
-        private int _numSamples = 0;
-        private double avgOfSquares = 0;
-
-        public int NumSamples { get => _numSamples; }
-
-        public RunningStats() : base() { }
-
-        public RunningStats(RunningStats o) : base(o) {
-            _numSamples = o.NumSamples;
+        public double this[int key] {
+            get => Data[key];
         }
 
-        public new void Reset() {
-            base.Reset();
-            _numSamples = 0;
-        }
-
-        public void Update(double value) {
-            if (value < Min || double.IsNaN(Min)) Min = value;
-            if (value > Max || double.IsNaN(Max)) Max = value;
-            if (double.IsNaN(Avg)) {
-                Avg = value;
-                avgOfSquares = value * value;
-                Std = 0.0;
-            } else {
-                Avg = (Avg * NumSamples + value) / (NumSamples + 1);
-                avgOfSquares = (avgOfSquares * NumSamples + value * value) / (NumSamples + 1);
-                Std = Math.Sqrt(avgOfSquares - Avg * Avg);
-            }
-
-            _numSamples++;
-        }
     }
 
  
@@ -155,31 +110,31 @@ namespace RaceEngineerPlugin.Stats {
     /// </summary>
     public class WheelsRunningStats {
         private const int SIZE = 4;
-        public RunningStats[] Data { get; }
+        public RunningStatistics[] Data { get; }
 
-        public RunningStats LF { get => Data[0]; }
-        public RunningStats RF { get => Data[1]; }
-        public RunningStats LR { get => Data[2]; }
-        public RunningStats RR { get => Data[3]; }
+        public RunningStatistics LF { get => Data[0]; }
+        public RunningStatistics RF { get => Data[1]; }
+        public RunningStatistics LR { get => Data[2]; }
+        public RunningStatistics RR { get => Data[3]; }
 
 
         public WheelsRunningStats() {
-            Data = new RunningStats[] { new RunningStats(), new RunningStats(), new RunningStats(), new RunningStats() };
+            Data = new RunningStatistics[] { new RunningStatistics(), new RunningStatistics(), new RunningStatistics(), new RunningStatistics() };
         }
 
         public void Reset() {
             for (int i = 0; i < SIZE; i++) {
-                Data[i].Reset();
+                Data[i] = new RunningStatistics();
             }
         }
 
         public void Update(double[] values) {
             for (int i = 0; i < SIZE; i++) {
-                Data[i].Update(values[i]);
+                Data[i].Push(values[i]);
             }
         }
 
-        public RunningStats this[int key] {
+        public RunningStatistics this[int key] {
             get => Data[key];
         }
 

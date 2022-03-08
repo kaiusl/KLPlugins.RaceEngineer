@@ -4,6 +4,10 @@ using System;
 using System.Windows.Media;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -11,7 +15,6 @@ namespace RaceEngineerPlugin {
     [PluginName("RaceEngineerPlugin")]
     public class RaceEngineerPlugin : IPlugin, IDataPlugin, IWPFSettingsV2 {
         public const string PLUGIN_NAME = "RACE ENGINEER";
-        private const string TAG = PLUGIN_NAME + " (RaceEngineerPlugin): ";
 
         public RaceEngineerPluginSettings Settings;
         public PluginManager PluginManager { get; set; }
@@ -29,6 +32,8 @@ namespace RaceEngineerPlugin {
         public static readonly Settings SETTINGS = ReadSettings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GAME_PATH; // Same as above
+        private static FileStream f;
+        private static StreamWriter sw;
 
         private Values values;
 
@@ -44,6 +49,7 @@ namespace RaceEngineerPlugin {
             }
         }
 
+
         /// <summary>
         /// Called one time per game data update, contains all normalized game data, 
         /// raw data are intentionnally "hidden" under a generic object type (A plugin SHOULD NOT USE IT)
@@ -58,12 +64,10 @@ namespace RaceEngineerPlugin {
 
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
-                    if (!values.booleans.NewData.IsGameRunning) {
-                        // We haven't updated any data, if we reached here it means tha game/event has started
-                        values.OnNewEvent(pluginManager, data);
-                    }
+                    //Stopwatch stopWatch = new Stopwatch();
+                    //stopWatch.Start();
 
-                    values.OnRegularUpdate(pluginManager, data);
+                    values.OnDataUpdate(pluginManager, data);
 
                     #region UPDATE PROPERTIES
 
@@ -95,9 +99,14 @@ namespace RaceEngineerPlugin {
                         pluginManager.SetPropertyValue(PREV_FUEL_PROP_NAME + istr, this.GetType(), values.car.Fuel.PrevUsedPerLap[i]);
                     }
                     #endregion
+
+                    //stopWatch.Stop();
+                    //TimeSpan ts = stopWatch.Elapsed;
+                    //File.AppendAllText("Logs/RETiming.txt", $"{ts.TotalMilliseconds}\n");
                 }
             } else {
                 values.booleans.OnGameNotRunning();
+                values.db.CommitTransaction();
             }
         }
 
@@ -110,6 +119,8 @@ namespace RaceEngineerPlugin {
             // Save settings
             this.SaveCommonSettings("GeneralSettings", Settings);
             values.Dispose();
+            sw.Dispose();
+            f.Dispose();
         }
 
         /// <summary>
@@ -127,6 +138,13 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
+            if (SETTINGS.Log) {
+                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{DateTime.Now.Ticks}.txt";
+                Directory.CreateDirectory(Path.GetDirectoryName(fpath));
+                f = File.Create(fpath);
+                sw = new StreamWriter(f);
+            }
+
             LogInfo("Starting plugin");
             Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
 
@@ -142,21 +160,21 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
 
-            Action<string, Stats.StatsBase, bool> addStats = (name, values, include_std) => {
-                this.AttachDelegate(name + Stats.StatsBase.names[0], () => values[0]);
-                this.AttachDelegate(name + Stats.StatsBase.names[1], () => values[1]);
-                this.AttachDelegate(name + Stats.StatsBase.names[2], () => values[2]);
+            Action<string, Stats.Stats, bool> addStats = (name, values, include_std) => {
+                this.AttachDelegate(name + Stats.Stats.names[0], () => values[0]);
+                this.AttachDelegate(name + Stats.Stats.names[1], () => values[1]);
+                this.AttachDelegate(name + Stats.Stats.names[2], () => values[2]);
                 if (include_std) {
-                    this.AttachDelegate(name + Stats.StatsBase.names[3], () => values[3]);
+                    this.AttachDelegate(name + Stats.Stats.names[3], () => values[3]);
                 }
             };
 
-            Action<string, Stats.StatsBase, bool> addStatsTimespan = (name, values, include_std) => {
-                this.AttachDelegate(name + Stats.StatsBase.names[0], () => fromSeconds(values[0]));
-                this.AttachDelegate(name + Stats.StatsBase.names[1], () => fromSeconds(values[1]));
-                this.AttachDelegate(name + Stats.StatsBase.names[2], () => fromSeconds(values[2]));
+            Action<string, Stats.Stats, bool> addStatsTimespan = (name, values, include_std) => {
+                this.AttachDelegate(name + Stats.Stats.names[0], () => fromSeconds(values[0]));
+                this.AttachDelegate(name + Stats.Stats.names[1], () => fromSeconds(values[1]));
+                this.AttachDelegate(name + Stats.Stats.names[2], () => fromSeconds(values[2]));
                 if (include_std) {
-                    this.AttachDelegate(name + Stats.StatsBase.names[3], () => fromSeconds(values[3]));
+                    this.AttachDelegate(name + Stats.Stats.names[3], () => fromSeconds(values[3]));
                 }
             };
 
@@ -176,15 +194,15 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + tyreNames[3], () => values[3]);
             };
 
-            Action<string, Stats.StatsBase, Color.ColorCalculator> addStatsWColor = (name, values, cc) => {
-                this.AttachDelegate(name + Stats.StatsBase.names[0], () => values[0]);
-                this.AttachDelegate(name + Stats.StatsBase.names[0] + "Color", () => cc.GetHexColor(values[0]));
+            Action<string, Stats.Stats, Color.ColorCalculator> addStatsWColor = (name, values, cc) => {
+                this.AttachDelegate(name + Stats.Stats.names[0], () => values[0]);
+                this.AttachDelegate(name + Stats.Stats.names[0] + "Color", () => cc.GetHexColor(values[0]));
 
-                this.AttachDelegate(name + Stats.StatsBase.names[1], () => values[1]);
-                this.AttachDelegate(name + Stats.StatsBase.names[1] + "Color", () => cc.GetHexColor(values[1]));
+                this.AttachDelegate(name + Stats.Stats.names[1], () => values[1]);
+                this.AttachDelegate(name + Stats.Stats.names[1] + "Color", () => cc.GetHexColor(values[1]));
 
-                this.AttachDelegate(name + Stats.StatsBase.names[2], () => values[2]);
-                this.AttachDelegate(name + Stats.StatsBase.names[2] + "Color", () => cc.GetHexColor(values[2]));
+                this.AttachDelegate(name + Stats.Stats.names[2], () => values[2]);
+                this.AttachDelegate(name + Stats.Stats.names[2] + "Color", () => cc.GetHexColor(values[2]));
 
             };
 
@@ -198,6 +216,7 @@ namespace RaceEngineerPlugin {
            
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
             addTyres("CurrentInputTyrePres", values.car.Tyres.CurrentInputPres);
+            addTyres("TyrePresLoss", values.car.Tyres.PresLoss);
             addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR);
             addTyresStats("TyreTempOverLap", values.car.Tyres.TempOverLap, values.car.Tyres.TempColorF, values.car.Tyres.TempColorR);
             addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.TempColor, values.car.Brakes.TempColor);
@@ -246,7 +265,12 @@ namespace RaceEngineerPlugin {
             });
         }
 
-       
+        public static void LogToFile(string msq) {
+            if (SETTINGS.Log && f != null) { 
+                sw.WriteLine(msq);
+            }
+        }
+
         private TimeSpan fromSeconds(double seconds) {
             if (double.IsNaN(seconds)) {
                 return TimeSpan.Zero;
@@ -255,9 +279,17 @@ namespace RaceEngineerPlugin {
             }
         }
 
-        private void LogInfo(string msq) {
+        public static void LogInfo(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             if (SETTINGS.Log) {
-                SimHub.Logging.Current.Info(TAG + msq);
+                var pathParts = sourceFilePath.Split('\\');
+                SimHub.Logging.Current.Info($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+            }
+        }
+
+        public static void LogFileSeparator() {
+            if (SETTINGS.Log) {
+                LogToFile("\n----------------------------------------------------------\n");
             }
         }
 
