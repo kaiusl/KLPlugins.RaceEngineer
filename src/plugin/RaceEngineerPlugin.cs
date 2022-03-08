@@ -28,27 +28,13 @@ namespace RaceEngineerPlugin {
         private const string BRAKE_TEMP_PROP_NAME = "BrakeTemp";
         private string[] tyreNames = new string[4] { "LF", "RF", "LR", "RR" };
 
-        private const string SETTINGS_PATH = @"PluginsData\RaceEngineerPlugin\Settings.json";
-        public static readonly Settings SETTINGS = ReadSettings();
+        public static readonly Settings SETTINGS = new Settings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GAME_PATH; // Same as above
         private static FileStream f;
         private static StreamWriter sw;
 
         private Values values;
-
-        private static Settings ReadSettings() {
-            if (File.Exists(SETTINGS_PATH)) {
-                return JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SETTINGS_PATH).Replace("\"", "'"));
-            } else {
-                var settings = new Settings();
-                string txt = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                Directory.CreateDirectory(Path.GetDirectoryName(SETTINGS_PATH));
-                File.WriteAllText(SETTINGS_PATH, txt);
-                return settings;
-            }
-        }
-
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data, 
@@ -72,30 +58,36 @@ namespace RaceEngineerPlugin {
                     #region UPDATE PROPERTIES
 
                     // Current value colors
-                    pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Tyres.PresColorF.GetHexColor(data.NewData.TyrePressureFrontLeft));
-                    pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Tyres.PresColorF.GetHexColor(data.NewData.TyrePressureFrontRight));
-                    pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Tyres.PresColorR.GetHexColor(data.NewData.TyrePressureRearLeft));
-                    pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Tyres.PresColorR.GetHexColor(data.NewData.TyrePressureRearRight));
+                    if ((WheelFlags.Color & SETTINGS.TyrePresFlags) != 0) {
+                        pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Tyres.PresColorF.GetHexColor(data.NewData.TyrePressureFrontLeft));
+                        pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Tyres.PresColorF.GetHexColor(data.NewData.TyrePressureFrontRight));
+                        pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Tyres.PresColorR.GetHexColor(data.NewData.TyrePressureRearLeft));
+                        pluginManager.SetPropertyValue(TYRE_PRES_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Tyres.PresColorR.GetHexColor(data.NewData.TyrePressureRearRight));
+                    }
 
-                    pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Tyres.TempColorF.GetHexColor(data.NewData.TyreTemperatureFrontLeft));
-                    pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Tyres.TempColorF.GetHexColor(data.NewData.TyreTemperatureFrontRight));
-                    pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Tyres.TempColorR.GetHexColor(data.NewData.TyreTemperatureRearLeft));
-                    pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Tyres.TempColorR.GetHexColor(data.NewData.TyreTemperatureRearRight));
+                    if ((WheelFlags.Color & SETTINGS.TyreTempFlags) != 0) {
+                        pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Tyres.TempColorF.GetHexColor(data.NewData.TyreTemperatureFrontLeft));
+                        pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Tyres.TempColorF.GetHexColor(data.NewData.TyreTemperatureFrontRight));
+                        pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Tyres.TempColorR.GetHexColor(data.NewData.TyreTemperatureRearLeft));
+                        pluginManager.SetPropertyValue(TYRE_TEMP_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Tyres.TempColorR.GetHexColor(data.NewData.TyreTemperatureRearRight));
+                    }
 
-                    pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureFrontLeft));
-                    pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureFrontRight));
-                    pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureRearLeft));
-                    pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureRearRight));
+                    if ((WheelFlags.Color & SETTINGS.BrakeTempFlags) != 0) {
+                        pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[0] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureFrontLeft));
+                        pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[1] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureFrontRight));
+                        pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[2] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureRearLeft));
+                        pluginManager.SetPropertyValue(BRAKE_TEMP_PROP_NAME + tyreNames[3] + "Color", this.GetType(), values.car.Brakes.TempColor.GetHexColor(data.NewData.BrakeTemperatureRearRight));
+                    }
 
                     for (int i = 0; i < values.car.Fuel.PrevUsedPerLap.Count; i++) {
                         double lapTime = values.laps.PrevTimes[i];
-                        double lapDiffPercent = lapTime / values.laps.PrevTimes.Avg * 100 - 100;
                         var istr = i.ToString();
 
-                        pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), fromSeconds(lapTime));
-                        pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + "Sec" + istr, this.GetType(), lapTime);
-                        pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + (i).ToString(), this.GetType(), lapTime - values.laps.PrevTimes.Avg);
-
+                        //pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), fromSeconds(lapTime));
+                        pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), lapTime);
+                        if ((LapFlags.TimeDeltaToAvg & SETTINGS.LapFlags) != 0) {
+                            pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + (i).ToString(), this.GetType(), lapTime - values.laps.PrevTimes.Avg);
+                        }
                         pluginManager.SetPropertyValue(PREV_FUEL_PROP_NAME + istr, this.GetType(), values.car.Fuel.PrevUsedPerLap[i]);
                     }
                     #endregion
@@ -160,32 +152,39 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
 
-            Action<string, Stats.Stats, bool> addStats = (name, values, include_std) => {
-                this.AttachDelegate(name + Stats.Stats.names[0], () => values[0]);
-                this.AttachDelegate(name + Stats.Stats.names[1], () => values[1]);
-                this.AttachDelegate(name + Stats.Stats.names[2], () => values[2]);
-                if (include_std) {
-                    this.AttachDelegate(name + Stats.Stats.names[3], () => values[3]);
+
+            Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
+                if ((StatsFlags.Min & settings) != 0) {
+                    this.AttachDelegate(name + "Min", () => values.Min);
+                }
+                if ((StatsFlags.Max & settings) != 0) {
+                    this.AttachDelegate(name + "Max", () => values.Max);
+                }
+                if ((StatsFlags.Avg & settings) != 0) {
+                    this.AttachDelegate(name + "Avg", () => values.Avg);
+                }
+                if ((StatsFlags.Std & settings) != 0) {
+                    this.AttachDelegate(name + "Std", () => values.Std);
+                }
+                if ((StatsFlags.Median & settings) != 0) {
+                    this.AttachDelegate(name + "Median", () => values.Median);
+                }
+                if ((StatsFlags.Q1 & settings) != 0) {
+                    this.AttachDelegate(name + "Q1", () => values.Q1);
+                }
+                if ((StatsFlags.Q3 & settings) != 0) {
+                    this.AttachDelegate(name + "Q3", () => values.Q3);
                 }
             };
 
-            Action<string, Stats.Stats, bool> addStatsTimespan = (name, values, include_std) => {
-                this.AttachDelegate(name + Stats.Stats.names[0], () => fromSeconds(values[0]));
-                this.AttachDelegate(name + Stats.Stats.names[1], () => fromSeconds(values[1]));
-                this.AttachDelegate(name + Stats.Stats.names[2], () => fromSeconds(values[2]));
-                if (include_std) {
-                    this.AttachDelegate(name + Stats.Stats.names[3], () => fromSeconds(values[3]));
-                }
-            };
+            addStats("LapTime", values.laps.PrevTimes.Stats, SETTINGS.PrevLapsStats);
+            addStats("FuelPerLap", values.car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStats);
+            addStats("LapsRemainingOnFuel", values.remainingOnFuel.laps, SETTINGS.RemainingStats);
+            addStats("TimeRemainingOnFuel", values.remainingOnFuel.time, SETTINGS.RemainingStats);
+            addStats("LapsRemainingInSession", values.remainingInSession.laps, SETTINGS.RemainingStats);
+            addStats("TimeRemainingInSession", values.remainingInSession.time, SETTINGS.RemainingStats);
+            addStats("FuelNeededInSession", values.remainingInSession.fuelNeeded, SETTINGS.RemainingStats);
 
-            addStats("LapsRemainingOnFuel", values.remainingOnFuel.laps, false);
-            addStats("TimeRemainingOnFuel", values.remainingOnFuel.time, false);
-            addStats("LapsRemainingInSession", values.remainingInSession.laps, false);
-            addStats("TimeRemainingInSession", values.remainingInSession.time, false);
-            addStats("FuelNeededInSession", values.remainingInSession.fuelNeeded, false);
-            addStats("FuelPerLap", values.car.Fuel.PrevUsedPerLap.Stats, true);
-            addStats("LapTimeSec", values.laps.PrevTimes.Stats, true);
-            addStatsTimespan("LapTime", values.laps.PrevTimes.Stats, true);
 
             Action<string, double[]> addTyres = (name, values) => {
                 this.AttachDelegate(name + tyreNames[0], () => values[0]);
@@ -193,33 +192,47 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + tyreNames[2], () => values[2]);
                 this.AttachDelegate(name + tyreNames[3], () => values[3]);
             };
-
-            Action<string, Stats.Stats, Color.ColorCalculator> addStatsWColor = (name, values, cc) => {
-                this.AttachDelegate(name + Stats.Stats.names[0], () => values[0]);
-                this.AttachDelegate(name + Stats.Stats.names[0] + "Color", () => cc.GetHexColor(values[0]));
-
-                this.AttachDelegate(name + Stats.Stats.names[1], () => values[1]);
-                this.AttachDelegate(name + Stats.Stats.names[1] + "Color", () => cc.GetHexColor(values[1]));
-
-                this.AttachDelegate(name + Stats.Stats.names[2], () => values[2]);
-                this.AttachDelegate(name + Stats.Stats.names[2] + "Color", () => cc.GetHexColor(values[2]));
-
-            };
-
-            Action<string, Stats.WheelsStats, Color.ColorCalculator, Color.ColorCalculator> addTyresStats = (name, values, ccf, ccr) => {
-                addStatsWColor(name + tyreNames[0], values[0], ccf);
-                addStatsWColor(name + tyreNames[1], values[1], ccf);
-                addStatsWColor(name + tyreNames[2], values[2], ccr);
-                addStatsWColor(name + tyreNames[3], values[3], ccr);
-            };
-
            
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
             addTyres("CurrentInputTyrePres", values.car.Tyres.CurrentInputPres);
             addTyres("TyrePresLoss", values.car.Tyres.PresLoss);
-            addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR);
-            addTyresStats("TyreTempOverLap", values.car.Tyres.TempOverLap, values.car.Tyres.TempColorF, values.car.Tyres.TempColorR);
-            addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.TempColor, values.car.Brakes.TempColor);
+
+
+            Action<string, Stats.Stats, Color.ColorCalculator, WheelFlags> addStatsWColor = (name, v, cc, flags) => {
+                if ((WheelFlags.Min & flags) != 0) {
+                    this.AttachDelegate(name + "Min", () => v.Min);
+                }
+                if ((WheelFlags.Max & flags) != 0) {
+                    this.AttachDelegate(name + "Max", () => v.Max);
+                }
+                if ((WheelFlags.Avg & flags) != 0) {
+                    this.AttachDelegate(name + "Avg", () => v.Avg);
+                }
+                if ((WheelFlags.Std & flags) != 0) {
+                    this.AttachDelegate(name + "Std", () => v.Std);
+                }
+
+                if ((WheelFlags.MinColor & flags) != 0) {
+                    this.AttachDelegate(name + "MinColor", () => cc.GetHexColor(v.Min));
+                }
+                if ((WheelFlags.MaxColor & flags) != 0) {
+                    this.AttachDelegate(name + "MaxColor", () => cc.GetHexColor(v.Max));
+                }
+                if ((WheelFlags.AvgColor & flags) != 0) {
+                    this.AttachDelegate(name + "AvgColor", () => cc.GetHexColor(v.Avg));
+                }
+            };
+
+            Action<string, Stats.WheelsStats, Color.ColorCalculator, Color.ColorCalculator, WheelFlags> addTyresStats = (name, values, ccf, ccr, flags) => {
+                addStatsWColor(name + tyreNames[0], values[0], ccf, flags);
+                addStatsWColor(name + tyreNames[1], values[1], ccf, flags);
+                addStatsWColor(name + tyreNames[2], values[2], ccr, flags);
+                addStatsWColor(name + tyreNames[3], values[3], ccr, flags);
+            };
+
+            addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR, SETTINGS.TyrePresFlags);
+            addTyresStats("TyreTempOverLap", values.car.Tyres.TempOverLap, values.car.Tyres.TempColorF, values.car.Tyres.TempColorR, SETTINGS.TyreTempFlags);
+            addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.TempColor, values.car.Brakes.TempColor, SETTINGS.BrakeTempFlags);
             #endregion
 
             #region ADD PROPERTIES
@@ -233,18 +246,26 @@ namespace RaceEngineerPlugin {
                 pluginManager.AddProperty(name + tyreNames[3] + "Color", this.GetType(), value);
             };
 
-            addPropTyres(TYRE_PRES_PROP_NAME, "#000000");
-            addPropTyres(TYRE_TEMP_PROP_NAME, "#000000");
-            addPropTyres(BRAKE_TEMP_PROP_NAME, "#000000");
+            if ((WheelFlags.Color & SETTINGS.TyrePresFlags) != 0) {
+                addPropTyres(TYRE_PRES_PROP_NAME, "#000000");
+            }
 
+            if ((WheelFlags.Color & SETTINGS.TyreTempFlags) != 0) {
+                addPropTyres(TYRE_TEMP_PROP_NAME, "#000000");
+            }
+
+            if ((WheelFlags.Color & SETTINGS.BrakeTempFlags) != 0) {
+                addPropTyres(BRAKE_TEMP_PROP_NAME, "#000000");
+            }
 
             // Number of available properties depends on runtime conditions (eg how many laps are completed)
             for (int i = 0; i < SETTINGS.NumPreviousValuesStored; i++) {
                 var istr = i.ToString();
 
-                pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), fromSeconds(0.0));
-                pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + "Sec" + istr, this.GetType(), 0.0);
-                pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + istr, this.GetType(), 0.0);
+                pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), 0.0);
+                if ((LapFlags.TimeDeltaToAvg & SETTINGS.LapFlags) != 0) {
+                    pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + istr, this.GetType(), 0.0);
+                }
                 pluginManager.AddProperty(PREV_FUEL_PROP_NAME + istr, this.GetType(), 0.0);
             }
             #endregion
@@ -266,7 +287,7 @@ namespace RaceEngineerPlugin {
         }
 
         public static void LogToFile(string msq) {
-            if (SETTINGS.Log && f != null) { 
+            if (f != null) { 
                 sw.WriteLine(msq);
             }
         }
@@ -283,8 +304,14 @@ namespace RaceEngineerPlugin {
             if (SETTINGS.Log) {
                 var pathParts = sourceFilePath.Split('\\');
                 SimHub.Logging.Current.Info($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
             }
+        }
+
+        public static void LogWarn(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
+            var pathParts = sourceFilePath.Split('\\');
+            SimHub.Logging.Current.Warn($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogFileSeparator() {
