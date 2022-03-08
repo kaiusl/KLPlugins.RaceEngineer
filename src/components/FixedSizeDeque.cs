@@ -39,6 +39,7 @@ namespace RaceEngineerPlugin.Deque {
         private double lowerBound = double.NegativeInfinity;
         private double upperBound = double.PositiveInfinity;
         private RemoveOutliers removeOutliers;
+        private DescriptiveStatistics s;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.
@@ -57,9 +58,9 @@ namespace RaceEngineerPlugin.Deque {
             upperBound = double.PositiveInfinity;
         }
 
-        // Add value, remove last if over size
+
         /// <summary>
-        /// Enqueues the.
+        /// Add value, remove last if over size
         /// </summary>
         /// <param name="value">The value.</param>
         public void AddToFront(double value) {
@@ -71,7 +72,6 @@ namespace RaceEngineerPlugin.Deque {
             }
             Data.AddToFront(value);
             SetBounds();
-            DescriptiveStatistics s;
             switch (removeOutliers) {
                 case RemoveOutliers.Upper:
                     s = new DescriptiveStatistics(Data.Where(x => x < upperBound));
