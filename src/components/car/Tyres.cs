@@ -8,6 +8,7 @@ namespace RaceEngineerPlugin.Car {
     public class Tyres {
         public string Name { get; private set; }
         public double[] IdealInputPres { get; }
+        public double[] PredictedIdealInputPres { get; }
         public double[] CurrentInputPres { get; }
         public double[] PresLoss { get; }
         public WheelsStats PresOverLap { get; }
@@ -29,6 +30,7 @@ namespace RaceEngineerPlugin.Car {
             PresOverLap = new WheelsStats();
             TempOverLap = new WheelsStats();
             IdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN};
+            PredictedIdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
             CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
             PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
             SetLaps = 0;
@@ -63,6 +65,7 @@ namespace RaceEngineerPlugin.Car {
             CheckCompoundChange(pm, car, trackName, db);
             CheckPresChange(data);
             UpdateOverLapData(data, booleans);
+            PredictIdealInputPressures(data.NewData.AirTemperature, data.NewData.RoadTemperature);
         }
 
         #endregion
@@ -162,11 +165,20 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void UpdateIdealInputPressures(double airtemp, double tracktemp) {
-            if (tyreInfo != null) {
-                //var preds = inputTyrePresPredictor.Predict(airtemp, tracktemp, tyreInfo.IdealPres.F, tyreInfo.IdealPres.R);
+            if (tyreInfo != null) {    
                 for (int i = 0; i < 4; i++) {
                     IdealInputPres[i] = CurrentInputPres[i] + (tyreInfo.IdealPres[i] - PresOverLap[i].Avg);
-                    //IdealInputPres[i] = preds[i];
+                }
+            } else {
+                RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null'");
+            }
+        }
+
+        private void PredictIdealInputPressures(double airtemp, double tracktemp) {
+            if (tyreInfo != null) {
+                var preds = inputTyrePresPredictor.Predict(airtemp, tracktemp, tyreInfo.IdealPres.F, tyreInfo.IdealPres.R);
+                for (int i = 0; i < 4; i++) {
+                    PredictedIdealInputPres[i] = preds[i];
                 }
             } else {
                 RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null'");
@@ -248,7 +260,7 @@ namespace RaceEngineerPlugin.Car {
                     res[i] = double.NaN;
                 }
             }
-            RaceEngineerPlugin.LogInfo($"Predicted input pressures at air={airtemp}, track={tracktemp} to be [{res[0]}, {res[1]}, {res[2]}, {res[3]}]");
+            //RaceEngineerPlugin.LogInfo($"Predicted input pressures at air={airtemp}, track={tracktemp} to be [{res[0]}, {res[1]}, {res[2]}, {res[3]}]");
             return res;
         }
 

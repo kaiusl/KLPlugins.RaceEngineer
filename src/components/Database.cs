@@ -146,7 +146,9 @@ namespace RaceEngineerPlugin.Database
 		private const string TYRESET_LAP_NR = "tyreset_lap_nr";
 		private const string BRAKE_PAD_LAP_NR = "brake_pad_lap_nr";
 		private const string AIR_TEMP = "air_temp";
+		private const string AIR_TEMP_DELTA = "air_temp_delta";
 		private const string TRACK_TEMP = "track_temp";
+		private const string TRACK_TEMP_DELTA = "track_temp_delta";
 		private const string LAP_TIME = "lap_time";
 		private const string FUEL_USED = "fuel_used";
 		private const string FUEL_LEFT = "fuel_left";
@@ -180,7 +182,9 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TYRESET_LAP_NR, "INTEGER"),
 			new DBField(BRAKE_PAD_LAP_NR, "INTEGER"),
 			new DBField(AIR_TEMP, "REAL"),
+			new DBField(AIR_TEMP_DELTA, "REAL"),
 			new DBField(TRACK_TEMP, "REAL"),
+			new DBField(TRACK_TEMP_DELTA, "REAL"),
 			new DBField(LAP_TIME, "REAL"),
 			new DBField(FUEL_USED, "REAL"),
 			new DBField(FUEL_LEFT, "REAL"),
@@ -396,7 +400,9 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, TYRESET_LAP_NR, v.car.Tyres.SetLaps);
 			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, v.car.Brakes.PadLaps);
 			SetParam(insertLapCmd, AIR_TEMP, data.NewData.AirTemperature);
+			SetParam(insertLapCmd, AIR_TEMP_DELTA, data.NewData.AirTemperature - v.temps.AirAtLapStart);
 			SetParam(insertLapCmd, TRACK_TEMP, data.NewData.RoadTemperature);
+			SetParam(insertLapCmd, TRACK_TEMP_DELTA, data.NewData.RoadTemperature - v.temps.TrackAtLapStart);
 			SetParam(insertLapCmd, LAP_TIME, v.laps.LastTime);
 			SetParam(insertLapCmd, FUEL_USED, v.car.Fuel.LastUsedPerLap);
 			SetParam(insertLapCmd, FUEL_LEFT, v.car.Fuel.Remaining);
@@ -550,7 +556,12 @@ namespace RaceEngineerPlugin.Database
 			}
 		}
 
-		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound) {
+		private const int LAP_NR_LOW_THRESHOLD = 2;
+		private const int LAP_NR_HIGH_THRESHOLD = 11;
+		private const double TYRE_PRES_LOSS_THRESHOLD = 0.25;
+		private const double AIR_TEMP_CHANGE_THRESHOLD = 0.25;
+		private const double TRACK_TEMP_CHANGE_THRESHOLD = 0.25;
+		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string track_grip_status) {
 			CommitTransaction();
 			var cmd = new SQLiteCommand(conn);
 			string duct;
@@ -559,11 +570,31 @@ namespace RaceEngineerPlugin.Database
 			} else {
 				duct = BRAKE_DUCT_REAR;
 			}
+
+			string track_grip;
+			if (track_grip_status == "Green" || track_grip_status == "Fast" || track_grip_status == "Optimum") {
+				// For dry conditions use all available dry data, pressures don't change that much
+				// Potentially could learn difference and apply to data.
+				track_grip = "'Green', 'Fast', 'Optimum'";
+			} else {
+				// For wet use only given conditions. Even then it's not that accurate since WET includes light rain, medium rain and so on.
+				track_grip = $"'{track_grip_status}'";
+			}
+
+			var ty = TYRES[tyre];
 			cmd.CommandText = $@"
-				SELECT s.{TYRE_PRES_IN}_{TYRES[tyre]}, l.{TYRE_PRES_AVG}_{TYRES[tyre]}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {lapsTable.name} AS l
+				SELECT s.{TYRE_PRES_IN}_{ty}, l.{TYRE_PRES_AVG}_{ty}, l.{TYRE_PRES_LOSS}_{ty}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {lapsTable.name} AS l
 				INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
 				INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
-				WHERE e.car_id == '{car}' AND e.track_id == '{track}' AND l.stint_lap_nr > 2 AND l.stint_lap_nr < 11 AND s.{TYRE_COMPOUND} == '{compound}'";
+				WHERE e.car_id == '{car}' 
+					AND e.track_id == '{track}' 
+					AND l.stint_lap_nr > {LAP_NR_LOW_THRESHOLD} 
+					AND l.stint_lap_nr < {LAP_NR_HIGH_THRESHOLD} 
+					AND s.{TYRE_COMPOUND} == '{compound}' 
+					AND l.{TRACK_GRIP_STATUS} in ({track_grip})
+					AND l.{TYRE_PRES_LOSS}_{ty} > -{TYRE_PRES_LOSS_THRESHOLD}
+					AND l.{AIR_TEMP_DELTA} < {AIR_TEMP_CHANGE_THRESHOLD} AND l.{AIR_TEMP_DELTA} > -{AIR_TEMP_CHANGE_THRESHOLD}
+					AND l.{TRACK_TEMP_DELTA} < {TRACK_TEMP_CHANGE_THRESHOLD} AND l.{TRACK_TEMP_DELTA} > -{TRACK_TEMP_CHANGE_THRESHOLD}";
 			if (-1 < brakeDuct && brakeDuct < 7) {
 				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
 			}
@@ -574,8 +605,11 @@ namespace RaceEngineerPlugin.Database
 
 			while (rdr.Read()) {
 				y.Add(rdr.GetDouble(0));
-				x.Add(new double[] { 1.0, rdr.GetDouble(1), rdr.GetDouble(2), rdr.GetDouble(3) });
+				// Homogeneous coordinate, avg_press - loss, air_temp, track_temp
+				x.Add(new double[] { 1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4) });
 			}
+
+			RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with brake duct {brakeDuct} and compount ");
 
 			return Tuple.Create(x, y);
 		}

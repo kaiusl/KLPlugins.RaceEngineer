@@ -194,6 +194,7 @@ namespace RaceEngineerPlugin {
             };
            
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
+            addTyres("PredictedIdealInputTyrePres", values.car.Tyres.PredictedIdealInputPres);
             addTyres("CurrentInputTyrePres", values.car.Tyres.CurrentInputPres);
             addTyres("TyrePresLoss", values.car.Tyres.PresLoss);
 

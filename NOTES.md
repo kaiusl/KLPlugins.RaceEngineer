@@ -5,7 +5,7 @@
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
 - [ ] Rework loading of previous data to be more representative of current condition.
-    - [ ] How to handle not enough data? Widen requirements? Don't load?
+  - [ ] How to handle not enough data? Widen requirements? Don't load?
 - [ ] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
@@ -22,6 +22,11 @@
 
 #### *DONE!*
 
+- [x] ~~For calculation of input tyre pressures from current avg tyre pressures use machine learned delta values. That is how much does change in input pressure change hot pressures. This is needed as 0.1 psi input change doesn't exactly result in 0.1 psi hot pressure change.~~
+  - ~~How to learn it?~~
+      - ~~This delta depends on air temp, track temp and hot/input pressure (seems to be that for higher input pressures the delta is smaller)~~
+      - ~~We could learn hot pressure from air temp, track temp and input pressure and then vary input pressure to get the change.~~
+   - Actually it seems to be roughly the same.  
 - [x] Add options to enable/disable different components, like colors, min/max/avg/std
 - [x] Remove outliers from the lap and fuel data
     - [x] How to handle ecu changes? 
@@ -54,42 +59,38 @@
 - Separate colors to separate plugin? Altough much of logic would need to be same, eg when to reload color values.
 - Something else useful in broadcast data?
 
-## Outlier detetion in FixedSizeDequeStats
 
-- Use stats from all data - need to query a lot, probably not?
-- Use stats from last values - maybe not enough to reliably detect outliers?
 
 ## Machine learning
 
-
 ### Input tyre pressures
 
-- Check initialization and updating of models.
-- Check that have enough data with enough spread, eg temperature difference of at least 5 degrees.
+- [ ] Check initialization and updating of models.
+- [ ] Check that have enough data with enough spread, eg temperature difference of at least 5 degrees.
 - Outliers in data
-  - Different ecu maps, one model for each map? Probably is fine for map 1/2 but lower should be removed.
-  - How to detect slow laps behind someone?
-    - Maybe some combination of gaps from the broadcasting data (can actually use Swoop plugin) and lap time difference to avg/best?
-    - Remove laps with position change and
-  - Remove all outlier laptimes based on IQR?
-  - Remove pressure outliers based on IQR from given stint?
-  - Remove all laps after punctures.
-- When should we refit model?
+  - [ ] Different ecu maps, one model for each map? Probably is fine for map 1/2 but lower should be removed.
+  - [ ] How to detect slow laps behind someone?
+    - [ ] Maybe some combination of gaps from the broadcasting data (can actually use Swoop plugin) and lap time difference to avg/best?
+    - [ ] Remove laps with position change and
+  - [ ] Remove all outlier laptimes based on IQR?
+  - [ ] Remove pressure outliers based on IQR from given stint?
+  - [x] Remove laps with large punctures, add puncture amout back for small punctures (say below 0.25).
+- [ ] When should we refit model?
   - Maybe should differ depending on how much data we have? Less data mean that each new point is critical and we should learn more often. If we have a lot of data it doesn't matter that much and we could learn at the end of session or something similar.
   - At the end of each lap?
   - At pit?
   - At rtg?
   - At end of session?
-- Implement multiple models if there is enough data in certain range since the data is not quite linear (probably).
+- [ ] Implement multiple models if there is enough data in certain range since the data is not quite linear (probably).
   - Was thinking of ranges -15, 15-20, 20-25, 25-30, 30-35, 35- airtemp.
   - Use both models in overlap region?
   - If not enough data in given range, it will fallback to larger range.
-- Should we normalize data to unit variance and zero mean?
-- How to deal with different brake ducts?
+- [ ] Should we normalize data to unit variance and zero mean?
+- [ ] How to deal with different brake ducts?
   - Different models?
   - Some non-linear model?
   - Can it be transformed to linear model? Tried sometihing but wasn't able to.
-- Learn pressure drop across the stint.
+- [ ] Learn pressure drop across the stint.
   - If it's significant how many laps should be used to learn input tyre pressures?
 
 #### *DONE!*

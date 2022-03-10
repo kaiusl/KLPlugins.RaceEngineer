@@ -215,6 +215,12 @@ namespace RaceEngineerPlugin {
             FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
             Log = true;
             ShowAllLaps = false;
+            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3", "DeltaToAvg" };
+            PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
+            TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            BrakeTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            RemainingInfo = new string[] { "Min", "Max", "Avg" };
         }
     }
 }

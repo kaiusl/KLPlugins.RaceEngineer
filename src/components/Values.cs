@@ -13,6 +13,7 @@ namespace RaceEngineerPlugin {
         public Car.Car car = new Car.Car();
         public Track.Track track = new Track.Track();
         public Laps.Laps laps = new Laps.Laps();
+        public Temps temps = new Temps();
 
         public Remaining.RemainingInSession remainingInSession = new Remaining.RemainingInSession();
         public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
@@ -67,6 +68,7 @@ namespace RaceEngineerPlugin {
             booleans.OnRegularUpdate(pm, data, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
             track.OnRegularUpdate(data);
             car.OnRegularUpdate(pm, data, booleans, track.Name, db);
+            temps.OnRegularUpdate(data, booleans);
 
             // New stint starts at the pit exit. (ignore is session changes, for example from Qualy->Race this jump also happens but is undesired)
             if (data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0
@@ -100,6 +102,8 @@ namespace RaceEngineerPlugin {
                     TimeSpan ts = stopWatch.Elapsed;
                     RaceEngineerPlugin.LogInfo($"Finished lap update in {ts.TotalMilliseconds}ms.");
                 }
+
+                temps.OnLapFinished(data);
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
