@@ -321,6 +321,26 @@ namespace RaceEngineerPlugin {
             }
         }
 
+        public static string TrackGripStatus(PluginManager pm) {
+            if (GAME.IsACC) {
+                var gs = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
+                string gs_str;
+                switch (gs) {
+                    case 0: gs_str = "Green"; break;
+                    case 1: gs_str = "Fast"; break;
+                    case 2: gs_str = "Optimum"; break;
+                    case 3: gs_str = "Greasy"; break;
+                    case 4: gs_str = "Damp"; break;
+                    case 5: gs_str = "Wet"; break;
+                    case 6: gs_str = "Flooded"; break;
+                    default: gs_str = "Unknown"; break;
+                }
+                return gs_str;
+            } else {
+                return "Unknown";
+            }
+        }
+
 
     }
 }

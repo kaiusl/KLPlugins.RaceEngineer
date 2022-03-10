@@ -432,24 +432,11 @@ namespace RaceEngineerPlugin.Database
 			if (RaceEngineerPlugin.GAME.IsACC) {
 				SetParam(insertLapCmd, TC2, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut"));
 
-				var gs = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
-				string gs_str;
-				switch (gs) { 
-					case 0: gs_str = "Green"; break;
-					case 1: gs_str = "Fast"; break;
-					case 2: gs_str = "Optimum"; break;
-					case 3: gs_str = "Greasy"; break;
-					case 4: gs_str = "Damp"; break;
-					case 5: gs_str = "Wet"; break;
-					case 6: gs_str = "Flooded"; break;
-					default: gs_str = "Unknown"; break;
-				}
-
 				for (var i = 0; i < 4; i++) {
 					SetParam(insertLapCmd, BRAKE_LIFE_LEFT + $"_{TYRES[i]}", (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife0" + $"{i+1}"));
 				}
 
-				SetParam(insertLapCmd, TRACK_GRIP_STATUS, gs_str);
+				SetParam(insertLapCmd, TRACK_GRIP_STATUS, RaceEngineerPlugin.TrackGripStatus(pm));
 			} else {
 				SetParam(insertLapCmd, TC2);
 				SetParam(insertLapCmd, TRACK_GRIP_STATUS);
@@ -590,13 +577,15 @@ namespace RaceEngineerPlugin.Database
 					AND e.track_id == '{track}' 
 					AND l.stint_lap_nr > {LAP_NR_LOW_THRESHOLD} 
 					AND l.stint_lap_nr < {LAP_NR_HIGH_THRESHOLD} 
-					AND s.{TYRE_COMPOUND} == '{compound}' 
-					AND l.{TRACK_GRIP_STATUS} in ({track_grip})
+					AND s.{TYRE_COMPOUND} == '{compound}'
 					AND l.{TYRE_PRES_LOSS}_{ty} > -{TYRE_PRES_LOSS_THRESHOLD}
 					AND l.{AIR_TEMP_DELTA} < {AIR_TEMP_CHANGE_THRESHOLD} AND l.{AIR_TEMP_DELTA} > -{AIR_TEMP_CHANGE_THRESHOLD}
 					AND l.{TRACK_TEMP_DELTA} < {TRACK_TEMP_CHANGE_THRESHOLD} AND l.{TRACK_TEMP_DELTA} > -{TRACK_TEMP_CHANGE_THRESHOLD}";
 			if (-1 < brakeDuct && brakeDuct < 7) {
 				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
+			}
+			if (track_grip != "Unknown") {
+				cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in ({track_grip})";
 			}
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();

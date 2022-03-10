@@ -72,8 +72,8 @@ namespace RaceEngineerPlugin.Car {
 
         #region PRIVATE METHODS
 
-        private void CheckCompoundChange(PluginManager pluginManager, Car car, string trackName, Database.Database db) {
-            string newTyreName = GetTyreCompound(pluginManager);
+        private void CheckCompoundChange(PluginManager pm, Car car, string trackName, Database.Database db) {
+            string newTyreName = GetTyreCompound(pm);
             if (newTyreName != null && newTyreName != Name && car.Info != null && car.Info.Tyres != null) {
                 if (car.Info != null && car.Info.Tyres != null) {
                     RaceEngineerPlugin.LogInfo($"Tyres changed from '{Name}' to '{newTyreName}'.");
@@ -88,7 +88,7 @@ namespace RaceEngineerPlugin.Car {
                         ResetColors();
                     }
                     ResetValues();
-                    InitInputTyrePresPredictor(trackName, car.Name, car.Setup.advancedSetup.aeroBalance.brakeDuct, newTyreName, db);
+                    InitInputTyrePresPredictor(trackName, car.Name, car.Setup.advancedSetup.aeroBalance.brakeDuct, newTyreName, RaceEngineerPlugin.TrackGripStatus(pm), db);
 
                     Name = newTyreName;
                 } else {
@@ -185,8 +185,8 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
-        private void InitInputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, Database.Database db) {
-            inputTyrePresPredictor = new InputTyrePresPredictor(trackName, carName, brakeDucts, compound, db);
+        private void InitInputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, string track_grip_status, Database.Database db) {
+            inputTyrePresPredictor = new InputTyrePresPredictor(trackName, carName, brakeDucts, compound, track_grip_status, db);
             var preds = inputTyrePresPredictor.Predict(25, 35, 27.5, 27.5);
             for (int i = 0; i < 4; i++) {
                 IdealInputPres[i] = preds[i];
@@ -228,21 +228,21 @@ namespace RaceEngineerPlugin.Car {
         private int[] brakeDucts;
         private string compound;
 
-        public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, Database.Database db) { 
+        public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, string track_grip_status, Database.Database db) { 
             this.trackName = trackName;
             this.carName = carName;
             this.brakeDucts = brakeDucts;
             this.compound = compound;
 
             regressors = new ML.RidgeRegression[] {
-                InitRegressor(0, db), InitRegressor(1, db), InitRegressor(2, db), InitRegressor(3, db)
+                InitRegressor(0, track_grip_status, db), InitRegressor(1, track_grip_status, db), InitRegressor(2, track_grip_status, db), InitRegressor(3, track_grip_status, db)
             };
 
             RaceEngineerPlugin.LogInfo($"Created InputTyrePresPredictor({trackName}, {carName}, [{brakeDucts[0]}, {brakeDucts[1]}], {compound})");
         }
 
-        private ML.RidgeRegression InitRegressor(int tyre, Database.Database db) {
-            var data = db.GetInputPresData(tyre, carName, trackName, tyre < 3 ? brakeDucts[0] : brakeDucts[1], compound);
+        private ML.RidgeRegression InitRegressor(int tyre, string track_grip_status, Database.Database db) {
+            var data = db.GetInputPresData(tyre, carName, trackName, tyre < 3 ? brakeDucts[0] : brakeDucts[1], compound, track_grip_status);
             if (data.Item2.Count != 0) {
                 return new ML.RidgeRegression(data.Item1, data.Item2);
             } else {
