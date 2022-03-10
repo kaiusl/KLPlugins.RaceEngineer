@@ -1,12 +1,17 @@
 ﻿# PROJECT NOTES
 
+## BUGS!!!
+
+- [ ] BUG: Restarting session doesn't create new event but should as tyresets are reset.
+    - Note: In multiplayer after race finished and session restarts to qualy it should remain the same event as the tyresets are not reset (Does this depend on session setup? Probably...)
+
 ## Definite todos
 
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
 - [ ] Rework loading of previous data to be more representative of current condition.
   - [ ] How to handle not enough data? Widen requirements? Don't load?
-- [ ] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.
+- [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available.
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
     - First data update takes long (~100ms) but it's okay as nothing happend in game then.
@@ -22,6 +27,7 @@
 
 #### *DONE!*
 
+- [x] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.
 - [x] ~~For calculation of input tyre pressures from current avg tyre pressures use machine learned delta values. That is how much does change in input pressure change hot pressures. This is needed as 0.1 psi input change doesn't exactly result in 0.1 psi hot pressure change.~~
   - ~~How to learn it?~~
       - ~~This delta depends on air temp, track temp and hot/input pressure (seems to be that for higher input pressures the delta is smaller)~~

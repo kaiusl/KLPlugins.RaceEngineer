@@ -11,7 +11,8 @@ namespace RaceEngineerPlugin.Deque {
         None,
         Lower,
         Upper,
-        Both
+        Both,
+        QPlus1 // Fuel specific, remove anything thats outside (Q1 - 1, Q3 + 1), that's really extreme change and shouldn't ever happen, 
     }
 
     /// <summary>
@@ -82,6 +83,9 @@ namespace RaceEngineerPlugin.Deque {
                 case RemoveOutliers.Both:
                     s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && x < upperBound));
                     break;
+                case RemoveOutliers.QPlus1:
+                    s = new DescriptiveStatistics(Data.Where(x => lowerBound - 1 < x && x < upperBound + 1));
+                    break;
                 default:
                     s = new DescriptiveStatistics(Data);
                     break;
@@ -98,11 +102,11 @@ namespace RaceEngineerPlugin.Deque {
                 foreach (var a in Data) {
                     txt += $"{a:0.000}, ";
                 }
-                RaceEngineerPlugin.LogInfo($@"{txt}],
-    (Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
-    (Avg, Std) = ({Avg}, {Std}),
-    (lowerBound, upperBound) = ({lowerBound}, {upperBound}),
-    Finished in {t.TotalMilliseconds}ms");
+    //            RaceEngineerPlugin.LogInfo($@"{txt}],
+    //(Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
+    //(Avg, Std) = ({Avg}, {Std}),
+    //(lowerBound, upperBound) = ({lowerBound}, {upperBound}),
+    //Finished in {t.TotalMilliseconds}ms");
             }
         }
 

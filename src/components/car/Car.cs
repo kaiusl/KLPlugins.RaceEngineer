@@ -92,16 +92,16 @@ namespace RaceEngineerPlugin.Car {
             Fuel.OnLapFinished(data, booleans);
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans, string trackName, Database.Database db) {
+        public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
             CheckChange(data.NewData.CarModel);
             
-            if (!booleans.NewData.IsMoving && (Setup == null || (booleans.OldData.IsSetupMenuVisible && !booleans.NewData.IsSetupMenuVisible))) {
-                UpdateSetup(trackName);
+            if (!v.booleans.NewData.IsMoving && (Setup == null || (v.booleans.OldData.IsSetupMenuVisible && !v.booleans.NewData.IsSetupMenuVisible))) {
+                UpdateSetup(data.NewData.TrackId);
             }
 
-            Tyres.OnRegularUpdate(pm, data, this, booleans, trackName, db);
-            Brakes.OnRegularUpdate(pm, data, booleans);
-            Fuel.OnRegularUpdate(pm, data, booleans);
+            Tyres.OnRegularUpdate(pm, data, v);
+            Brakes.OnRegularUpdate(pm, data, v.booleans);
+            Fuel.OnRegularUpdate(pm, data, v.booleans);
         }
 
         #endregion

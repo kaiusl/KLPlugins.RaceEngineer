@@ -12,7 +12,7 @@ namespace RaceEngineerPlugin.Database
 	/// <summary>
 	/// Handles data collection/storing for plugin.
 	/// </summary>
-	public class Database {
+	public class Database : IDisposable {
 		private SQLiteConnection conn;
 
 		private SQLiteCommand insertEventCmd;
@@ -47,29 +47,45 @@ namespace RaceEngineerPlugin.Database
 			}
 		}
 
-		public void Dispose() {
-			if (transaction != null) {
-				transaction.Commit();
-				transaction.Dispose();
-			}
-			if (conn != null) {
-				conn.Close();
-				conn.Dispose();
-				conn = null;
+		#region IDisposable Support
+		~Database() { 
+			Dispose(false);
+		}
+		
+		private bool isDisposed = false;
+		protected virtual void Dispose(bool disposing) {
+			if (!isDisposed) {
+				RaceEngineerPlugin.LogInfo("Disposed.");
+				if (transaction != null) {
+					transaction.Commit();
+				}
+
+				if (disposing) {
+					insertEventCmd.Dispose();
+					insertStintCmd.Dispose();
+					insertLapCmd.Dispose();
+				}
+
+				if (transaction != null) {
+					transaction.Dispose();
+					transaction = null;
+				}
+
+				if (conn != null) {
+					conn.Close();
+					conn.Dispose();
+					conn = null;
+				}
+
+				isDisposed = true;
 			}
 		}
 
-		~Database() {
-			if (transaction != null) {
-				transaction.Commit();
-				transaction.Dispose();
-			}
-			if (conn != null) {
-				conn.Close();
-				conn.Dispose();
-				conn = null;
-			}
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
+		#endregion
 
 		public void CommitTransaction() {
 			if (transaction != null && numCommands != 0) {

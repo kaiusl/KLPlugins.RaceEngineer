@@ -2,6 +2,7 @@ using GameReaderCommon;
 using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Stats;
+using System.IO;
 
 namespace RaceEngineerPlugin.Car {
 
@@ -61,11 +62,18 @@ namespace RaceEngineerPlugin.Car {
             tempRunning.Reset();
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Car car, Booleans.Booleans booleans, string trackName, Database.Database db) {
-            CheckCompoundChange(pm, car, trackName, db);
+        public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
+            CheckCompoundChange(pm, v.car, data.NewData.TrackId, v.db);
             CheckPresChange(data);
-            UpdateOverLapData(data, booleans);
-            PredictIdealInputPressures(data.NewData.AirTemperature, data.NewData.RoadTemperature);
+            UpdateOverLapData(data, v.booleans);
+
+            if (data.NewData.AirTemperature != 0.0) {
+                PredictIdealInputPressures(data.NewData.AirTemperature, data.NewData.RoadTemperature);
+            } else if (v.realtimeUpdate.AmbientTemp != 0.0) {
+                PredictIdealInputPressures(v.realtimeUpdate.AmbientTemp, v.realtimeUpdate.TrackTemp);
+            } else {
+                RaceEngineerPlugin.LogWarn("Couldn't predict input pressures as temperatures are not available.");
+            }
         }
 
         #endregion
@@ -106,10 +114,13 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
+        private const double PRESS_LOSS_THRESHOLD = 0.1; 
         private void CheckPresChange(GameData data) {
             if (data.NewData.TyrePressureFrontLeft == 0) {
                 return;
             }
+
+            File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Pres.txt", $"{data.NewData.TyrePressureFrontLeft}, {data.NewData.TyrePressureFrontRight}\n");
 
             var presDelta = new double[4] {
                  data.NewData.TyrePressureFrontLeft - data.OldData.TyrePressureFrontLeft,
@@ -118,8 +129,8 @@ namespace RaceEngineerPlugin.Car {
                  data.NewData.TyrePressureRearRight - data.OldData.TyrePressureRearRight
             };
 
-            if (data.NewData.SpeedKmh < 10 && data.NewData.IsInPitLane == 1) {
-                Func<double, bool> pred = v => Math.Abs(v) > 0.1;
+            if (data.NewData.SpeedKmh < 10) {
+                Func<double, bool> pred = v => Math.Abs(v) > PRESS_LOSS_THRESHOLD;
                 if (pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
                     RaceEngineerPlugin.LogInfo("Current input tyre pressures updated.");
                     CurrentInputPres[0] = data.NewData.TyrePressureFrontLeft;
@@ -132,8 +143,9 @@ namespace RaceEngineerPlugin.Car {
                 }
             } else {
                 for (int i = 0; i < 4; i++) {
-                    if (presDelta[i] < -0.1) { 
+                    if (presDelta[i] < -PRESS_LOSS_THRESHOLD) { 
                         PresLoss[i] += presDelta[i];
+                        RaceEngineerPlugin.LogInfo($"Pressure loss on {i} by {presDelta[i]}.");
                     }
                 }
             }
@@ -254,13 +266,12 @@ namespace RaceEngineerPlugin.Car {
         public double[] Predict(double airtemp, double tracktemp, double idealPresFront, double idealPresRear) {
             var res = new double[4];
             for (int i = 0; i < 4; i++) {
-                if (regressors[i] != null) {
+                if (regressors[i] != null && airtemp != 0.0) {
                     res[i] = regressors[i].Predict(new double[] { i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp });
                 } else { 
                     res[i] = double.NaN;
                 }
             }
-            //RaceEngineerPlugin.LogInfo($"Predicted input pressures at air={airtemp}, track={tracktemp} to be [{res[0]}, {res[1]}, {res[2]}, {res[3]}]");
             return res;
         }
 

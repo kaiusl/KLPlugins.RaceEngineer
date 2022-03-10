@@ -97,8 +97,8 @@ namespace RaceEngineerPlugin {
                     //File.AppendAllText("Logs/RETiming.txt", $"{ts.TotalMilliseconds}\n");
                 }
             } else {
-                values.booleans.OnGameNotRunning();
-                values.db.CommitTransaction();
+                values.OnGameNotRunning();
+                sw.Flush();
             }
         }
 
@@ -109,6 +109,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
             // Save settings
+            RaceEngineerPlugin.LogInfo("Disposed.");
             this.SaveCommonSettings("GeneralSettings", Settings);
             values.Dispose();
             sw.Dispose();
@@ -151,6 +152,19 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
+
+            this.AttachDelegate("BAirTemp", () => values.realtimeUpdate.AmbientTemp);
+            this.AttachDelegate("BTrackTemp", () => values.realtimeUpdate.TrackTemp);
+            this.AttachDelegate("BSessionPhase", () => values.realtimeUpdate.Phase.ToString());
+            this.AttachDelegate("BSessionTime", () => values.realtimeUpdate.SessionTime);
+            this.AttachDelegate("BRemainingTime", () => values.realtimeUpdate.RemainingTime);
+            this.AttachDelegate("BTimeOfDay", () => values.realtimeUpdate.TimeOfDay);
+            this.AttachDelegate("BRainLevel", () => values.realtimeUpdate.RainLevel);
+            this.AttachDelegate("BClouds", () => values.realtimeUpdate.Clouds);
+            this.AttachDelegate("BWetness", () => values.realtimeUpdate.Wetness);
+            this.AttachDelegate("BSessionRemainingTime", () => values.realtimeUpdate.SessionRemainingTime);
+            this.AttachDelegate("BSessionEndTime", () => values.realtimeUpdate.SessionEndTime);
+            this.AttachDelegate("BSessionType", () => values.realtimeUpdate.SessionType.ToString());
 
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
