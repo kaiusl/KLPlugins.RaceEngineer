@@ -20,48 +20,42 @@
         public bool IsUnknown { get => _isUnknown;  }
         public string Name { get => _name; }
 
-        private bool _isAC = false;
-        private bool _isACC = false;
-        private bool _isRf2 = false;
-        private bool _isIracing = false;
-        private bool _isR3E = false;
-        private bool _isUnknown = false;
-        private string _name;
+        private readonly bool _isAC = false;
+        private readonly bool _isACC = false;
+        private readonly bool _isRf2 = false;
+        private readonly bool _isIracing = false;
+        private readonly bool _isR3E = false;
+        private readonly bool _isUnknown = false;
+        private readonly string _name;
 
         public Game(string gameName) {
-            Update(gameName);
-        }
-
-        private void Update(string gameName) {
             _name = gameName;
-            switch (gameName) { 
-                case AC_NAME :
+            switch (gameName) {
+                case AC_NAME:
                     _isAC = true;
                     RaceEngineerPlugin.LogInfo("Game set to AC");
                     break;
-                case ACC_NAME :
+                case ACC_NAME:
                     _isACC = true;
                     RaceEngineerPlugin.LogInfo("Game set to ACC");
                     break;
-                case RF2_NAME :
+                case RF2_NAME:
                     _isRf2 = true;
                     RaceEngineerPlugin.LogInfo("Game set to RF2");
                     break;
-                case IRACING_NAME :
+                case IRACING_NAME:
                     _isIracing = true;
                     RaceEngineerPlugin.LogInfo("Game set to IRacing");
                     break;
-                case R3E_NAME :
+                case R3E_NAME:
                     _isR3E = true;
                     RaceEngineerPlugin.LogInfo("Game set to R3E");
                     break;
-                default :
+                default:
                     _isUnknown = true;
                     RaceEngineerPlugin.LogInfo("Game set to Unknown");
                     break;
             }
-
-
         }
     }
 }

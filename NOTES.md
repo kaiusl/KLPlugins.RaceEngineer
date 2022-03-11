@@ -8,11 +8,14 @@
 
 ## Definite todos
 
+- [ ] Move database interactions to different thread
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
 - [ ] Rework loading of previous data to be more representative of current condition.
   - [ ] How to handle not enough data? Widen requirements? Don't load?
-- [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available.
+- [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
+- [ ] Detect ecu map changes mid lap, and add boolean to db, such laps should be excluded from fuel calculation. If change is to or from fuel save maps, should alse exlude from tyre pres calculations.
+- [ ] Add booleans (one per tyre) to db that this lap was puncture lap, it means that it should be exluded from tyre pressure calculation as the data is skewd.
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
     - First data update takes long (~100ms) but it's okay as nothing happend in game then.

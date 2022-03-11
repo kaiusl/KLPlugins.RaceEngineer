@@ -94,7 +94,7 @@ namespace RaceEngineerPlugin {
 
                     //stopWatch.Stop();
                     //TimeSpan ts = stopWatch.Elapsed;
-                    //File.AppendAllText("Logs/RETiming.txt", $"{ts.TotalMilliseconds}\n");
+                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\RETiming_debug.txt", $"{ts.TotalMilliseconds}\n");
                 }
             } else {
                 values.OnGameNotRunning();
