@@ -153,18 +153,18 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
 
-            this.AttachDelegate("BAirTemp", () => values.realtimeUpdate.AmbientTemp);
-            this.AttachDelegate("BTrackTemp", () => values.realtimeUpdate.TrackTemp);
-            this.AttachDelegate("BSessionPhase", () => values.realtimeUpdate.Phase.ToString());
-            this.AttachDelegate("BSessionTime", () => values.realtimeUpdate.SessionTime);
-            this.AttachDelegate("BRemainingTime", () => values.realtimeUpdate.RemainingTime);
-            this.AttachDelegate("BTimeOfDay", () => values.realtimeUpdate.TimeOfDay);
-            this.AttachDelegate("BRainLevel", () => values.realtimeUpdate.RainLevel);
-            this.AttachDelegate("BClouds", () => values.realtimeUpdate.Clouds);
-            this.AttachDelegate("BWetness", () => values.realtimeUpdate.Wetness);
-            this.AttachDelegate("BSessionRemainingTime", () => values.realtimeUpdate.SessionRemainingTime);
-            this.AttachDelegate("BSessionEndTime", () => values.realtimeUpdate.SessionEndTime);
-            this.AttachDelegate("BSessionType", () => values.realtimeUpdate.SessionType.ToString());
+            this.AttachDelegate("BAirTemp", () => values.realtimeUpdate?.AmbientTemp);
+            this.AttachDelegate("BTrackTemp", () => values.realtimeUpdate?.TrackTemp);
+            this.AttachDelegate("BSessionPhase", () => values.realtimeUpdate?.Phase.ToString());
+            this.AttachDelegate("BSessionTime", () => values.realtimeUpdate?.SessionTime);
+            this.AttachDelegate("BRemainingTime", () => values.realtimeUpdate?.RemainingTime);
+            this.AttachDelegate("BTimeOfDay", () => values.realtimeUpdate?.TimeOfDay);
+            this.AttachDelegate("BRainLevel", () => values.realtimeUpdate?.RainLevel);
+            this.AttachDelegate("BClouds", () => values.realtimeUpdate?.Clouds);
+            this.AttachDelegate("BWetness", () => values.realtimeUpdate?.Wetness);
+            this.AttachDelegate("BSessionRemainingTime", () => values.realtimeUpdate?.SessionRemainingTime);
+            this.AttachDelegate("BSessionEndTime", () => values.realtimeUpdate?.SessionEndTime);
+            this.AttachDelegate("BSessionType", () => values.realtimeUpdate?.SessionType.ToString());
 
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
@@ -319,14 +319,20 @@ namespace RaceEngineerPlugin {
             if (SETTINGS.Log) {
                 var pathParts = sourceFilePath.Split('\\');
                 SimHub.Logging.Current.Info($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} INFO ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
             }
         }
 
         public static void LogWarn(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             var pathParts = sourceFilePath.Split('\\');
             SimHub.Logging.Current.Warn($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} WARN ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+        }
+
+        public static void LogError(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
+            var pathParts = sourceFilePath.Split('\\');
+            SimHub.Logging.Current.Error($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ERROR ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogFileSeparator() {

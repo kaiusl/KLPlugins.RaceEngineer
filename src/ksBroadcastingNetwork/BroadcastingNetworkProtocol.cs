@@ -53,20 +53,20 @@ namespace ksBroadcastingNetwork
         public delegate void ConnectionStateChangedDelegate(int connectionId, bool connectionSuccess, bool isReadonly, string error);
         public event ConnectionStateChangedDelegate OnConnectionStateChanged;
 
-        public delegate void TrackDataUpdateDelegate(string sender, TrackData trackUpdate);
-        public event TrackDataUpdateDelegate OnTrackDataUpdate;
+        //public delegate void TrackDataUpdateDelegate(string sender, TrackData trackUpdate);
+        //public event TrackDataUpdateDelegate OnTrackDataUpdate;
 
-        public delegate void EntryListUpdateDelegate(string sender, CarInfo car);
-        public event EntryListUpdateDelegate OnEntrylistUpdate;
+        //public delegate void EntryListUpdateDelegate(string sender, CarInfo car);
+        //public event EntryListUpdateDelegate OnEntrylistUpdate;
 
         public delegate void RealtimeUpdateDelegate(string sender, RealtimeUpdate update);
         public event RealtimeUpdateDelegate OnRealtimeUpdate;
 
-        public delegate void RealtimeCarUpdateDelegate(string sender, RealtimeCarUpdate carUpdate);
-        public event RealtimeCarUpdateDelegate OnRealtimeCarUpdate;
+        //public delegate void RealtimeCarUpdateDelegate(string sender, RealtimeCarUpdate carUpdate);
+        //public event RealtimeCarUpdateDelegate OnRealtimeCarUpdate;
 
-        public delegate void BroadcastingEventDelegate(string sender, BroadcastingEvent evt);
-        public event BroadcastingEventDelegate OnBroadcastingEvent;
+        //public delegate void BroadcastingEventDelegate(string sender, BroadcastingEvent evt);
+        //public event BroadcastingEventDelegate OnBroadcastingEvent;
         
 
 

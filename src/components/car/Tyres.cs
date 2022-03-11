@@ -69,8 +69,8 @@ namespace RaceEngineerPlugin.Car {
 
             if (data.NewData.AirTemperature != 0.0) {
                 PredictIdealInputPressures(data.NewData.AirTemperature, data.NewData.RoadTemperature);
-            } else if (v.realtimeUpdate.AmbientTemp != 0.0) {
-                PredictIdealInputPressures(v.realtimeUpdate.AmbientTemp, v.realtimeUpdate.TrackTemp);
+            } else if (v.realtimeUpdate != null) {
+                PredictIdealInputPressures((double)(v.realtimeUpdate?.AmbientTemp), (double)(v.realtimeUpdate?.TrackTemp));
             } else {
                 RaceEngineerPlugin.LogWarn("Couldn't predict input pressures as temperatures are not available.");
             }
