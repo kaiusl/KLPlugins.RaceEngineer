@@ -8,14 +8,19 @@
 
 ## Definite todos
 
-- [ ] Move database interactions to different thread
+- [ ] Move database interactions to different thread or use async
+  - [ ] Use separate thread with queue to push commands and then execute them as they come in. For queries maybe should use async
+  - [ ] Use sync with some assurance that previous interaction has finished, eg previous lap was inserted before next one is. Could use task as fields, do TaskRun and await before inserting next lap but how to synchronize between different accesses, queries and inserts?
+    - We don't care when exactly insert happen, but that they are in order. We do care that queries happen at some point and that they are also in order with. So we could have bunch of task fields and before any command await on all.
+    - If we pass some stuff to async function will it copy data (take a snapshot of passed data) or not? I assume is we pass reference values then not?
+  - [ ] Could we use events? Eg the event is triggered from outside the db class and the run on separate thread.
+  - [ ] Does SQLite have .ExecuteAsync methods? Yes, it does.
+- [ ] Use async to learn tyre pres models
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
 - [ ] Rework loading of previous data to be more representative of current condition.
   - [ ] How to handle not enough data? Widen requirements? Don't load?
 - [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
-- [ ] Detect ecu map changes mid lap, and add boolean to db, such laps should be excluded from fuel calculation. If change is to or from fuel save maps, should alse exlude from tyre pres calculations.
-- [ ] Add booleans (one per tyre) to db that this lap was puncture lap, it means that it should be exluded from tyre pressure calculation as the data is skewd.
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
     - First data update takes long (~100ms) but it's okay as nothing happend in game then.
@@ -27,10 +32,13 @@
             - With single transaction, lap finish takes around 0.5ms
         - Cache inserts statements into list and insert later?
             - In this case we need to keep track of tyre sets and laps driven with each tyre set. Maybe something else?
+    - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
     - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
 
 #### *DONE!*
 
+- [x] Detect ecu map changes mid lap, and add boolean to db, such laps should be excluded from fuel calculation. If change is to or from fuel save maps, should alse exlude from tyre pres calculations.
+- [x] Add booleans (one per tyre) to db that this lap was puncture lap, it means that it should be exluded from tyre pressure calculation as the data is skewd.
 - [x] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.
 - [x] ~~For calculation of input tyre pressures from current avg tyre pressures use machine learned delta values. That is how much does change in input pressure change hot pressures. This is needed as 0.1 psi input change doesn't exactly result in 0.1 psi hot pressure change.~~
   - ~~How to learn it?~~

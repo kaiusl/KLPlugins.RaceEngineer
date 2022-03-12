@@ -92,6 +92,10 @@ namespace RaceEngineerPlugin.Car {
             Fuel.OnLapFinished(data, booleans);
         }
 
+        public void OnLapFinishedAfterInsert() {
+            Tyres.OnLapFinishedAfterInsert();
+        }
+
         public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
             CheckChange(data.NewData.CarModel);
             

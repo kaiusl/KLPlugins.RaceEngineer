@@ -21,7 +21,7 @@ namespace RaceEngineerPlugin {
 
         #region On... METHODS
 
-        public void OnLapFinished(GameData data) {
+        public void OnLapFinishedAfterInsert(GameData data) {
             AirAtLapStart = data.NewData.AirTemperature;
             TrackAtLapStart = data.NewData.RoadTemperature;
         }

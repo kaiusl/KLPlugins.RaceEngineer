@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using ksBroadcastingNetwork;
 using ksBroadcastingNetwork.Structs;
+using System.Threading.Tasks;
 
 namespace RaceEngineerPlugin {
 
@@ -25,6 +26,9 @@ namespace RaceEngineerPlugin {
         public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
 
         public Database.Database db = new Database.Database();
+
+        private Database.Lap prevLap;
+        private Task lapInsertTask;
 
         public Values() {}
 
@@ -72,6 +76,9 @@ namespace RaceEngineerPlugin {
             car.OnNewEvent(pm, data, db);
             laps.OnNewEvent(pm, car.Name, track.Name, db);
             db.InsertEvent(car.Name, track.Name);
+            if (prevLap == null) {
+                prevLap = new Database.Lap(pm, this, data);
+            }
             ConnectToBroadcastClient();
         }
 
@@ -119,7 +126,6 @@ namespace RaceEngineerPlugin {
 
             remainingInSession.OnRegularUpdate(booleans, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
             remainingOnFuel.OnRegularUpdate(car.Fuel.Remaining, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
-
             if (booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 booleans.OnLapFinished(data);
@@ -128,13 +134,19 @@ namespace RaceEngineerPlugin {
                 if (laps.LastTime != 0) {
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();
-                    db.InsertLap(pm, this, data);
+                    //db.InsertLap(pm, this, data);
+                    prevLap.Update(pm, this, data);
+                    if (lapInsertTask != null) {
+                        lapInsertTask.Wait();
+                    }
+                    lapInsertTask = Task.Run(() => db.InsertLap(prevLap));
                     stopWatch.Stop();
                     TimeSpan ts = stopWatch.Elapsed;
                     RaceEngineerPlugin.LogInfo($"Finished lap update in {ts.TotalMilliseconds}ms.");
                 }
 
-                temps.OnLapFinished(data);
+                temps.OnLapFinishedAfterInsert(data);
+                car.OnLapFinishedAfterInsert();
                 RaceEngineerPlugin.LogFileSeparator();
             }
 

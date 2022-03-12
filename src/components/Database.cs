@@ -4,11 +4,119 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using GameReaderCommon;
 using SimHub.Plugins;
 
 namespace RaceEngineerPlugin.Database
 {
+
+	public class Lap {
+		public int lap_id;
+		public int stint_id;
+		public int session_lap_nr;
+		public int stint_lap_nr;
+		public int tyreset_lap_nr;
+		public int brake_pad_lap_nr;
+		public double air_temp;
+		public double air_temp_delta;
+		public double track_temp;
+		public double track_temp_delta;
+		public double lap_time;
+		public double fuel_used;
+		public double fuel_left;
+
+		public double[] tyre_pres_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] tyre_pres_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] tyre_pres_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] tyre_pres_loss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public bool[] tyre_pres_loss_lap = new bool[4] { false, false, false, false };
+
+		public double[] tyre_temp_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] tyre_temp_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] tyre_temp_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+
+		public double[] brake_temp_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] brake_temp_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] brake_temp_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+
+		public double[] tyre_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+
+		public double[] brake_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+
+		public int abs;
+		public int tc;
+		public int tc2 = 0;
+		public int ecu_map;
+		public bool ecu_map_changed;
+		public string track_grip_status = null;
+		public bool is_valid;
+		public bool is_valid_fuel_lap;
+		public bool is_outlap;
+		public bool is_inlap;
+
+
+		public Lap(PluginManager pm, Values v, GameData data) {
+			Update(pm, v, data);
+		}
+
+
+		public void Update(PluginManager pm, Values v, GameData data) {
+			stint_id = 1;
+			session_lap_nr = data.NewData.CompletedLaps;
+			stint_lap_nr = v.laps.StintLaps;
+			tyreset_lap_nr = v.car.Tyres.SetLaps;
+			brake_pad_lap_nr = v.car.Brakes.PadLaps;
+			air_temp = data.NewData.AirTemperature;
+			air_temp_delta = data.NewData.AirTemperature - v.temps.AirAtLapStart;
+			track_temp = data.NewData.RoadTemperature;
+			track_temp_delta = data.NewData.RoadTemperature - v.temps.TrackAtLapStart;
+			lap_time = v.laps.LastTime;
+			fuel_used = v.car.Fuel.LastUsedPerLap;
+			fuel_left = v.car.Fuel.Remaining;
+
+			for (var i = 0; i < 4; i++) {
+				tyre_pres_avg[i] = v.car.Tyres.PresOverLap[i].Avg;
+				tyre_pres_min[i] = v.car.Tyres.PresOverLap[i].Min;
+				tyre_pres_max[i] = v.car.Tyres.PresOverLap[i].Max;
+				tyre_pres_loss[i] = v.car.Tyres.PresLoss[i];
+				tyre_pres_loss_lap[i] = v.car.Tyres.PresLossLap[i];
+
+				tyre_temp_avg[i] = v.car.Tyres.TempOverLap[i].Avg;
+				tyre_temp_min[i] = v.car.Tyres.TempOverLap[i].Min;
+				tyre_temp_max[i] = v.car.Tyres.TempOverLap[i].Max;
+
+				brake_temp_avg[i] = v.car.Brakes.TempOverLap[i].Avg;
+				brake_temp_min[i] = v.car.Brakes.TempOverLap[i].Min;
+				brake_temp_max[i] = v.car.Brakes.TempOverLap[i].Max;
+			}
+
+			abs = data.NewData.ABSLevel;
+			tc = data.NewData.TCLevel;
+			ecu_map = data.NewData.EngineMap;
+			ecu_map_changed = v.booleans.OldData.EcuMapChangedThisLap;
+
+			if (RaceEngineerPlugin.GAME.IsACC) {
+				tc2 = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut");
+
+				for (var i = 0; i < 4; i++) {
+					brake_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife0" + $"{i + 1}");
+				}
+
+				track_grip_status = RaceEngineerPlugin.TrackGripStatus(pm);
+			}
+
+			is_valid = v.booleans.NewData.SavePrevLap;
+			// Need to use booleans.OldData which is the last point on finished lap
+			is_valid_fuel_lap = v.booleans.OldData.IsValidFuelLap;
+			is_outlap = v.booleans.OldData.IsOutLap;
+			is_inlap = v.booleans.OldData.IsInLap;
+
+		}
+
+	}
+
+
 	/// <summary>
 	/// Handles data collection/storing for plugin.
 	/// </summary>
@@ -20,6 +128,8 @@ namespace RaceEngineerPlugin.Database
 		private SQLiteCommand insertLapCmd;
 
 		private SQLiteTransaction transaction;
+
+		private Task<int> insertLapTask;
 
 		private long eventId;
 		private long stintId;
@@ -87,8 +197,11 @@ namespace RaceEngineerPlugin.Database
 		}
 		#endregion
 
-		public void CommitTransaction() {
+		public async void CommitTransaction() {
 			if (transaction != null && numCommands != 0) {
+				if (insertLapTask != null) {
+					await insertLapTask;
+				}
 				RaceEngineerPlugin.LogInfo("Commited db transaction");
 				transaction.Commit();
 				transaction.Dispose();
@@ -172,6 +285,7 @@ namespace RaceEngineerPlugin.Database
 		private const string TYRE_PRES_MIN = "tyre_pres_min";
 		private const string TYRE_PRES_MAX = "tyre_pres_max";
 		private const string TYRE_PRES_LOSS = "tyre_pres_loss";
+		private const string TYRE_PRES_LOSS_LAP = "tyre_pres_loss_lap";
 		private const string TYRE_TEMP_AVG = "tyre_temp_avg";
 		private const string TYRE_TEMP_MIN = "tyre_temp_min";
 		private const string TYRE_TEMP_MAX = "tyre_temp_max";
@@ -184,6 +298,7 @@ namespace RaceEngineerPlugin.Database
 		private const string TC = "tc";
 		private const string TC2 = "tc2";
 		private const string ECU_MAP = "ecu_map";
+		private const string ECU_MAP_CHANGED = "ecu_map_changed";
 		private const string TRACK_GRIP_STATUS = "track_grip_status";
 		private const string IS_VALID = "is_valid";
 		private const string IS_VALID_FUEL_LAP = "is_valid_fuel_lap";
@@ -221,6 +336,10 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TYRE_PRES_LOSS + $"_{TYRES[1]}", "REAL"),
 			new DBField(TYRE_PRES_LOSS + $"_{TYRES[2]}", "REAL"),
 			new DBField(TYRE_PRES_LOSS + $"_{TYRES[3]}", "REAL"),
+			new DBField(TYRE_PRES_LOSS_LAP + $"_{TYRES[0]}", "INTEGER"),
+			new DBField(TYRE_PRES_LOSS_LAP + $"_{TYRES[1]}", "INTEGER"),
+			new DBField(TYRE_PRES_LOSS_LAP + $"_{TYRES[2]}", "INTEGER"),
+			new DBField(TYRE_PRES_LOSS_LAP + $"_{TYRES[3]}", "INTEGER"),
 
 			new DBField(TYRE_TEMP_AVG + $"_{TYRES[0]}", "REAL"),
 			new DBField(TYRE_TEMP_AVG + $"_{TYRES[1]}", "REAL"),
@@ -261,6 +380,7 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TC, "INTEGER"),
 			new DBField(TC2, "INTEGER"),
 			new DBField(ECU_MAP, "INTEGER"),
+			new DBField(ECU_MAP_CHANGED, "INTEGER"),
 			new DBField(TRACK_GRIP_STATUS, "TEXT"),
 			new DBField(IS_VALID, "INTEGER"),
 			new DBField(IS_VALID_FUEL_LAP, "INTEGER"),
@@ -429,6 +549,7 @@ namespace RaceEngineerPlugin.Database
 				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, v.car.Tyres.PresOverLap[i].Min);
 				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, v.car.Tyres.PresOverLap[i].Max);
 				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, v.car.Tyres.PresLoss[i]);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, v.car.Tyres.PresLossLap[i]);
 
 				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, v.car.Tyres.TempOverLap[i].Avg);
 				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, v.car.Tyres.TempOverLap[i].Min);
@@ -444,6 +565,7 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, ABS, data.NewData.ABSLevel);
 			SetParam(insertLapCmd, TC, data.NewData.TCLevel);
 			SetParam(insertLapCmd, ECU_MAP, data.NewData.EngineMap);
+			SetParam(insertLapCmd, ECU_MAP_CHANGED, v.booleans.OldData.EcuMapChangedThisLap);
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
 				SetParam(insertLapCmd, TC2, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut"));
@@ -462,51 +584,143 @@ namespace RaceEngineerPlugin.Database
 				}
 			}
 
-
 			SetParam(insertLapCmd, IS_VALID, v.booleans.NewData.SavePrevLap);
 			// Need to use booleans.OldData which is the last point on finished lap
 			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, v.booleans.OldData.IsValidFuelLap);
 			SetParam(insertLapCmd, IS_OUTLAP, v.booleans.OldData.IsOutLap);
 			SetParam(insertLapCmd, IS_INLAP, v.booleans.OldData.IsInLap);
 
+
 			insertLapCmd.ExecuteNonQuery();
 			numCommands++;
 
-			// Debug log inserted values
-			var debugCmd = new SQLiteCommand(conn);
-			debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
-			var rdr = debugCmd.ExecuteReader();
-			rdr.Read();
 
-			Func<int, string> fmt = i => {
-				var type = rdr.GetDataTypeName(i);
-				var value = rdr.GetValue(i);
-				if (type == "REAL") {
-					return $"{value:0.000}";
-				} else {
-					return $"{value}";
-				}
-			};
+            //// Debug log inserted values
+            //var debugCmd = new SQLiteCommand(conn);
+            //debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
+            //var rdr = debugCmd.ExecuteReader();
+            //rdr.Read();
 
-			var txt = $"Inserted lap @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
-			for (var i = 0; i < rdr.FieldCount; i++) {
-				var cname = rdr.GetName(i);
-				if (cname.EndsWith("lf")) {
-					txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
-					i += 3;
-				} else {
-					txt += $"\n\t{cname} = {fmt(i)}";
-				}
+            //Func<int, string> fmt = i => {
+            //    var type = rdr.GetDataTypeName(i);
+            //    var value = rdr.GetValue(i);
+            //    if (type == "REAL") {
+            //        return $"{value:0.000}";
+            //    } else {
+            //        return $"{value}";
+            //    }
+            //};
+
+            //var txt = $"Inserted lap @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
+            //for (var i = 0; i < rdr.FieldCount; i++) {
+            //    var cname = rdr.GetName(i);
+            //    if (cname.EndsWith("lf")) {
+            //        txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
+            //        i += 3;
+            //    } else {
+            //        txt += $"\n\t{cname} = {fmt(i)}";
+            //    }
+            //}
+
+            //RaceEngineerPlugin.LogInfo(txt);
+
+        }
+
+		public void InsertLap(Lap l) {
+			if (transaction == null) {
+				transaction = conn.BeginTransaction();
 			}
 
-			RaceEngineerPlugin.LogInfo(txt);
+			SetParam(insertLapCmd, STINT_ID, stintId);
+			SetParam(insertLapCmd, SESSION_LAP_NR, l.session_lap_nr);
+			SetParam(insertLapCmd, STINT_LAP_NR, l.stint_lap_nr);
+			SetParam(insertLapCmd, TYRESET_LAP_NR, l.tyreset_lap_nr);
+			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, l.brake_pad_lap_nr);
+			SetParam(insertLapCmd, AIR_TEMP, l.air_temp);
+			SetParam(insertLapCmd, AIR_TEMP_DELTA, l.air_temp_delta);
+			SetParam(insertLapCmd, TRACK_TEMP, l.track_temp);
+			SetParam(insertLapCmd, TRACK_TEMP_DELTA, l.track_temp_delta);
+			SetParam(insertLapCmd, LAP_TIME, l.lap_time);
+			SetParam(insertLapCmd, FUEL_USED, l.fuel_used);
+			SetParam(insertLapCmd, FUEL_LEFT, l.fuel_left);
+
+			for (var i = 0; i < 4; i++) {
+				var tyre = $"_{TYRES[i]}";
+				SetParam(insertLapCmd, TYRE_PRES_AVG + tyre, l.tyre_pres_avg[i]);
+				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, l.tyre_pres_min[i]);
+				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, l.tyre_pres_max[i]);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, l.tyre_pres_loss[i]);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.tyre_pres_loss_lap[i]);
+
+				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, l.tyre_temp_avg[i]);
+				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, l.tyre_temp_min[i]);
+				SetParam(insertLapCmd, TYRE_TEMP_MAX + tyre, l.tyre_temp_max[i]);
+
+				SetParam(insertLapCmd, BRAKE_TEMP_AVG + tyre, l.brake_temp_avg[i]);
+				SetParam(insertLapCmd, BRAKE_TEMP_MIN + tyre, l.brake_temp_min[i]);
+				SetParam(insertLapCmd, BRAKE_TEMP_MAX + tyre, l.brake_temp_max[i]);
+
+				SetParam(insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
+			}
+
+			SetParam(insertLapCmd, ABS, l.abs);
+			SetParam(insertLapCmd, TC, l.tc);
+			SetParam(insertLapCmd, ECU_MAP, l.ecu_map);
+			SetParam(insertLapCmd, ECU_MAP_CHANGED, l.ecu_map_changed);
+
+			SetParam(insertLapCmd, TC2, l.tc2);
+			SetParam(insertLapCmd, TRACK_GRIP_STATUS, l.track_grip_status);
+
+			for (var i = 0; i < 4; i++) {
+				SetParam(insertLapCmd, BRAKE_LIFE_LEFT + $"_{TYRES[i]}", l.brake_life_left[i]);
+			}
+
+			SetParam(insertLapCmd, IS_VALID, l.is_valid);
+			// Need to use booleans.OldData which is the last point on finished lap
+			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, l.is_valid_fuel_lap);
+			SetParam(insertLapCmd, IS_OUTLAP, l.is_outlap);
+			SetParam(insertLapCmd, IS_INLAP, l.is_inlap);
+
+
+			insertLapCmd.ExecuteNonQuery();
+			numCommands++;
+
+
+			//// Debug log inserted values
+			//var debugCmd = new SQLiteCommand(conn);
+			//debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
+			//var rdr = debugCmd.ExecuteReader();
+			//rdr.Read();
+
+			//Func<int, string> fmt = i => {
+			//    var type = rdr.GetDataTypeName(i);
+			//    var value = rdr.GetValue(i);
+			//    if (type == "REAL") {
+			//        return $"{value:0.000}";
+			//    } else {
+			//        return $"{value}";
+			//    }
+			//};
+
+			//var txt = $"Inserted lap @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
+			//for (var i = 0; i < rdr.FieldCount; i++) {
+			//    var cname = rdr.GetName(i);
+			//    if (cname.EndsWith("lf")) {
+			//        txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
+			//        i += 3;
+			//    } else {
+			//        txt += $"\n\t{cname} = {fmt(i)}";
+			//    }
+			//}
+
+			//RaceEngineerPlugin.LogInfo(txt);
 
 		}
-        #endregion
+		#endregion
 
-        #region QUERIES
+		#region QUERIES
 
-        public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
+		public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
 			CommitTransaction();
 			string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
 			if (0 < trackGrip && trackGrip < 3) {
@@ -596,7 +810,8 @@ namespace RaceEngineerPlugin.Database
 					AND s.{TYRE_COMPOUND} == '{compound}'
 					AND l.{TYRE_PRES_LOSS}_{ty} > -{TYRE_PRES_LOSS_THRESHOLD}
 					AND l.{AIR_TEMP_DELTA} < {AIR_TEMP_CHANGE_THRESHOLD} AND l.{AIR_TEMP_DELTA} > -{AIR_TEMP_CHANGE_THRESHOLD}
-					AND l.{TRACK_TEMP_DELTA} < {TRACK_TEMP_CHANGE_THRESHOLD} AND l.{TRACK_TEMP_DELTA} > -{TRACK_TEMP_CHANGE_THRESHOLD}";
+					AND l.{TRACK_TEMP_DELTA} < {TRACK_TEMP_CHANGE_THRESHOLD} AND l.{TRACK_TEMP_DELTA} > -{TRACK_TEMP_CHANGE_THRESHOLD}
+					AND l.{TYRE_PRES_LOSS_LAP}_{ty} == 0";
 			if (-1 < brakeDuct && brakeDuct < 7) {
 				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
 			}

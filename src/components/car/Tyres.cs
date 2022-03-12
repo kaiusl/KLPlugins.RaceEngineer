@@ -12,6 +12,7 @@ namespace RaceEngineerPlugin.Car {
         public double[] PredictedIdealInputPres { get; }
         public double[] CurrentInputPres { get; }
         public double[] PresLoss { get; }
+        public bool[] PresLossLap { get; }
         public WheelsStats PresOverLap { get; }
         public WheelsStats TempOverLap { get; }
         public Color.ColorCalculator PresColorF { get; private set; }
@@ -34,6 +35,7 @@ namespace RaceEngineerPlugin.Car {
             PredictedIdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
             CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
             PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+            PresLossLap = new bool[4] { false, false, false, false };
             SetLaps = 0;
             ResetColors();
         }
@@ -60,6 +62,12 @@ namespace RaceEngineerPlugin.Car {
             UpdateIdealInputPressures(airtemp, tracktemp);
             presRunning.Reset();
             tempRunning.Reset();
+        }
+
+        public void OnLapFinishedAfterInsert() {
+            for (int i = 0; i < 4; i++) {
+                PresLossLap[i] = false;
+            }
         }
 
         public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
