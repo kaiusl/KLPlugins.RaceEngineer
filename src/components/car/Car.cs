@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using GameReaderCommon;
 using Newtonsoft.Json;
@@ -97,15 +98,50 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
+            //Stopwatch sw2 = Stopwatch.StartNew();
+            //Stopwatch sw = Stopwatch.StartNew();
+
             CheckChange(data.NewData.CarModel);
-            
+            //sw.Stop();
+            //sw2.Stop();
+            //var ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_CheckChange_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //sw2.Start();
+            //sw.Restart();
             if (!v.booleans.NewData.IsMoving && (Setup == null || (v.booleans.OldData.IsSetupMenuVisible && !v.booleans.NewData.IsSetupMenuVisible))) {
                 UpdateSetup(data.NewData.TrackId);
             }
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_UpdateSetup_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //sw2.Start();
+            //sw.Restart();
             Tyres.OnRegularUpdate(pm, data, v);
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Tyres_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //sw2.Start();
+            //sw.Restart();
             Brakes.OnRegularUpdate(pm, data, v.booleans);
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Brakes_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //sw2.Start();
+            //sw.Restart();
             Fuel.OnRegularUpdate(pm, data, v.booleans);
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Fuel_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //ts = sw2.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
         }
 
         #endregion

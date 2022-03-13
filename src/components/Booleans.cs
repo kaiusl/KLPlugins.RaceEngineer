@@ -1,5 +1,7 @@
 using GameReaderCommon;
 using SimHub.Plugins;
+using System.Diagnostics;
+using System.IO;
 
 namespace RaceEngineerPlugin.Booleans {
 

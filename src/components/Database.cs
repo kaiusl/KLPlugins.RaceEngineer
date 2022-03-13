@@ -290,6 +290,7 @@ namespace RaceEngineerPlugin.Database
 
 		public void CommitTransaction() {
 			if (transaction != null && numCommands != 0) {
+				Stopwatch sw = Stopwatch.StartNew();
 				if (lastTask != null) {
 					lastTask.Wait();
 					lastTask = null;
@@ -299,6 +300,9 @@ namespace RaceEngineerPlugin.Database
 				transaction.Dispose();
 				transaction = null;
 				numCommands = 0;
+				sw.Stop();
+				var ts = sw.Elapsed;
+				File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommitTransaction_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 			}
 		}
 

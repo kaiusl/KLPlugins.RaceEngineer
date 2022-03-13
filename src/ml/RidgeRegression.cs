@@ -24,10 +24,10 @@ namespace RaceEngineerPlugin.ML {
             this.x = x;
             this.y = y;
 
-            Trace.Assert(this.x.RowCount == this.y.Count, $"'y' and 'X' have different number of samples. Respectively {this.y.Count} and {this.x.RowCount}.");
+            Debug.Assert(this.x.RowCount == this.y.Count, $"'y' and 'X' have different number of samples. Respectively {this.y.Count} and {this.x.RowCount}.");
 
             for (int i = 0; i < this.x.RowCount; i++) {
-                Trace.Assert(this.x[i, 0] == 1, $"Features must be in homogeneous coordinates. First column must be 1. Found {this.x[i, 0]} in sample {i}.");
+                Debug.Assert(this.x[i, 0] == 1, $"Features must be in homogeneous coordinates. First column must be 1. Found {this.x[i, 0]} in sample {i}.");
             }
 
             Fit();
@@ -38,7 +38,7 @@ namespace RaceEngineerPlugin.ML {
         }
 
         public double Predict(double[] v) {
-            Trace.Assert(v.Length == w.Count - 1, $"Model has {w.Count - 1} features. Provided input has {v.Length} features.");
+            Debug.Assert(v.Length == w.Count - 1, $"Model has {w.Count - 1} features. Provided input has {v.Length} features.");
 
             var res = w[0];
             for (int i = 0; i < v.Length; i++) {

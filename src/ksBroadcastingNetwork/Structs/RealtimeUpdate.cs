@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ksBroadcastingNetwork.Structs
 {
-    public struct RealtimeUpdate
+    public class RealtimeUpdate
     {
         public int EventIndex { get; internal set; }
         public int SessionIndex { get; internal set; }

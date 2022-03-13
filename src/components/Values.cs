@@ -18,7 +18,7 @@ namespace RaceEngineerPlugin {
         public Track.Track track = new Track.Track();
         public Laps.Laps laps = new Laps.Laps();
         public Temps temps = new Temps();
-        public RealtimeUpdate? realtimeUpdate = null;
+        public RealtimeUpdate realtimeUpdate = null;
 
         public ACCUdpRemoteClient broadcastClient;
 
@@ -88,17 +88,50 @@ namespace RaceEngineerPlugin {
         /// 
         /// </summary>
         public void OnDataUpdate(PluginManager pm, GameData data) {
+           //Stopwatch stopwatch = new Stopwatch();
+           //Stopwatch sw = new Stopwatch();
+           //stopwatch.Start();
+           //sw.Start();
+            
             if (!booleans.NewData.IsGameRunning) {
                 RaceEngineerPlugin.LogFileSeparator();
                 // We haven't updated any data, if we reached here it means tha game/event has started
                 OnNewEvent(pm, data);
             }
 
+            //sw.Restart();
             booleans.OnRegularUpdate(pm, data, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
-            track.OnRegularUpdate(data);
-            car.OnRegularUpdate(pm, data, this);
-            temps.OnRegularUpdate(data, booleans);
+            //sw.Stop();
+            //stopwatch.Stop();
+            //var ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Booleans_OnRegularUpdate_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //stopwatch.Start();
+            //sw.Restart();
+            track.OnRegularUpdate(data);
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Track_OnRegularUpdate_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //stopwatch.Start();
+            //sw.Restart();
+            car.OnRegularUpdate(pm, data, this);
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_OnRegularUpdate_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //stopwatch.Start();
+            //sw.Restart();
+            temps.OnRegularUpdate(data, booleans);
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_temps_OnRegularUpdate_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //stopwatch.Start();
+            //sw.Restart();
             // New stint starts at the pit exit. (ignore is session changes, for example from Qualy->Race this jump also happens but is undesired)
             if (data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0
                 && data.OldData.SessionTypeName == data.NewData.SessionTypeName) {
@@ -111,34 +144,47 @@ namespace RaceEngineerPlugin {
             if ((data.NewData.SessionTypeName == "RACE" || data.NewData.SessionTypeName == "7" || data.NewData.SessionTypeName == "HOTLAP") && 
                 !booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving) 
             {
-
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 OnNewStint(pm, data);
                 booleans.RaceStartStintAdded();
             }
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_OnNewStint_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //stopwatch.Start();
+            //sw.Restart();
             remainingInSession.OnRegularUpdate(booleans, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
             remainingOnFuel.OnRegularUpdate(car.Fuel.Remaining, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Remainings_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //stopwatch.Start();
+            //sw.Restart();
             if (booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 booleans.OnLapFinished(data);
                 car.OnLapFinished(pm, data, booleans);
                 laps.OnLapFinished(data, booleans);
                 if (laps.LastTime != 0) {
-                    Stopwatch stopWatch = new Stopwatch();
-                    stopWatch.Start();
                     db.InsertLap(pm, this, data);
-                    stopWatch.Stop();
-                    TimeSpan ts = stopWatch.Elapsed;
-                    RaceEngineerPlugin.LogInfo($"Finished lap update in {ts.TotalMilliseconds}ms.");
                 }
 
                 temps.OnLapFinishedAfterInsert(data);
                 car.OnLapFinishedAfterInsert();
                 RaceEngineerPlugin.LogFileSeparator();
             }
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_OnLapFinished_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //stopwatch.Start();
+            //sw.Restart();
             if (data.OldData.SessionTypeName != data.NewData.SessionTypeName) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
@@ -147,11 +193,24 @@ namespace RaceEngineerPlugin {
                 laps.OnNewSession(pm, car.Name, track.Name, db);
                 db.CommitTransaction();
             }
+            //sw.Stop();
+            //stopwatch.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_OnNewSession_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //stopwatch.Start();
+            //sw.Restart();
             // Commit db if game is paused, or on track.
             if (booleans.OldData.IsOnTrack && !booleans.NewData.IsOnTrack) {
                 db.CommitTransaction();
             }
+            //sw.Stop();
+            //stopwatch.Stop();
+
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommit_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //ts = stopwatch.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
         }
 

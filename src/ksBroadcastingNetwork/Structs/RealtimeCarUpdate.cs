@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ksBroadcastingNetwork.Structs
 {
-    public struct RealtimeCarUpdate
+    public class RealtimeCarUpdate
     {
         public int CarIndex { get; internal set; }
         public int DriverIndex { get; internal set; }

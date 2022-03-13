@@ -4,6 +4,9 @@ using System;
 using RaceEngineerPlugin.Stats;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Diagnostics;
 
 namespace RaceEngineerPlugin.Car {
 
@@ -21,8 +24,9 @@ namespace RaceEngineerPlugin.Car {
         public Color.ColorCalculator TempColorF { get; private set; }
         public Color.ColorCalculator TempColorR { get; private set; }
         public Dictionary<int, int> SetLaps { get; private set; }
-        public InputTyrePresPredictor inputTyrePresPredictor { get; private set; }
+        public InputTyrePresPredictor InputTyrePresPredictor { get; private set; }
 
+        private Mutex inputTyrePresPredictorMutex = new Mutex();
         private WheelsRunningStats presRunning = new WheelsRunningStats();
         private WheelsRunningStats tempRunning = new WheelsRunningStats();
         private TyreInfo tyreInfo = null;
@@ -77,15 +81,44 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
+            //Stopwatch sw2 = Stopwatch.StartNew();
+            //Stopwatch sw = Stopwatch.StartNew();
             CheckCompoundChange(pm, v.car, data.NewData.TrackId, v.db);
-            CheckPresChange(data);
-            UpdateOverLapData(data, v.booleans);
+            //sw.Stop();
+            //sw2.Stop();
+            //var ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Tyres_CheckCompoundChange_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //sw2.Start();
+            //sw.Restart();
+            CheckPresChange(data);
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Tyres_CheckPresChange_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //sw2.Start();
+            //sw.Restart();
+            UpdateOverLapData(data, v.booleans);
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Tyres_UpdateOverLap_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //sw2.Start();
+            //sw.Restart();
             if (data.NewData.AirTemperature != 0.0) {
                 PredictIdealInputPressures(data.NewData.AirTemperature, data.NewData.RoadTemperature);
             } else if (v.realtimeUpdate != null) {
-                PredictIdealInputPressures((double)(v.realtimeUpdate?.AmbientTemp), (double)(v.realtimeUpdate?.TrackTemp));
+                PredictIdealInputPressures(v.realtimeUpdate.AmbientTemp, v.realtimeUpdate.TrackTemp);
             }
+            //sw.Stop();
+            //sw2.Stop();
+            //ts = sw.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Tyres_PredInputPres_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+            //ts = sw2.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Tyres_total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
         }
 
         #endregion
@@ -131,8 +164,6 @@ namespace RaceEngineerPlugin.Car {
             if (data.NewData.TyrePressureFrontLeft == 0) {
                 return;
             }
-
-            File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Pres.txt", $"{data.NewData.TyrePressureFrontLeft}, {data.NewData.TyrePressureFrontRight}\n");
 
             var presDelta = new double[4] {
                  data.NewData.TyrePressureFrontLeft - data.OldData.TyrePressureFrontLeft,
@@ -199,22 +230,39 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void PredictIdealInputPressures(double airtemp, double tracktemp) {
-            if (tyreInfo != null) {
-                var preds = inputTyrePresPredictor.Predict(airtemp, tracktemp, tyreInfo.IdealPres.F, tyreInfo.IdealPres.R);
-                for (int i = 0; i < 4; i++) {
-                    PredictedIdealInputPres[i] = preds[i];
-                }
-            } else {
+            if (tyreInfo == null) {
                 RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null'");
+                for (int i = 0; i < 4; i++) {
+                    PredictedIdealInputPres[i] = 0.0;
+                }
+                return;
             }
+
+            if (inputTyrePresPredictorMutex.WaitOne(0)) {
+                if (InputTyrePresPredictor != null) {
+                    var preds = InputTyrePresPredictor.Predict(airtemp, tracktemp, tyreInfo.IdealPres.F, tyreInfo.IdealPres.R);
+                    for (int i = 0; i < 4; i++) {
+                        PredictedIdealInputPres[i] = preds[i];
+                    }
+                } else {
+                    for (int i = 0; i < 4; i++) {
+                        PredictedIdealInputPres[i] = 0.0;
+                    }
+                }
+                inputTyrePresPredictorMutex.ReleaseMutex();
+            }
+
         }
 
         private void InitInputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, string track_grip_status, Database.Database db) {
-            inputTyrePresPredictor = new InputTyrePresPredictor(trackName, carName, brakeDucts, compound, track_grip_status, db);
-            var preds = inputTyrePresPredictor.Predict(25, 35, 27.5, 27.5);
-            for (int i = 0; i < 4; i++) {
-                IdealInputPres[i] = preds[i];
-            }
+            InputTyrePresPredictor = null;
+            _ = Task.Run(() => {
+                if (inputTyrePresPredictorMutex.WaitOne()) {
+                    InputTyrePresPredictor = new InputTyrePresPredictor(trackName, carName, brakeDucts, compound, track_grip_status, db);
+                    inputTyrePresPredictorMutex.ReleaseMutex();
+                }
+            });
+            RaceEngineerPlugin.LogInfo("Started building tyre pres models.");
         }
 
         private void ResetColors() {
@@ -236,7 +284,7 @@ namespace RaceEngineerPlugin.Car {
             TempOverLap.Reset();
             presRunning.Reset();
             tempRunning.Reset();
-            inputTyrePresPredictor = null;
+            InputTyrePresPredictor = null;
             //tyreInfo = null;
         }
 

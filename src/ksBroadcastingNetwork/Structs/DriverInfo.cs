@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ksBroadcastingNetwork.Structs
 {
-    public struct DriverInfo
+    public class DriverInfo
     {
         public string FirstName { get; internal set; }
         public string LastName { get; internal set; }

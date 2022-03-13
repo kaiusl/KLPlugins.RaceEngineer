@@ -35,6 +35,9 @@ namespace RaceEngineerPlugin {
         private static FileStream f;
         private static StreamWriter sw;
 
+        public static string pluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
+
+        private Stopwatch swatch = new Stopwatch();
         private Values values;
 
         /// <summary>
@@ -51,8 +54,7 @@ namespace RaceEngineerPlugin {
 
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
-                    //Stopwatch stopWatch = new Stopwatch();
-                    //stopWatch.Start();
+                    //swatch.Restart();
 
                     values.OnDataUpdate(pluginManager, data);
 
@@ -93,13 +95,15 @@ namespace RaceEngineerPlugin {
                     }
                     #endregion
 
-                    //stopWatch.Stop();
-                    //TimeSpan ts = stopWatch.Elapsed;
-                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\RETiming_debug.txt", $"{ts.TotalMilliseconds}\n");
+                    //swatch.Stop();
+                    //TimeSpan ts = swatch.Elapsed;
+                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
                 }
             } else {
                 values.OnGameNotRunning();
-                sw.Flush();
+                if (sw != null) {
+                    sw.Flush();
+                }
             }
         }
 
@@ -133,7 +137,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
             if (SETTINGS.Log) {
-                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{DateTime.Now.Ticks}.txt";
+                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{pluginStartTime}.txt";
                 Directory.CreateDirectory(Path.GetDirectoryName(fpath));
                 f = File.Create(fpath);
                 sw = new StreamWriter(f);
@@ -381,6 +385,7 @@ namespace RaceEngineerPlugin {
             }
 
             var t = sw.Elapsed;
+            LogInfo($"Prejit finished in {t.TotalMilliseconds}ms");
         }
 
     }

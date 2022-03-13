@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ksBroadcastingNetwork.Structs
 {
-    public struct BroadcastingEvent
+    public class BroadcastingEvent
     {
         public BroadcastingCarEventType Type { get; internal set; }
         public string Msg { get; internal set; }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ksBroadcastingNetwork.Structs
 {
-    public struct TrackData
+    public class TrackData
     {
         public string TrackName { get; internal set; }
         public int TrackId { get; internal set; }
