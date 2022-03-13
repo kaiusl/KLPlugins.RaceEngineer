@@ -3,6 +3,7 @@ using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Stats;
 using System.IO;
+using System.Collections.Generic;
 
 namespace RaceEngineerPlugin.Car {
 
@@ -19,7 +20,7 @@ namespace RaceEngineerPlugin.Car {
         public Color.ColorCalculator PresColorR { get; private set; }
         public Color.ColorCalculator TempColorF { get; private set; }
         public Color.ColorCalculator TempColorR { get; private set; }
-        public int SetLaps { get; private set; }
+        public Dictionary<int, int> SetLaps { get; private set; }
         public InputTyrePresPredictor inputTyrePresPredictor { get; private set; }
 
         private WheelsRunningStats presRunning = new WheelsRunningStats();
@@ -36,7 +37,7 @@ namespace RaceEngineerPlugin.Car {
             CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
             PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
             PresLossLap = new bool[4] { false, false, false, false };
-            SetLaps = 0;
+            SetLaps = new Dictionary<int, int>();
             ResetColors();
         }
 
@@ -49,14 +50,19 @@ namespace RaceEngineerPlugin.Car {
         public void OnNewStint(PluginManager pluginManager, Database.Database db) {
             if (RaceEngineerPlugin.GAME.IsACC) {
                 int tyreset = (int)pluginManager.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
-                SetLaps = db.GetLapsOnTyreset(tyreset);
-            } else {
-                SetLaps = 0;
+
+                if (!SetLaps.ContainsKey(tyreset)) {
+                    SetLaps[tyreset] = 0;
+                }
             }
         }
 
-        public void OnLapFinished(double airtemp, double tracktemp) { 
-            SetLaps += 1;
+        public void OnLapFinished(PluginManager pm, double airtemp, double tracktemp) {
+            if (RaceEngineerPlugin.GAME.IsACC) {
+                int tyreset = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
+                SetLaps[tyreset] += 1;
+            }
+
             PresOverLap.Update(presRunning);
             TempOverLap.Update(tempRunning);
             UpdateIdealInputPressures(airtemp, tracktemp);

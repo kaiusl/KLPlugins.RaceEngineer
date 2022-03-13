@@ -9,12 +9,9 @@
 ## Definite todos
 
 - [ ] Move database interactions to different thread or use async
-  - [ ] Use separate thread with queue to push commands and then execute them as they come in. For queries maybe should use async
-  - [ ] Use sync with some assurance that previous interaction has finished, eg previous lap was inserted before next one is. Could use task as fields, do TaskRun and await before inserting next lap but how to synchronize between different accesses, queries and inserts?
-    - We don't care when exactly insert happen, but that they are in order. We do care that queries happen at some point and that they are also in order with. So we could have bunch of task fields and before any command await on all.
-    - If we pass some stuff to async function will it copy data (take a snapshot of passed data) or not? I assume is we pass reference values then not?
-  - [ ] Could we use events? Eg the event is triggered from outside the db class and the run on separate thread.
-  - [ ] Does SQLite have .ExecuteAsync methods? Yes, it does.
+  - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.
+  - How to pass of queries to separate threads?
+- [ ] Store laps on different tyresets in a map to get rid of the query to db.
 - [ ] Use async to learn tyre pres models
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
@@ -23,11 +20,6 @@
 - [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
-    - [x] First call is slow - C# uses JIT compilation
-        - First data update takes long (~100ms) but it's okay as nothing happend in game then.
-        - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
-        - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
-        - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
     - Most expensive are db commits. Takes around 3-10ms which is a bit much.
         - Tried to use single transaction for lap and stint inserts. Works sometimes but not always. Figure out why!!!
             - Is there any query between which messes up our single transaction?
@@ -35,6 +27,12 @@
             - With single transaction, lap finish takes around 0.5ms
         - Cache inserts statements into list and insert later?
             - In this case we need to keep track of tyre sets and laps driven with each tyre set. Maybe something else?
+    - [x] First call is slow - C# uses JIT compilation, added PreJit method to compile all methods at RaceEngineerPlugin.Init
+        - First data update takes long (~100ms) but it's okay as nothing happend in game then.
+        - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
+        - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
+        - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
+    
 
 #### *DONE!*
 

@@ -86,8 +86,8 @@ namespace RaceEngineerPlugin.Car {
             Tyres.OnNewStint(pm, db);
         }
 
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) { 
-            Tyres.OnLapFinished(data.NewData.AirTemperature, data.NewData.RoadTemperature);
+        public void OnLapFinished(PluginManager pm, GameData data, Booleans.Booleans booleans) { 
+            Tyres.OnLapFinished(pm, data.NewData.AirTemperature, data.NewData.RoadTemperature);
             Brakes.OnLapFinished();
             Fuel.OnLapFinished(data, booleans);
         }

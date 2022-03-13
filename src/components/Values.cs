@@ -123,7 +123,7 @@ namespace RaceEngineerPlugin {
             if (booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 booleans.OnLapFinished(data);
-                car.OnLapFinished(data, booleans);
+                car.OnLapFinished(pm, data, booleans);
                 laps.OnLapFinished(data, booleans);
                 if (laps.LastTime != 0) {
                     Stopwatch stopWatch = new Stopwatch();

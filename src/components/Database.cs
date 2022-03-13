@@ -12,21 +12,94 @@ using SimHub.Plugins;
 
 namespace RaceEngineerPlugin.Database
 {
+	public class Stint {
+		public string session_type = null;
+		public int stint_nr;
+		public string start_time;
+		public string tyre_compound;
+		public double[] tyre_pres_in = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public int brake_pad_front;
+		public int brake_pad_rear;
+		public int brake_pad_nr;
+		public int brake_duct_front;
+		public int brake_duct_rear;
+		public int tyre_set;
+		public int[] camber = new int[4] { 0, 0, 0, 0 };
+		public int[] toe = new int[4] { 0, 0, 0, 0 };
+		public int caster_lf;
+		public int caster_rf;
+
+		public Stint() { }
+
+		public Stint(PluginManager pm, Values v, GameData data) {
+			Update(pm, v, data);
+		}
+
+		public void Update(PluginManager pm, Values v, GameData data) {
+			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
+
+			string sessType = data.NewData.SessionTypeName;
+			if (sessType == "7") {
+				sessType = "HOTSTINT";
+			}
+			session_type = sessType;
+			stint_nr = v.laps.StintNr;
+			start_time = stime;
+			tyre_compound = v.car.Tyres.Name;
+
+			for (var i = 0; i < 4; i++) {
+				tyre_pres_in[i] = v.car.Tyres.CurrentInputPres[i];
+			}
+
+			if (RaceEngineerPlugin.GAME.IsACC) {
+				brake_pad_front = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.frontBrakeCompound") + 1;
+				brake_pad_rear = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.rearBrakeCompound") + 1;
+				tyre_set = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
+			} else {
+				brake_pad_front = -1;
+				brake_pad_rear = -1;
+				tyre_set = -1;
+			}
+
+			brake_pad_nr = v.car.Brakes.PadNr;
+
+			if (v.car.Setup != null) {
+				brake_duct_front = v.car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
+				brake_duct_rear = v.car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
+				for (var i = 0; i < 4; i++) {
+					camber[i] = v.car.Setup.basicSetup.alignment.camber[i];
+					toe[i] = v.car.Setup.basicSetup.alignment.toe[i];
+				}
+
+				caster_lf = v.car.Setup.basicSetup.alignment.casterLF;
+				caster_rf = v.car.Setup.basicSetup.alignment.casterRF;
+			} else {
+				brake_duct_front = -1;
+				brake_duct_rear = -1;
+				for (var i = 0; i < 4; i++) {
+					camber[i] = -1;
+					toe[i] = -1;
+				}
+
+				caster_lf = -1;
+				caster_rf = -1;
+			}
+
+		}
+	}
 
 	public class Lap {
-		public int lap_id = 0;
-		public int stint_id = 0;
-		public int session_lap_nr = 0;
-		public int stint_lap_nr = 0;
-		public int tyreset_lap_nr = 0;
-		public int brake_pad_lap_nr = 0;
-		public double air_temp = 0.0;
-		public double air_temp_delta = 0.0;
-		public double track_temp = 0.0;
-		public double track_temp_delta = 0.0;
-		public double lap_time = 0.0;
-		public double fuel_used = 0.0;
-		public double fuel_left = 0.0;
+		public int session_lap_nr;
+		public int stint_lap_nr;
+		public int tyreset_lap_nr;
+		public int brake_pad_lap_nr;
+		public double air_temp;
+		public double air_temp_delta;
+		public double track_temp;
+		public double track_temp_delta;
+		public double lap_time;
+		public double fuel_used;
+		public double fuel_left;
 
 		public double[] tyre_pres_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 		public double[] tyre_pres_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
@@ -46,16 +119,16 @@ namespace RaceEngineerPlugin.Database
 
 		public double[] brake_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public int abs = 0;
-		public int tc = 0;
-		public int tc2 = 0;
-		public int ecu_map = 0;
-		public bool ecu_map_changed = false;
-		public string track_grip_status = null;
-		public bool is_valid = true;
-		public bool is_valid_fuel_lap = true;
-		public bool is_outlap = false;
-		public bool is_inlap = false;
+		public int abs;
+		public int tc;
+		public int tc2;
+		public int ecu_map;
+		public bool ecu_map_changed;
+		public string track_grip_status;
+		public bool is_valid;
+		public bool is_valid_fuel_lap;
+		public bool is_outlap;
+		public bool is_inlap;
 
 		public Lap() { }
 
@@ -65,11 +138,19 @@ namespace RaceEngineerPlugin.Database
 		}
 
 
-		public void Update(in PluginManager pm, in Values v, in GameData data) {
-			stint_id = 1;
+		public void Update(PluginManager pm, Values v, GameData data) {
+			var tyreset = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
 			session_lap_nr = data.NewData.CompletedLaps;
 			stint_lap_nr = v.laps.StintLaps;
-			tyreset_lap_nr = v.car.Tyres.SetLaps;
+			if (RaceEngineerPlugin.GAME.IsACC) {
+				if (v.car.Tyres.SetLaps.ContainsKey(tyreset)) {
+					tyreset_lap_nr = v.car.Tyres.SetLaps[tyreset];
+				} else {
+					RaceEngineerPlugin.LogError("Number of laps on current tyre set is not set. Shouldn't be possible in ACC.");
+				}
+			} else {
+				tyreset_lap_nr = 0;
+			}
 			brake_pad_lap_nr = v.car.Brakes.PadLaps;
 			air_temp = data.NewData.AirTemperature;
 			air_temp_delta = data.NewData.AirTemperature - v.temps.AirAtLapStart;
@@ -108,6 +189,13 @@ namespace RaceEngineerPlugin.Database
 				}
 
 				track_grip_status = RaceEngineerPlugin.TrackGripStatus(pm);
+			} else {
+				tc2 = -1;
+				for (var i = 0; i < 4; i++) {
+					brake_life_left[i] = -1;
+				}
+
+				track_grip_status = null;
 			}
 
 			is_valid = v.booleans.NewData.SavePrevLap;
@@ -115,9 +203,7 @@ namespace RaceEngineerPlugin.Database
 			is_valid_fuel_lap = v.booleans.OldData.IsValidFuelLap;
 			is_outlap = v.booleans.OldData.IsOutLap;
 			is_inlap = v.booleans.OldData.IsInLap;
-
 		}
-
 	}
 
 
@@ -136,7 +222,8 @@ namespace RaceEngineerPlugin.Database
 		private long eventId;
 		private long stintId;
 		private int numCommands = 0;
-		private Lap prevLap;
+		private Lap prevLap = new Lap();
+		private Stint stint = new Stint();
 		private Task lastTask;
 
 		public Database() {
@@ -405,10 +492,6 @@ namespace RaceEngineerPlugin.Database
 			SetParam(cmd, name, value ? 1 : 0);
 		}
 
-		private void SetParam(SQLiteCommand cmd, string name) {
-			SetParam(cmd, name, DBNull.Value);
-		}
-
 		public void InsertEvent(string carName, string trackName) {
 			if (transaction == null) {
 				transaction = conn.BeginTransaction();
@@ -441,69 +524,41 @@ namespace RaceEngineerPlugin.Database
 		}
 
 		public void InsertStint(PluginManager pm, Values v, GameData data) {
+			if (transaction == null) transaction = conn.BeginTransaction();
+			if (lastTask != null) lastTask.Wait();
+
+			stint.Update(pm, v, data);
+			lastTask = Task.Run(() => InsertStint());
+		}
+
+		private void InsertStint() {
 			if (transaction == null) {
 				transaction = conn.BeginTransaction();
 			}
-			if (lastTask != null) {
-				lastTask.Wait();
-				lastTask = null;
-			}
-			if (prevLap == null) {
-				prevLap = new Lap(pm, v, data);
-			}
-
-			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
 			SetParam(insertStintCmd, EVENT_ID, eventId);
-			string sessType = data.NewData.SessionTypeName;
-			if (sessType == "7") {
-				sessType = "HOTSTINT";
-			}
-			SetParam(insertStintCmd, SESSION_TYPE, sessType);
-			SetParam(insertStintCmd, STINT_NR, v.laps.StintNr);
-			SetParam(insertStintCmd, START_TIME, stime);
-			SetParam(insertStintCmd, TYRE_COMPOUND, v.car.Tyres.Name);
+			SetParam(insertStintCmd, SESSION_TYPE, stint.session_type);
+			SetParam(insertStintCmd, STINT_NR, stint.stint_nr);
+			SetParam(insertStintCmd, START_TIME, stint.start_time);
+			SetParam(insertStintCmd, TYRE_COMPOUND, stint.tyre_compound);
 
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", v.car.Tyres.CurrentInputPres[i]);
-			}
-			
-			if (RaceEngineerPlugin.GAME.IsACC) {
-				int tyreset = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
-				SetParam(insertStintCmd, BRAKE_PAD_FRONT, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.frontBrakeCompound") + 1);
-				SetParam(insertStintCmd, BRAKE_PAD_REAR, (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.rearBrakeCompound") + 1);
-				SetParam(insertStintCmd, TYRE_SET, tyreset);
-			} else {
-				SetParam(insertStintCmd, BRAKE_PAD_FRONT);
-				SetParam(insertStintCmd, BRAKE_PAD_REAR);
-				SetParam(insertStintCmd, TYRE_SET);
+				SetParam(insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", stint.tyre_pres_in[i]);
 			}
 
-			SetParam(insertStintCmd, BRAKE_PAD_NR, v.car.Brakes.PadNr);
-
-
-			if (v.car.Setup == null) {
-				SetParam(insertStintCmd, BRAKE_DUCT_FRONT);
-				SetParam(insertStintCmd, BRAKE_DUCT_REAR);
-				for (var i = 0; i < 4; i++) {
-					SetParam(insertStintCmd, CAMBER + $"_{TYRES[i]}");
-					SetParam(insertStintCmd, TOE + $"_{TYRES[i]}");
-					if (i < 2) {
-						SetParam(insertStintCmd, CASTER + $"_{TYRES[i]}");
-					}
-				}
-			} else {
-				SetParam(insertStintCmd, BRAKE_DUCT_FRONT, v.car.Setup.advancedSetup.aeroBalance.brakeDuct[0]);
-				SetParam(insertStintCmd, BRAKE_DUCT_REAR, v.car.Setup.advancedSetup.aeroBalance.brakeDuct[1]);
-
-				for (var i = 0; i < 4; i++) {
-					SetParam(insertStintCmd, CAMBER + $"_{TYRES[i]}", v.car.Setup.basicSetup.alignment.camber[i]);
-					SetParam(insertStintCmd, TOE + $"_{TYRES[i]}", v.car.Setup.basicSetup.alignment.toe[i]);
-				}
-
-				SetParam(insertStintCmd, CASTER + $"_{TYRES[0]}", v.car.Setup.basicSetup.alignment.casterLF);
-				SetParam(insertStintCmd, CASTER + $"_{TYRES[1]}", v.car.Setup.basicSetup.alignment.casterRF);
+			SetParam(insertStintCmd, BRAKE_PAD_FRONT, stint.brake_pad_front);
+			SetParam(insertStintCmd, BRAKE_PAD_REAR, stint.brake_pad_rear);
+			SetParam(insertStintCmd, TYRE_SET, stint.tyre_set);
+			SetParam(insertStintCmd, BRAKE_PAD_NR, stint.brake_pad_nr);
+			SetParam(insertStintCmd, BRAKE_DUCT_FRONT, stint.brake_duct_front);
+			SetParam(insertStintCmd, BRAKE_DUCT_REAR, stint.brake_duct_rear);
+			for (var i = 0; i < 4; i++) {
+				SetParam(insertStintCmd, CAMBER + $"_{TYRES[i]}", stint.camber[i]);
+				SetParam(insertStintCmd, TOE + $"_{TYRES[i]}", stint.toe[i]);
 			}
+			SetParam(insertStintCmd, CASTER + $"_{TYRES[0]}", stint.caster_lf);
+			SetParam(insertStintCmd, CASTER + $"_{TYRES[1]}", stint.caster_rf);
+
 
 			stintId = (long)insertStintCmd.ExecuteScalar();
 			//insertStintCmd.Reset();
@@ -543,69 +598,63 @@ namespace RaceEngineerPlugin.Database
 		}
 
 		public void InsertLap(PluginManager pm, Values v, GameData data) {
-			if (transaction == null) {
-				transaction = conn.BeginTransaction();
-			}
-
+			if (transaction == null) transaction = conn.BeginTransaction();
 			if (lastTask != null) lastTask.Wait();
-			if (prevLap == null) {
-				prevLap = new Lap(pm, v, data);
-			} else {
-				prevLap.Update(pm, v, data);
-			}
-			lastTask = Task.Run(() => InsertLap(prevLap));
+			
+			prevLap.Update(pm, v, data);
+			lastTask = Task.Run(() => InsertLap());
 		}
 
-		private void InsertLap(Lap l) {
+		private void InsertLap() {
 			SetParam(insertLapCmd, STINT_ID, stintId);
-			SetParam(insertLapCmd, SESSION_LAP_NR, l.session_lap_nr);
-			SetParam(insertLapCmd, STINT_LAP_NR, l.stint_lap_nr);
-			SetParam(insertLapCmd, TYRESET_LAP_NR, l.tyreset_lap_nr);
-			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, l.brake_pad_lap_nr);
-			SetParam(insertLapCmd, AIR_TEMP, l.air_temp);
-			SetParam(insertLapCmd, AIR_TEMP_DELTA, l.air_temp_delta);
-			SetParam(insertLapCmd, TRACK_TEMP, l.track_temp);
-			SetParam(insertLapCmd, TRACK_TEMP_DELTA, l.track_temp_delta);
-			SetParam(insertLapCmd, LAP_TIME, l.lap_time);
-			SetParam(insertLapCmd, FUEL_USED, l.fuel_used);
-			SetParam(insertLapCmd, FUEL_LEFT, l.fuel_left);
+			SetParam(insertLapCmd, SESSION_LAP_NR, prevLap.session_lap_nr);
+			SetParam(insertLapCmd, STINT_LAP_NR, prevLap.stint_lap_nr);
+			SetParam(insertLapCmd, TYRESET_LAP_NR, prevLap.tyreset_lap_nr);
+			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, prevLap.brake_pad_lap_nr);
+			SetParam(insertLapCmd, AIR_TEMP, prevLap.air_temp);
+			SetParam(insertLapCmd, AIR_TEMP_DELTA, prevLap.air_temp_delta);
+			SetParam(insertLapCmd, TRACK_TEMP, prevLap.track_temp);
+			SetParam(insertLapCmd, TRACK_TEMP_DELTA, prevLap.track_temp_delta);
+			SetParam(insertLapCmd, LAP_TIME, prevLap.lap_time);
+			SetParam(insertLapCmd, FUEL_USED, prevLap.fuel_used);
+			SetParam(insertLapCmd, FUEL_LEFT, prevLap.fuel_left);
 
 			for (var i = 0; i < 4; i++) {
 				var tyre = $"_{TYRES[i]}";
-				SetParam(insertLapCmd, TYRE_PRES_AVG + tyre, l.tyre_pres_avg[i]);
-				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, l.tyre_pres_min[i]);
-				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, l.tyre_pres_max[i]);
-				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, l.tyre_pres_loss[i]);
-				SetParam(insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.tyre_pres_loss_lap[i]);
+				SetParam(insertLapCmd, TYRE_PRES_AVG + tyre, prevLap.tyre_pres_avg[i]);
+				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, prevLap.tyre_pres_min[i]);
+				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, prevLap.tyre_pres_max[i]);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, prevLap.tyre_pres_loss[i]);
+				SetParam(insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, prevLap.tyre_pres_loss_lap[i]);
 
-				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, l.tyre_temp_avg[i]);
-				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, l.tyre_temp_min[i]);
-				SetParam(insertLapCmd, TYRE_TEMP_MAX + tyre, l.tyre_temp_max[i]);
+				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, prevLap.tyre_temp_avg[i]);
+				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, prevLap.tyre_temp_min[i]);
+				SetParam(insertLapCmd, TYRE_TEMP_MAX + tyre, prevLap.tyre_temp_max[i]);
 
-				SetParam(insertLapCmd, BRAKE_TEMP_AVG + tyre, l.brake_temp_avg[i]);
-				SetParam(insertLapCmd, BRAKE_TEMP_MIN + tyre, l.brake_temp_min[i]);
-				SetParam(insertLapCmd, BRAKE_TEMP_MAX + tyre, l.brake_temp_max[i]);
+				SetParam(insertLapCmd, BRAKE_TEMP_AVG + tyre, prevLap.brake_temp_avg[i]);
+				SetParam(insertLapCmd, BRAKE_TEMP_MIN + tyre, prevLap.brake_temp_min[i]);
+				SetParam(insertLapCmd, BRAKE_TEMP_MAX + tyre, prevLap.brake_temp_max[i]);
 
 				SetParam(insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
 			}
 
-			SetParam(insertLapCmd, ABS, l.abs);
-			SetParam(insertLapCmd, TC, l.tc);
-			SetParam(insertLapCmd, ECU_MAP, l.ecu_map);
-			SetParam(insertLapCmd, ECU_MAP_CHANGED, l.ecu_map_changed);
+			SetParam(insertLapCmd, ABS, prevLap.abs);
+			SetParam(insertLapCmd, TC, prevLap.tc);
+			SetParam(insertLapCmd, ECU_MAP, prevLap.ecu_map);
+			SetParam(insertLapCmd, ECU_MAP_CHANGED, prevLap.ecu_map_changed);
 
-			SetParam(insertLapCmd, TC2, l.tc2);
-			SetParam(insertLapCmd, TRACK_GRIP_STATUS, l.track_grip_status);
+			SetParam(insertLapCmd, TC2, prevLap.tc2);
+			SetParam(insertLapCmd, TRACK_GRIP_STATUS, prevLap.track_grip_status);
 
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertLapCmd, BRAKE_LIFE_LEFT + $"_{TYRES[i]}", l.brake_life_left[i]);
+				SetParam(insertLapCmd, BRAKE_LIFE_LEFT + $"_{TYRES[i]}", prevLap.brake_life_left[i]);
 			}
 
-			SetParam(insertLapCmd, IS_VALID, l.is_valid);
+			SetParam(insertLapCmd, IS_VALID, prevLap.is_valid);
 			// Need to use booleans.OldData which is the last point on finished lap
-			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, l.is_valid_fuel_lap);
-			SetParam(insertLapCmd, IS_OUTLAP, l.is_outlap);
-			SetParam(insertLapCmd, IS_INLAP, l.is_inlap);
+			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, prevLap.is_valid_fuel_lap);
+			SetParam(insertLapCmd, IS_OUTLAP, prevLap.is_outlap);
+			SetParam(insertLapCmd, IS_INLAP, prevLap.is_inlap);
 
 
 			insertLapCmd.ExecuteNonQuery();
@@ -675,28 +724,6 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			return list;
-		}
-
-		public int GetLapsOnTyreset(int tyreSet) {
-			CommitTransaction();
-			var cmd = new SQLiteCommand(conn);
-			cmd.CommandText = $@"
-				SELECT l.{TYRESET_LAP_NR} FROM {lapsTable.name} AS l
-				INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
-				INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
-				WHERE e.{EVENT_ID} == {eventId} AND s.{TYRE_SET} == {tyreSet}
-				ORDER BY l.{LAP_ID} DESC
-				LIMIT 1";
-
-			var result = cmd.ExecuteScalar();
-			if (result != null) {
-				var tmp = (long)result; // This cannot reasonably be out of int range
-				RaceEngineerPlugin.LogInfo($"Fitted tyre set '{tyreSet}' is used for '{tmp}' laps.");
-				return (int)tmp;
-			} else {
-				RaceEngineerPlugin.LogInfo($"Fitted tyre set '{tyreSet}' is new.");
-				return 0;
-			}
 		}
 
 		private const int LAP_NR_LOW_THRESHOLD = 2;
