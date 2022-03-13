@@ -27,9 +27,6 @@ namespace RaceEngineerPlugin {
 
         public Database.Database db = new Database.Database();
 
-        private Database.Lap prevLap;
-        private Task lapInsertTask;
-
         public Values() {}
 
         #region IDisposable Support
@@ -76,9 +73,6 @@ namespace RaceEngineerPlugin {
             car.OnNewEvent(pm, data, db);
             laps.OnNewEvent(pm, car.Name, track.Name, db);
             db.InsertEvent(car.Name, track.Name);
-            if (prevLap == null) {
-                prevLap = new Database.Lap(pm, this, data);
-            }
             ConnectToBroadcastClient();
         }
 
@@ -134,12 +128,7 @@ namespace RaceEngineerPlugin {
                 if (laps.LastTime != 0) {
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();
-                    //db.InsertLap(pm, this, data);
-                    prevLap.Update(pm, this, data);
-                    if (lapInsertTask != null) {
-                        lapInsertTask.Wait();
-                    }
-                    lapInsertTask = Task.Run(() => db.InsertLap(prevLap));
+                    db.InsertLap(pm, this, data);
                     stopWatch.Stop();
                     TimeSpan ts = stopWatch.Elapsed;
                     RaceEngineerPlugin.LogInfo($"Finished lap update in {ts.TotalMilliseconds}ms.");

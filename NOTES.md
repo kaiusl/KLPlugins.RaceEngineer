@@ -23,8 +23,11 @@
 - [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
 - [ ] Add graphical settings manager inside SimHub
 - [ ] Test performance.
-    - First data update takes long (~100ms) but it's okay as nothing happend in game then.
-    - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
+    - [x] First call is slow - C# uses JIT compilation
+        - First data update takes long (~100ms) but it's okay as nothing happend in game then.
+        - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
+        - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
+        - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
     - Most expensive are db commits. Takes around 3-10ms which is a bit much.
         - Tried to use single transaction for lap and stint inserts. Works sometimes but not always. Figure out why!!!
             - Is there any query between which messes up our single transaction?
@@ -32,8 +35,6 @@
             - With single transaction, lap finish takes around 0.5ms
         - Cache inserts statements into list and insert later?
             - In this case we need to keep track of tyre sets and laps driven with each tyre set. Maybe something else?
-    - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
-    - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
 
 #### *DONE!*
 

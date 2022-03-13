@@ -8,6 +8,7 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -137,6 +138,7 @@ namespace RaceEngineerPlugin {
                 f = File.Create(fpath);
                 sw = new StreamWriter(f);
             }
+            PreJit();
 
             LogInfo("Starting plugin");
             Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
@@ -361,6 +363,25 @@ namespace RaceEngineerPlugin {
             }
         }
 
+        static void PreJit() {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            var types = Assembly.GetExecutingAssembly().GetTypes();//new Type[] { typeof(Database.Database) };
+            foreach (var type in types) {
+                foreach (var method in type.GetMethods(BindingFlags.DeclaredOnly |
+                                    BindingFlags.NonPublic |
+                                    BindingFlags.Public | BindingFlags.Instance |
+                                    BindingFlags.Static)) {
+                    if ((method.Attributes & MethodAttributes.Abstract) == MethodAttributes.Abstract || method.ContainsGenericParameters) {
+                        continue;
+                    }
+                    System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                }
+            }
+
+            var t = sw.Elapsed;
+        }
 
     }
 }
