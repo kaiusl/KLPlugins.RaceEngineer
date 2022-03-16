@@ -2,22 +2,16 @@
 using System.Collections.Generic;
 
 namespace RaceEngineerPlugin.Color {
-    public class Point { 
-        public double x, y;
-
-        public Point(double x, double y) { this.x = x; this.y = y;  }
-    }
-
     /// <summary>
     /// Linear interpolator between to points
     /// </summary>
     public class LinearInterpolator{
         private double intersection, slope, x0;
 
-        public LinearInterpolator(Point p0, Point p1) {
-            slope = (p1.y - p0.y) / (p1.x - p0.x);
-            intersection = p0.y;// - p0.x * slope;
-            x0 = p0.x;
+        public LinearInterpolator(double x0, double y0, double x1, double y1) {
+            slope = (y1 - y0) / (x1 - x0);
+            intersection = y0;
+            this.x0 = x0;
         }
 
         public double Interpolate(double x) {
@@ -26,43 +20,27 @@ namespace RaceEngineerPlugin.Color {
 
     }
 
-    /// <summary>
-    /// Store color and value it corresponds to
-    /// </summary>
-    public class ColorPoint {
-        public Color Color { get; set; }
-        public double Value { get; set; }
-
-        public ColorPoint(Color c, double v) {
-            Color = c;
-            Value = v;
-        }
-    }
-
 
     /// <summary>
     /// Linear interpolator between two colors in HSV color space.
     /// </summary>
     public class LinearColorInterpolator {
-        private LinearInterpolator[] interpolators = new LinearInterpolator[3];
+        private LinearInterpolator interH;
+        private LinearInterpolator interS;
+        private LinearInterpolator interV;
 
-        public LinearColorInterpolator(ColorPoint min, ColorPoint max) {
-            for (int i = 0; i < 3; i++) {
-                interpolators[i] = new LinearInterpolator(
-                    new Point(min.Value, min.Color.HSV[i]),
-                    new Point(max.Value, max.Color.HSV[i])
-                    );
-            }
+        public LinearColorInterpolator(double min, HSV minc, double max, HSV maxc) {
+            interH = new LinearInterpolator(min, minc.H, max, maxc.H);
+            interS = new LinearInterpolator(min, minc.S, max, maxc.S);
+            interV = new LinearInterpolator(min, minc.V, max, maxc.V);
         }
 
-        public Color Interpolate(double x) {
-            return new Color(
-                new HSV(
-                    (int)Math.Round(interpolators[0].Interpolate(x)),
-                    interpolators[1].Interpolate(x),
-                    interpolators[2].Interpolate(x)
-                )
-            );
+        public HSV Interpolate(double x) {
+            return new HSV(
+                    (int)Math.Round(interH.Interpolate(x)),
+                    interS.Interpolate(x),
+                    interV.Interpolate(x)
+                );
         }
     }
 
@@ -71,8 +49,10 @@ namespace RaceEngineerPlugin.Color {
     /// </summary>
     public class ColorCalculator {
         public int num_colors;
-        ColorPoint[] cp;
+        HSV[] colors;
+        double[] values;
         LinearColorInterpolator[] interpolators;
+
 
         /// <summary>
         /// 
@@ -86,24 +66,22 @@ namespace RaceEngineerPlugin.Color {
             }
 
             num_colors = colors.Length;
-            cp = new ColorPoint[num_colors];
+            this.colors = new HSV[num_colors];
+            this.values = values;
 
             for (int i = 0; i < num_colors; i++) {
-                cp[i] = new ColorPoint(new Color(colors[i]), values[i]);
+                this.colors[i] = new HSV(colors[i]);
             }
             interpolators = new LinearColorInterpolator[num_colors];
             UpdateInterpolators();
         }
 
-      
         public void UpdateInterpolation(double[] values) {
             if (num_colors != values.Length) {
                 throw new Exception("There must be same number of colors and values.");
             }
 
-            for (var i = 0; i < num_colors; i++) {
-                cp[i].Value = values[i];
-            }
+            this.values = values;
             
             UpdateInterpolators();
         }
@@ -132,26 +110,26 @@ namespace RaceEngineerPlugin.Color {
 
         private void UpdateInterpolators() {
             for (var i = 0; i < num_colors - 1; i++) {
-                interpolators[i] = new LinearColorInterpolator(cp[i], cp[i + 1]);
+                interpolators[i] = new LinearColorInterpolator(values[i], colors[i], values[i + 1], colors[i + 1]);
             }
         }
 
-        public string GetHexColor(double value) {
-            if (value <= cp[0].Value) {
-                return cp[0].Color.Hex;
+        public HSV GetColor(double value) {
+            if (value <= values[0]) {
+                return colors[0];
             }
 
-            if (value >= cp[num_colors - 1].Value) {
-                return cp[num_colors - 1].Color.Hex;
+            if (value >= values[num_colors - 1]) {
+                return colors[num_colors - 1];
             }
 
 
             for (var i = 0; i < num_colors - 1; i++) {
-                if (value <= cp[i+1].Value) {
-                    return interpolators[i].Interpolate(value).Hex;
+                if (value <= values[i+1]) {
+                    return interpolators[i].Interpolate(value);
                 }
             }
-            return null; // Cannot actually be reached
+            return new HSV(0, 0, 0);//Cannot be actually reached
         }
     }
 }

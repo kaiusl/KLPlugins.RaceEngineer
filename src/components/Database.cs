@@ -54,14 +54,14 @@ namespace RaceEngineerPlugin.Database
 			if (RaceEngineerPlugin.GAME.IsACC) {
 				brake_pad_front = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.frontBrakeCompound") + 1;
 				brake_pad_rear = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.rearBrakeCompound") + 1;
-				tyre_set = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
+				tyre_set = v.car.Tyres.currentTyreSet;
 			} else {
 				brake_pad_front = -1;
 				brake_pad_rear = -1;
 				tyre_set = -1;
 			}
 
-			brake_pad_nr = v.car.Brakes.PadNr;
+			brake_pad_nr = v.car.Brakes.SetNr;
 
 			if (v.car.Setup != null) {
 				brake_duct_front = v.car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
@@ -92,7 +92,7 @@ namespace RaceEngineerPlugin.Database
 		public int session_lap_nr;
 		public int stint_lap_nr;
 		public int tyreset_lap_nr;
-		public int brake_pad_lap_nr;
+		public int brake_lap_nr;
 		public double air_temp;
 		public double air_temp_delta;
 		public double track_temp;
@@ -117,7 +117,8 @@ namespace RaceEngineerPlugin.Database
 
 		public double[] tyre_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public double[] brake_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] pad_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] disc_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
 		public int abs;
 		public int tc;
@@ -139,19 +140,14 @@ namespace RaceEngineerPlugin.Database
 
 
 		public void Update(PluginManager pm, Values v, GameData data) {
-			var tyreset = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.currentTyreSet");
 			session_lap_nr = data.NewData.CompletedLaps;
 			stint_lap_nr = v.laps.StintLaps;
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				if (v.car.Tyres.SetLaps.ContainsKey(tyreset)) {
-					tyreset_lap_nr = v.car.Tyres.SetLaps[tyreset];
-				} else {
-					RaceEngineerPlugin.LogError("Number of laps on current tyre set is not set. Shouldn't be possible in ACC.");
-				}
+				tyreset_lap_nr = v.car.Tyres.GetCurrentSetLaps();
 			} else {
 				tyreset_lap_nr = 0;
 			}
-			brake_pad_lap_nr = v.car.Brakes.PadLaps;
+			brake_lap_nr = v.car.Brakes.LapsNr;
 			air_temp = data.NewData.AirTemperature;
 			air_temp_delta = data.NewData.AirTemperature - v.temps.AirAtLapStart;
 			track_temp = data.NewData.RoadTemperature;
@@ -185,14 +181,15 @@ namespace RaceEngineerPlugin.Database
 				tc2 = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut");
 
 				for (var i = 0; i < 4; i++) {
-					brake_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife0" + $"{i + 1}");
+					pad_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife0" + $"{i + 1}");
+					disc_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.discLife0" + $"{i + 1}");
 				}
 
 				track_grip_status = RaceEngineerPlugin.TrackGripStatus(pm);
 			} else {
 				tc2 = -1;
 				for (var i = 0; i < 4; i++) {
-					brake_life_left[i] = -1;
+					pad_life_left[i] = -1;
 				}
 
 				track_grip_status = null;
@@ -290,7 +287,7 @@ namespace RaceEngineerPlugin.Database
 
 		public void CommitTransaction() {
 			if (transaction != null && numCommands != 0) {
-				Stopwatch sw = Stopwatch.StartNew();
+				//Stopwatch sw = Stopwatch.StartNew();
 				if (lastTask != null) {
 					lastTask.Wait();
 					lastTask = null;
@@ -300,9 +297,9 @@ namespace RaceEngineerPlugin.Database
 				transaction.Dispose();
 				transaction = null;
 				numCommands = 0;
-				sw.Stop();
-				var ts = sw.Elapsed;
-				File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommitTransaction_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+				//sw.Stop();
+				//var ts = sw.Elapsed;
+				//File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommitTransaction_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 			}
 		}
 
@@ -389,7 +386,8 @@ namespace RaceEngineerPlugin.Database
 		private const string BRAKE_TEMP_MIN = "brake_temp_min";
 		private const string BRAKE_TEMP_MAX = "brake_temp_max";
 		private const string TYRE_LIFE_LEFT = "tyre_life_left";
-		private const string BRAKE_LIFE_LEFT = "brake_life_left";
+		private const string PAD_LIFE_LEFT = "pad_life_left";
+		private const string DISC_LIFE_LEFT = "disc_life_left";
 		private const string ABS = "abs";
 		private const string TC = "tc";
 		private const string TC2 = "tc2";
@@ -468,10 +466,14 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TYRE_LIFE_LEFT + $"_{TYRES[2]}", "REAL"),
 			new DBField(TYRE_LIFE_LEFT + $"_{TYRES[3]}", "REAL"),
 
-			new DBField(BRAKE_LIFE_LEFT + $"_{TYRES[0]}", "REAL"),
-			new DBField(BRAKE_LIFE_LEFT + $"_{TYRES[1]}", "REAL"),
-			new DBField(BRAKE_LIFE_LEFT + $"_{TYRES[2]}", "REAL"),
-			new DBField(BRAKE_LIFE_LEFT + $"_{TYRES[3]}", "REAL"),
+			new DBField(PAD_LIFE_LEFT + $"_{TYRES[0]}", "REAL"),
+			new DBField(PAD_LIFE_LEFT + $"_{TYRES[1]}", "REAL"),
+			new DBField(PAD_LIFE_LEFT + $"_{TYRES[2]}", "REAL"),
+			new DBField(PAD_LIFE_LEFT + $"_{TYRES[3]}", "REAL"),
+			new DBField(DISC_LIFE_LEFT + $"_{TYRES[0]}", "REAL"),
+			new DBField(DISC_LIFE_LEFT + $"_{TYRES[1]}", "REAL"),
+			new DBField(DISC_LIFE_LEFT + $"_{TYRES[2]}", "REAL"),
+			new DBField(DISC_LIFE_LEFT + $"_{TYRES[3]}", "REAL"),
 			new DBField(ABS, "INTEGER"),
 			new DBField(TC, "INTEGER"),
 			new DBField(TC2, "INTEGER"),
@@ -614,7 +616,7 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, SESSION_LAP_NR, prevLap.session_lap_nr);
 			SetParam(insertLapCmd, STINT_LAP_NR, prevLap.stint_lap_nr);
 			SetParam(insertLapCmd, TYRESET_LAP_NR, prevLap.tyreset_lap_nr);
-			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, prevLap.brake_pad_lap_nr);
+			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, prevLap.brake_lap_nr);
 			SetParam(insertLapCmd, AIR_TEMP, prevLap.air_temp);
 			SetParam(insertLapCmd, AIR_TEMP_DELTA, prevLap.air_temp_delta);
 			SetParam(insertLapCmd, TRACK_TEMP, prevLap.track_temp);
@@ -651,7 +653,8 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, TRACK_GRIP_STATUS, prevLap.track_grip_status);
 
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertLapCmd, BRAKE_LIFE_LEFT + $"_{TYRES[i]}", prevLap.brake_life_left[i]);
+				SetParam(insertLapCmd, PAD_LIFE_LEFT + $"_{TYRES[i]}", prevLap.pad_life_left[i]);
+				SetParam(insertLapCmd, DISC_LIFE_LEFT + $"_{TYRES[i]}", prevLap.disc_life_left[i]);
 			}
 
 			SetParam(insertLapCmd, IS_VALID, prevLap.is_valid);
@@ -724,6 +727,7 @@ namespace RaceEngineerPlugin.Database
 			List<PrevData> list = new List<PrevData>(numItems);
 
 			while (rdr.Read()) {
+				if (HasNullFields(rdr)) continue;
 				list.Add(new PrevData(rdr.GetDouble(0), rdr.GetDouble(1)));
 			}
 
@@ -779,8 +783,9 @@ namespace RaceEngineerPlugin.Database
 			SQLiteDataReader rdr = cmd.ExecuteReader();
 			List<double> y = new List<double>();
 			List<double[]> x = new List<double[]>();
-
 			while (rdr.Read()) {
+				if (HasNullFields(rdr)) continue;
+
 				y.Add(rdr.GetDouble(0));
 				// Homogeneous coordinate, avg_press - loss, air_temp, track_temp
 				x.Add(new double[] { 1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4) });
@@ -790,6 +795,14 @@ namespace RaceEngineerPlugin.Database
 
 			return Tuple.Create(x, y);
 		}
+
+		private bool HasNullFields(SQLiteDataReader rdr) {
+			for (int i = 0; i < rdr.FieldCount; i++) {
+				if (rdr.IsDBNull(i)) return true;
+			}
+			return false;
+		}
+
 
 		#endregion
 

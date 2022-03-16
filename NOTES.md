@@ -8,6 +8,7 @@
 
 ## Definite todos
 
+- [ ] Use broadcast data for track grip status
 - [ ] Move database interactions to different thread or use async
   - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.
   - How to pass of queries to separate threads?
@@ -19,23 +20,17 @@
   - [ ] How to handle not enough data? Widen requirements? Don't load?
 - [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
 - [ ] Add graphical settings manager inside SimHub
-- [ ] Test performance.
-    - Most expensive are db commits. Takes around 3-10ms which is a bit much.
-        - Tried to use single transaction for lap and stint inserts. Works sometimes but not always. Figure out why!!!
-            - Is there any query between which messes up our single transaction?
-            - Something random?
-            - With single transaction, lap finish takes around 0.5ms
-        - Cache inserts statements into list and insert later?
-            - In this case we need to keep track of tyre sets and laps driven with each tyre set. Maybe something else?
-    - [x] First call is slow - C# uses JIT compilation, added PreJit method to compile all methods at RaceEngineerPlugin.Init
-        - First data update takes long (~100ms) but it's okay as nothing happend in game then.
-        - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
-        - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
-        - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
+- [ ] SetPropertyValue-s are quite expensive. Try delegates and 
+  
     
 
 #### *DONE!*
 
+- [x] First call is slow - C# uses JIT compilation, added PreJit method to compile all methods at RaceEngineerPlugin.Init
+    - First data update takes long (~100ms) but it's okay as nothing happend in game then.
+    - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.
+    - First lap insert to db takes also longer, I suppose there is some allocations going on which are reused later, maybe at assigning parameters.
+    - First insert to FixedSizeDeque seems to be a lot longer than others (is Deque lazily initialized?). Same thing for third insert on which we start calculating IQR.
 - [x] Detect ecu map changes mid lap, and add boolean to db, such laps should be excluded from fuel calculation. If change is to or from fuel save maps, should alse exlude from tyre pres calculations.
 - [x] Add booleans (one per tyre) to db that this lap was puncture lap, it means that it should be exluded from tyre pressure calculation as the data is skewd.
 - [x] Use broadcast data to read air and track temp while in pits or race start as they are 0 then in shared memory.

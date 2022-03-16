@@ -25,9 +25,8 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnSessionChange(PluginManager pm, string carName, string trackName, Database.Database db) {
+        public void OnSessionChange(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
             Reset();
-            int trackGrip = RaceEngineerPlugin.GAME.IsACC ? (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus") : -1;
 
             foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
                 RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
@@ -51,7 +50,7 @@ namespace RaceEngineerPlugin.Car {
             // Fuel left
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
-            if (Remaining == 0.0 && RaceEngineerPlugin.GAME.IsACC) {
+            if (booleans.NewData.IsInMenu && booleans.NewData.IsSetupMenuVisible) {
                 double avgFuelPerLapACC = (float)pm.GetPropertyValue("GameRawData.Graphics.FuelXLap");
                 double estLaps = (float)pm.GetPropertyValue("GameRawData.Graphics.fuelEstimatedLaps");
                 Remaining = estLaps * avgFuelPerLapACC;

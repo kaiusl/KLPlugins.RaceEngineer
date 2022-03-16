@@ -6,6 +6,7 @@ using System.IO;
 using ksBroadcastingNetwork;
 using ksBroadcastingNetwork.Structs;
 using System.Threading.Tasks;
+using AssettoCorsaSharedMemory;
 
 namespace RaceEngineerPlugin {
 
@@ -27,7 +28,10 @@ namespace RaceEngineerPlugin {
 
         public Database.Database db = new Database.Database();
 
-        public Values() {}
+        public Values() {
+        }
+
+
 
         #region IDisposable Support
         ~Values() { 
@@ -70,8 +74,9 @@ namespace RaceEngineerPlugin {
             remainingOnFuel.Reset();
             booleans.OnNewEvent(data.NewData.SessionTypeName);
             track.OnNewEvent(data);
-            car.OnNewEvent(pm, data, db);
-            laps.OnNewEvent(pm, car.Name, track.Name, db);
+            int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
+            car.OnNewEvent(pm, data, trackGrip, db);
+            laps.OnNewEvent(pm, car.Name, track.Name, trackGrip, db);
             db.InsertEvent(car.Name, track.Name);
             ConnectToBroadcastClient();
         }
@@ -88,11 +93,11 @@ namespace RaceEngineerPlugin {
         /// 
         /// </summary>
         public void OnDataUpdate(PluginManager pm, GameData data) {
-           //Stopwatch stopwatch = new Stopwatch();
-           //Stopwatch sw = new Stopwatch();
-           //stopwatch.Start();
-           //sw.Start();
-            
+            //Stopwatch stopwatch = new Stopwatch();
+            //Stopwatch sw = new Stopwatch();
+            //stopwatch.Start();
+            //sw.Start();
+
             if (!booleans.NewData.IsGameRunning) {
                 RaceEngineerPlugin.LogFileSeparator();
                 // We haven't updated any data, if we reached here it means tha game/event has started
@@ -189,8 +194,9 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 booleans.OnNewSession(data.NewData.SessionTypeName);
-                car.OnNewSession(pm, track.Name, db);
-                laps.OnNewSession(pm, car.Name, track.Name, db);
+                int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
+                car.OnNewSession(pm, track.Name, trackGrip, db);
+                laps.OnNewSession(pm, car.Name, track.Name, trackGrip, db);
                 db.CommitTransaction();
             }
             //sw.Stop();

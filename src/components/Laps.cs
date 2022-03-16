@@ -28,14 +28,13 @@ namespace RaceEngineerPlugin.Laps {
             StintLaps = 0;
         }
 
-        public void OnNewEvent(PluginManager pm, string carName, string trackName, Database.Database db) {
-            OnNewSession(pm, carName, trackName, db);
+        public void OnNewEvent(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
+            OnNewSession(pm, carName, trackName, trackGrip, db);
         }
 
 
-        public void OnNewSession(PluginManager pm, string carName, string trackName, Database.Database db) {
+        public void OnNewSession(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
             Reset();
-            int trackGrip = RaceEngineerPlugin.GAME.IsACC ? (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus") : -1;
 
             foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");

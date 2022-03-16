@@ -72,15 +72,15 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnNewEvent(PluginManager pm, GameData data, Database.Database db) {
+        public void OnNewEvent(PluginManager pm, GameData data, int trackGrip, Database.Database db) {
             Reset();
             CheckChange(data.NewData.CarModel);
             Brakes.OnNewEvent();
-            Fuel.OnSessionChange(pm, Name, data.NewData.TrackId, db);
+            Fuel.OnSessionChange(pm, Name, data.NewData.TrackId, trackGrip, db);
         }
 
-        public void OnNewSession(PluginManager pm, string trackName, Database.Database db) {
-            Fuel.OnSessionChange(pm, Name, trackName, db);
+        public void OnNewSession(PluginManager pm, string trackName, int trackGrip, Database.Database db) {
+            Fuel.OnSessionChange(pm, Name, trackName, trackGrip, db);
         }
 
         public void OnNewStint(PluginManager pm, Database.Database db) {
@@ -105,7 +105,7 @@ namespace RaceEngineerPlugin.Car {
             //sw.Stop();
             //sw2.Stop();
             //var ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_CheckChange_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_CheckChange_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
             //sw2.Start();
             //sw.Restart();
@@ -115,7 +115,7 @@ namespace RaceEngineerPlugin.Car {
             //sw.Stop();
             //sw2.Stop();
             //ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_UpdateSetup_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_UpdateSetup_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
             //sw2.Start();
             //sw.Restart();
@@ -123,7 +123,7 @@ namespace RaceEngineerPlugin.Car {
             //sw.Stop();
             //sw2.Stop();
             //ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Tyres_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_Tyres_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
             //sw2.Start();
             //sw.Restart();
@@ -131,7 +131,7 @@ namespace RaceEngineerPlugin.Car {
             //sw.Stop();
             //sw2.Stop();
             //ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Brakes_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_Brakes_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
             //sw2.Start();
             //sw.Restart();
@@ -139,9 +139,9 @@ namespace RaceEngineerPlugin.Car {
             //sw.Stop();
             //sw2.Stop();
             //ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_Fuel_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_Fuel_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
             //ts = sw2.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Car_total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\timings\\RETiming_Car_total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
         }
 
         #endregion

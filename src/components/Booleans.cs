@@ -10,8 +10,12 @@ namespace RaceEngineerPlugin.Booleans {
     /// </summary>
     public class BooleansBase {
         public bool IsInPitLane { get; private set; }
+        public bool IsInPitBox { get; private set; }
         public bool IsOnTrack { get; private set; }
         public bool IsMoving { get; private set; }
+        public bool IsInMenu { get; private set; }
+        public bool EnteredMenu { get; private set; }
+        public bool ExitedMenu { get; private set; }
         public bool HasFinishedLap { get; private set; }
         public bool IsSetupMenuVisible { get; private set; }
         public bool IsFuelWarning { get; private set; }
@@ -28,6 +32,8 @@ namespace RaceEngineerPlugin.Booleans {
         public bool IsInLap { get; private set; }
         public bool EnteredPitLane { get; private set; }
         public bool ExitedPitLane { get; private set; }
+        public bool EnteredPitBox { get; private set; }
+        public bool ExitedPitBox { get; private set; }
         public bool EcuMapChangedThisLap { get; private set; }
 
         private bool isSessionLimitSet = false;
@@ -37,6 +43,9 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void Update(BooleansBase o) {
+            IsInMenu = o.IsInMenu;
+            EnteredMenu = o.EnteredMenu;
+            ExitedMenu = o.ExitedMenu;
             IsInPitLane = o.IsInPitLane;
             IsOnTrack = o.IsOnTrack;
             IsMoving = o.IsMoving;
@@ -54,17 +63,56 @@ namespace RaceEngineerPlugin.Booleans {
             IsRaceStartStintAdded = o.IsRaceStartStintAdded;
             IsOutLap = o.IsOutLap;
             IsInLap = o.IsInLap;
+            ExitedPitBox = o.ExitedPitBox;
+            EnteredPitBox = o.EnteredPitBox;
+            ExitedPitLane = o.ExitedPitLane;
+            EnteredPitLane = o.EnteredPitLane;
+            IsInPitBox = o.IsInPitBox;
+            EcuMapChangedThisLap = o.EcuMapChangedThisLap;
         }
 
         public void Update(PluginManager pm, GameData data, double minLapTime, double fuelUsedPrevLapStart) {
             IsGameRunning = data.GameRunning;
+            IsInMenu = data.NewData.AirTemperature == 0;
+            var wasInMenu = data.OldData.AirTemperature == 0;
+            EnteredMenu = !wasInMenu && IsInMenu;
+            ExitedMenu = wasInMenu && !IsInMenu;
+
             IsInPitLane = data.NewData.IsInPitLane == 1;
+            IsInPitBox = data.NewData.IsInPit == 1;
             var wasInPitLane = data.OldData.IsInPitLane == 1;
+            var wasInPitBox = data.OldData.IsInPit == 1;
             EnteredPitLane = !wasInPitLane && IsInPitLane;
             ExitedPitLane = wasInPitLane && !IsInPitLane;
+            EnteredPitBox = !wasInPitBox && IsInPitBox;
+            ExitedPitBox = wasInPitBox && !IsInPitBox;
+
+            if (EnteredMenu) {
+                RaceEngineerPlugin.LogInfo("Entered menu");
+            }
+            if (ExitedMenu) {
+                RaceEngineerPlugin.LogInfo("Exited menu");
+            }
+            if (EnteredPitLane) {
+                RaceEngineerPlugin.LogInfo("Entered pitlane");
+            }
+            if (ExitedPitLane) {
+                RaceEngineerPlugin.LogInfo("Exited pitlane");
+            }
+            if (EnteredPitBox) {
+                RaceEngineerPlugin.LogInfo("Entered pitbox");
+            }
+            if (ExitedPitBox) {
+                RaceEngineerPlugin.LogInfo("Exited pitbox");
+            }
+
+
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
-            IsSetupMenuVisible = RaceEngineerPlugin.GAME.IsACC && (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.IsSetupMenuVisible") == 1;
+            if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
+                IsSetupMenuVisible = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.IsSetupMenuVisible") == 1;
+            }
+
             IsMoving = data.NewData.SpeedKmh > 1;
             HasFinishedLap = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
             if (!isSessionLimitSet) {
@@ -92,14 +140,14 @@ namespace RaceEngineerPlugin.Booleans {
                 RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'minLapTime = {minLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {fuelUsedPrevLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
             }
 
-            if (!IsInLap && EnteredPitLane) {
+            if (!IsInLap && (EnteredPitLane || EnteredMenu)) {
                 if (IsMoving || (data.OldData.AirTemperature != 0 && data.NewData.AirTemperature == 0)) {
                     RaceEngineerPlugin.LogInfo("Set 'IsInLap = true'");
                     IsInLap = true;
                 }
             }
 
-            if (!IsOutLap && ExitedPitLane) {
+            if (!IsOutLap && (ExitedPitLane || ExitedMenu)) {
                 RaceEngineerPlugin.LogInfo("Set 'IsOutLap = true'");
                 IsOutLap = true;
             }
