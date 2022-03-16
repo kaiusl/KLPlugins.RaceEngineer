@@ -28,8 +28,11 @@ namespace RaceEngineerPlugin.Laps {
             StintLaps = 0;
         }
 
-        public void OnNewEvent(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
-            OnNewSession(pm, carName, trackName, trackGrip, db);
+        public void OnNewEvent(string carName, string trackName, int trackGrip, Database.Database db) {
+            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+                RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
+                PrevTimes.AddToFront(pd.lapTime);
+            }
         }
 
 

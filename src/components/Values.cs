@@ -91,7 +91,7 @@ namespace RaceEngineerPlugin {
             track.OnNewEvent(data);
             int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
             car.OnNewEvent(pm, data, trackGrip, db);
-            laps.OnNewEvent(pm, car.Name, track.Name, trackGrip, db);
+            laps.OnNewEvent(car.Name, track.Name, trackGrip, db);
             db.InsertEvent(car.Name, track.Name);
             ConnectToBroadcastClient();
         }
@@ -157,8 +157,7 @@ namespace RaceEngineerPlugin {
             //stopwatch.Start();
             //sw.Restart();
             // New stint starts at the pit exit. (ignore is session changes, for example from Qualy->Race this jump also happens but is undesired)
-            if (data.OldData.IsInPitLane == 1 && data.NewData.IsInPitLane == 0
-                && data.OldData.SessionTypeName == data.NewData.SessionTypeName) {
+            if (booleans.NewData.ExitedPitLane && data.OldData.SessionTypeName == data.NewData.SessionTypeName) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(pm, data);
