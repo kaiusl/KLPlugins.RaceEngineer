@@ -25,6 +25,13 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
+        public void OnNewEvent(string carName, string trackName, int trackGrip, Database.Database db) {
+            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+                RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
+                PrevUsedPerLap.AddToFront(pd.fuelUsed);
+            }
+        }
+
         public void OnSessionChange(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
             Reset();
 

@@ -67,16 +67,16 @@ namespace RaceEngineerPlugin.Car {
             Name = null;
             Info = null;
             Setup = null;
+            Tyres.Reset();
+            Brakes.Reset();
             Fuel.Reset();
         }
 
         #region On... METHODS
 
         public void OnNewEvent(PluginManager pm, GameData data, int trackGrip, Database.Database db) {
-            Reset();
             CheckChange(data.NewData.CarModel);
-            Brakes.OnNewEvent();
-            Fuel.OnSessionChange(pm, Name, data.NewData.TrackId, trackGrip, db);
+            Fuel.OnNewEvent(Name, data.NewData.TrackId, trackGrip, db);
         }
 
         public void OnNewSession(PluginManager pm, string trackName, int trackGrip, Database.Database db) {

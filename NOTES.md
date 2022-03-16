@@ -2,12 +2,14 @@
 
 ## BUGS!!!
 
+- [ ] BUG: When quering input pressure data we have race in db. A new insert could be started while query in under way.
 - [ ] BUG: Restarting session doesn't create new event but should as tyresets are reset.
     - Note: In multiplayer after race finished and session restarts to qualy it should remain the same event as the tyresets are not reset (Does this depend on session setup? Probably...)
 - [ ] POSSIBLE BUG: Data is not reset after the event, but is it properly set at the start of event? CHECK!!!
 
 ## Definite todos
 
+- [ ] Try to get rid of as much pm.GetProperty as possible. That thing is really slow.
 - [ ] Use broadcast data for track grip status
 - [ ] Move database interactions to different thread or use async
   - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.

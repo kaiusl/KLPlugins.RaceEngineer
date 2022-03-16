@@ -6,7 +6,6 @@ using System.IO;
 using ksBroadcastingNetwork;
 using ksBroadcastingNetwork.Structs;
 using System.Threading.Tasks;
-using AssettoCorsaSharedMemory;
 
 namespace RaceEngineerPlugin {
 
@@ -28,9 +27,25 @@ namespace RaceEngineerPlugin {
 
         public Database.Database db = new Database.Database();
 
-        public Values() {
-        }
+        private bool reset = true;
 
+        public Values() {}
+
+        public void Reset() {
+            booleans.Reset(null);
+            car.Reset();
+            track.Reset();
+            laps.Reset();
+            temps.Reset();
+            realtimeUpdate = null;
+            if (broadcastClient != null) {
+                DisposeBroadcastClient();
+            }
+            remainingInSession.Reset();
+            remainingOnFuel.Reset();
+            db.CommitTransactionLocking();
+            reset = true;
+        }
 
 
         #region IDisposable Support
@@ -68,7 +83,7 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
                 DisposeBroadcastClient();
             }
-            db.CommitTransaction();
+            db.CommitTransactionLocking();
             RaceEngineerPlugin.LogInfo("OnNewEvent.");
             remainingInSession.Reset();
             remainingOnFuel.Reset();
@@ -93,6 +108,10 @@ namespace RaceEngineerPlugin {
         /// 
         /// </summary>
         public void OnDataUpdate(PluginManager pm, GameData data) {
+            if (reset) { 
+                reset = false;
+            }
+
             //Stopwatch stopwatch = new Stopwatch();
             //Stopwatch sw = new Stopwatch();
             //stopwatch.Start();
@@ -197,7 +216,7 @@ namespace RaceEngineerPlugin {
                 int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
                 car.OnNewSession(pm, track.Name, trackGrip, db);
                 laps.OnNewSession(pm, car.Name, track.Name, trackGrip, db);
-                db.CommitTransaction();
+                db.CommitTransactionLocking();
             }
             //sw.Stop();
             //stopwatch.Stop();
@@ -208,7 +227,7 @@ namespace RaceEngineerPlugin {
             //sw.Restart();
             // Commit db if game is paused, or on track.
             if (booleans.OldData.IsOnTrack && !booleans.NewData.IsOnTrack) {
-                db.CommitTransaction();
+                db.CommitTransactionLocking();
             }
             //sw.Stop();
             //stopwatch.Stop();
@@ -221,9 +240,10 @@ namespace RaceEngineerPlugin {
         }
 
         public void OnGameNotRunning() {
-            booleans.OnGameNotRunning();
-            db.CommitTransaction();
-            DisposeBroadcastClient();
+            if (!reset) {
+                Reset();
+                booleans.OnGameNotRunning();
+            }
         }
 
         #region Broadcast client connection

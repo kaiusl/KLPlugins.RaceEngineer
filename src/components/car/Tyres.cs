@@ -12,21 +12,26 @@ namespace RaceEngineerPlugin.Car {
 
     public class Tyres {
         public string Name { get; private set; }
+
         public double[] IdealInputPres { get; }
         public double[] PredictedIdealInputPres { get; }
         public double[] CurrentInputPres { get; }
         public double[] PresLoss { get; }
         public bool[] PresLossLap { get; }
+        public string[] PresColor { get; private set; }
+        public string[] TempColor { get; private set; }
+
         public WheelsStats PresOverLap { get; }
         public WheelsStats TempOverLap { get; }
+
         public Color.ColorCalculator PresColorF { get; private set; }
         public Color.ColorCalculator PresColorR { get; private set; }
         public Color.ColorCalculator TempColorF { get; private set; }
         public Color.ColorCalculator TempColorR { get; private set; }
+
         public Dictionary<string, Dictionary<int, int>> SetLaps { get; private set; }
+
         public InputTyrePresPredictor InputTyrePresPredictor { get; private set; }
-        public string[] PresColor { get; private set; }
-        public string[] TempColor { get; private set; }
 
         private volatile bool updatingPresPredictor = false;
         private WheelsRunningStats presRunning = new WheelsRunningStats();
@@ -49,6 +54,39 @@ namespace RaceEngineerPlugin.Car {
             PresColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
             TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
             ResetColors();
+        }
+
+        public void Reset() {
+            Name = null;
+
+            for (int i = 0; i < 4; i++) {
+                IdealInputPres[i] = double.NaN;
+                PredictedIdealInputPres[i] = double.NaN;
+                CurrentInputPres[i] = double.NaN;
+                PresLoss[i] = 0.0;
+                PresLossLap[i] = false;
+                PresColor[i] = "#000000";
+                TempColor[i] = "#000000";
+            }
+
+            PresOverLap.Reset();
+            TempOverLap.Reset();
+
+            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
+            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
+            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
+            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
+
+            SetLaps.Clear();
+            InputTyrePresPredictor = null;
+
+
+            updatingPresPredictor = false;
+            presRunning.Reset();
+            tempRunning.Reset();
+            tyreInfo = null;
+            wetSet = 0;
+            currentTyreSet = 0;
         }
 
         public static string GetTyreCompound(PluginManager pluginManager) {
@@ -205,7 +243,6 @@ namespace RaceEngineerPlugin.Car {
                 }
 
                 InitInputTyrePresPredictor(trackName, car.Name, car.Setup.advancedSetup.aeroBalance.brakeDuct, RaceEngineerPlugin.TrackGripStatus(pm), db);
-                Name = newTyreName;
             } else {
                 RaceEngineerPlugin.LogInfo($"Current CarInfo '{car.Name}' doesn't have specs for tyres. Resetting to defaults.");
             }
@@ -323,6 +360,7 @@ namespace RaceEngineerPlugin.Car {
             RaceEngineerPlugin.LogInfo("Started building tyre pres models.");
         }
 
+     
         private void ResetColors() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
             PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);

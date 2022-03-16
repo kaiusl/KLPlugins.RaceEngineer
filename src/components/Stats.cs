@@ -34,9 +34,13 @@ namespace RaceEngineerPlugin.Stats {
         }
 
         public void Reset() {
-            for (int i = 0; i < SIZE; i++) {
-                Data[i] = double.NaN;
-            }
+            Data[0] = double.NegativeInfinity;
+            Data[1] = double.PositiveInfinity;
+            Data[2] = double.NaN;
+            Data[3] = 0.0;
+            Data[4] = double.NaN;
+            Data[5] = double.NegativeInfinity;
+            Data[6] = double.PositiveInfinity;
         }
 
         public void Set(double value) {

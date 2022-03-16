@@ -9,31 +9,39 @@ namespace RaceEngineerPlugin.Booleans {
     /// Hold single set of boolean values
     /// </summary>
     public class BooleansBase {
-        public bool IsInPitLane { get; private set; }
-        public bool IsInPitBox { get; private set; }
-        public bool IsOnTrack { get; private set; }
-        public bool IsMoving { get; private set; }
         public bool IsInMenu { get; private set; }
         public bool EnteredMenu { get; private set; }
         public bool ExitedMenu { get; private set; }
+
+        public bool IsInPitLane { get; private set; }
+        public bool EnteredPitLane { get; private set; }
+        public bool ExitedPitLane { get; private set; }
+
+        public bool IsInPitBox { get; private set; }
+        public bool EnteredPitBox { get; private set; }
+        public bool ExitedPitBox { get; private set; }
+
+        public bool IsOnTrack { get; private set; }
+        public bool IsMoving { get; private set; }
         public bool HasFinishedLap { get; private set; }
+
         public bool IsSetupMenuVisible { get; private set; }
         public bool IsFuelWarning { get; private set; }
         public bool HavePressuresChanged { get; private set; }
+
         public bool HasNewStintStarted { get; private set; }
         public bool IsValidFuelLap { get; private set; }
         public bool IsTimeLimitedSession { get; private set; }
+
         public bool IsLapLimitedSession { get; private set; }
         public bool SavePrevLap { get; private set; }
         public bool HasSetupChanged { get; private set; }
+
         public bool IsGameRunning { get; private set; }
         public bool IsRaceStartStintAdded { get; private set; }
         public bool IsOutLap { get; private set; }
+
         public bool IsInLap { get; private set; }
-        public bool EnteredPitLane { get; private set; }
-        public bool ExitedPitLane { get; private set; }
-        public bool EnteredPitBox { get; private set; }
-        public bool ExitedPitBox { get; private set; }
         public bool EcuMapChangedThisLap { get; private set; }
 
         private bool isSessionLimitSet = false;
@@ -46,28 +54,36 @@ namespace RaceEngineerPlugin.Booleans {
             IsInMenu = o.IsInMenu;
             EnteredMenu = o.EnteredMenu;
             ExitedMenu = o.ExitedMenu;
+
             IsInPitLane = o.IsInPitLane;
+            ExitedPitLane = o.ExitedPitLane;
+            EnteredPitLane = o.EnteredPitLane;
+
+            IsInPitBox = o.IsInPitBox;
+            ExitedPitBox = o.ExitedPitBox;
+            EnteredPitBox = o.EnteredPitBox;
+
             IsOnTrack = o.IsOnTrack;
             IsMoving = o.IsMoving;
             HasFinishedLap = o.HasFinishedLap;
+
             IsSetupMenuVisible = o.IsSetupMenuVisible;
             IsFuelWarning = o.IsFuelWarning;
             HavePressuresChanged = o.HavePressuresChanged;
+
             HasNewStintStarted = o.HasNewStintStarted;
             IsValidFuelLap = o.IsValidFuelLap;
             IsTimeLimitedSession = o.IsTimeLimitedSession;
+
             IsLapLimitedSession = o.IsLapLimitedSession;
             SavePrevLap = o.SavePrevLap;
             HasSetupChanged = o.HasSetupChanged;
+
             IsGameRunning = o.IsGameRunning;
             IsRaceStartStintAdded = o.IsRaceStartStintAdded;
             IsOutLap = o.IsOutLap;
+
             IsInLap = o.IsInLap;
-            ExitedPitBox = o.ExitedPitBox;
-            EnteredPitBox = o.EnteredPitBox;
-            ExitedPitLane = o.ExitedPitLane;
-            EnteredPitLane = o.EnteredPitLane;
-            IsInPitBox = o.IsInPitBox;
             EcuMapChangedThisLap = o.EcuMapChangedThisLap;
         }
 
@@ -162,24 +178,41 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void Reset(string sessionTypeName) {
-            IsInPitLane = false;
+            IsInMenu = true;
+            EnteredMenu = false;
+            ExitedMenu = false;
+
+            IsInPitLane = true;
+            EnteredPitLane = false;
+            ExitedPitLane = false;
+
+            IsInPitBox = false;
+            EnteredPitBox = false;
+            ExitedPitBox = false;
+
             IsOnTrack = false;
             IsMoving = false;
             HasFinishedLap = false;
+
             IsSetupMenuVisible = false;
             IsFuelWarning = false;
             HavePressuresChanged = false;
+
             HasNewStintStarted = false;
             IsValidFuelLap = false;
             IsTimeLimitedSession = false;
+
             IsLapLimitedSession = false;
             SavePrevLap = false;
             HasSetupChanged = false;
+
             IsGameRunning = false;
             IsRaceStartStintAdded = false;
             IsOutLap = !(sessionTypeName == "7" || sessionTypeName == "HOTLAP"); // First lap of HOTSTINT/HOTLAP is proper lap.
+
             IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
             EcuMapChangedThisLap = false;
+
             isSessionLimitSet = false;
         }
 

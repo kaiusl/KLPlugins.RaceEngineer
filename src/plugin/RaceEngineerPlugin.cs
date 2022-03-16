@@ -145,7 +145,7 @@ namespace RaceEngineerPlugin {
 
             this.AttachDelegate("IsInMenu", () => values.booleans.NewData.IsInMenu);
 
-            this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
+            //this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
 

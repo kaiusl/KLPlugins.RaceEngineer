@@ -24,12 +24,20 @@ namespace RaceEngineerPlugin.Car {
             TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
         }
 
-        #region On... METHODS
-
-        public void OnNewEvent() {
+        public void Reset() {
             SetNr = 0;
             LapsNr = 0;
+            TempOverLap.Reset();
+            for (int i = 0; i < 4; i++) {
+                TempColor[i] = "#000000";
+            }
+            tempColor.UpdateInterpolation(RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
+
+            prevPadLife = 0.0f;
+            tempRunning.Reset();
         }
+
+        #region On... METHODS
 
         public void OnLapFinished() {
             LapsNr += 1;
