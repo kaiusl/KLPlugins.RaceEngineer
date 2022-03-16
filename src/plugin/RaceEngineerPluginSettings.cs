@@ -31,10 +31,10 @@ namespace RaceEngineerPlugin {
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
 
-        public StatsFlags PrevLapsStats { get => prevLapsStats; }
+        public StatsFlags PrevLapsStatsFlags { get => prevLapsStats; }
         public LapFlags LapFlags { get => lapFlags; }
-        public StatsFlags PrevFuelPerLapStats { get => prevFuelPerLapStats; }
-        public StatsFlags RemainingStats { get => remainingStats; }
+        public StatsFlags PrevFuelPerLapStatsFlags { get => prevFuelPerLapStats; }
+        public StatsFlags RemainingStatsFlags { get => remainingStats; }
         public WheelFlags TyrePresFlags { get => tyrePresFlags; }
         public WheelFlags TyreTempFlags { get => tyreTempFlags; }
         public WheelFlags BrakeTempFlags { get => brakeTempFlags; }
@@ -215,7 +215,7 @@ namespace RaceEngineerPlugin {
             FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
             Log = true;
             ShowAllLaps = false;
-            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3", "DeltaToAvg" };
+            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3", "TimeDeltaToAvg" };
             PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
             TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
             TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };

@@ -2,20 +2,19 @@
 
 ## BUGS!!!
 
-- [ ] BUG: When quering input pressure data we have race in db. A new insert could be started while query in under way.
 - [ ] BUG: Restarting session doesn't create new event but should as tyresets are reset.
     - Note: In multiplayer after race finished and session restarts to qualy it should remain the same event as the tyresets are not reset (Does this depend on session setup? Probably...)
-- [ ] POSSIBLE BUG: Data is not reset after the event, but is it properly set at the start of event? CHECK!!!
+
+#### *DONE!*
+
+- [x] BUG: When quering input pressure data we have race in db. A new insert could be started while query in under way. 
+    - FIXED: Added mutex to db.
+- [x] POSSIBLE BUG: Data is not reset after the event, but is it properly set at the start of event? CHECK!!!
+    - FIXED: Added reset at end of game. 
 
 ## Definite todos
 
-- [ ] Try to get rid of as much pm.GetProperty as possible. That thing is really slow.
-- [ ] Use broadcast data for track grip status
-- [ ] Move database interactions to different thread or use async
-  - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.
-  - How to pass of queries to separate threads?
-- [ ] Store laps on different tyresets in a map to get rid of the query to db.
-- [ ] Use async to learn tyre pres models
+- [ ] Try to get rid of as much pm.GetProperty as possible. That thing is quite slow.
 - [ ] Use machine learning to provide input tyre pressures.
   - [See more below...](#input-tyre-pressures)
 - [ ] Rework loading of previous data to be more representative of current condition.
@@ -23,11 +22,17 @@
 - [ ] Use broadcast data do detect race starts (it give session phase). Fall back to current crude method if broadcast data is not available
 - [ ] Add graphical settings manager inside SimHub
 - [ ] SetPropertyValue-s are quite expensive. Try delegates and 
-  
+
     
 
 #### *DONE!*
 
+- [x] Move database interactions to different thread or use async
+  - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.
+  - [x] How to pass of queries to separate threads? Synced by mutex as they are not on main thread, possible interactions are quite far apart (in time) and thus we can afford a simple mutex.
+- [x] Use separate thread to learn tyre pres models
+- [x] Store laps on different tyresets in a map to get rid of the query to db.
+- [x] Use broadcast data for track grip status - no such data available
 - [x] First call is slow - C# uses JIT compilation, added PreJit method to compile all methods at RaceEngineerPlugin.Init
     - First data update takes long (~100ms) but it's okay as nothing happend in game then.
     - Regular update seems to take ~0.1ms, which I think is ok. If SimHub runs at 60fps, it gives 1000ms/60=16.7ms for one update.

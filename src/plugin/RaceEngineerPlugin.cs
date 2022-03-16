@@ -187,13 +187,13 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addStats("LapTime", values.laps.PrevTimes.Stats, SETTINGS.PrevLapsStats);
-            addStats("FuelPerLap", values.car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStats);
-            addStats("LapsRemainingOnFuel", values.remainingOnFuel.laps, SETTINGS.RemainingStats);
-            addStats("TimeRemainingOnFuel", values.remainingOnFuel.time, SETTINGS.RemainingStats);
-            addStats("LapsRemainingInSession", values.remainingInSession.laps, SETTINGS.RemainingStats);
-            addStats("TimeRemainingInSession", values.remainingInSession.time, SETTINGS.RemainingStats);
-            addStats("FuelNeededInSession", values.remainingInSession.fuelNeeded, SETTINGS.RemainingStats);
+            addStats("LapTime", values.laps.PrevTimes.Stats, SETTINGS.PrevLapsStatsFlags);
+            addStats("FuelPerLap", values.car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStatsFlags);
+            addStats("LapsRemainingOnFuel", values.remainingOnFuel.laps, SETTINGS.RemainingStatsFlags);
+            addStats("TimeRemainingOnFuel", values.remainingOnFuel.time, SETTINGS.RemainingStatsFlags);
+            addStats("LapsRemainingInSession", values.remainingInSession.laps, SETTINGS.RemainingStatsFlags);
+            addStats("TimeRemainingInSession", values.remainingInSession.time, SETTINGS.RemainingStatsFlags);
+            addStats("FuelNeededInSession", values.remainingInSession.fuelNeeded, SETTINGS.RemainingStatsFlags);
 
 
             Action<string, double[]> addTyres = (name, values) => {
