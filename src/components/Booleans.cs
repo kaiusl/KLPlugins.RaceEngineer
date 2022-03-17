@@ -169,7 +169,7 @@ namespace RaceEngineerPlugin.Booleans {
             }
             // IsOutLap |= ExitedPitLane;
 
-            if (!EcuMapChangedThisLap && !IsInPitLane && data.OldData.EngineMap != data.NewData.EngineMap) {
+            if (!EcuMapChangedThisLap && !IsInMenu && !IsInPitLane && data.OldData.EngineMap != data.NewData.EngineMap) {
                 RaceEngineerPlugin.LogInfo("Set 'EcuMapChangedThisLap = true'");
                 EcuMapChangedThisLap = true;
             }
@@ -248,6 +248,7 @@ namespace RaceEngineerPlugin.Booleans {
             IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
             IsOutLap = false;
             IsInLap = false;
+            EcuMapChangedThisLap = false;
             RaceEngineerPlugin.LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
         }
 
