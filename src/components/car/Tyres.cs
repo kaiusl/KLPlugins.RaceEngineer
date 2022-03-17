@@ -273,10 +273,10 @@ namespace RaceEngineerPlugin.Car {
                 Func<double, bool> pred = v => Math.Abs(v) > PRESS_LOSS_THRESHOLD;
                 if (pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
                     RaceEngineerPlugin.LogInfo("Current input tyre pressures updated.");
-                    CurrentInputPres[0] = data.NewData.TyrePressureFrontLeft;
-                    CurrentInputPres[1] = data.NewData.TyrePressureFrontRight;
-                    CurrentInputPres[2] = data.NewData.TyrePressureRearLeft;
-                    CurrentInputPres[3] = data.NewData.TyrePressureRearRight;
+                    CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
+                    CurrentInputPres[1] = Math.Ceiling(data.NewData.TyrePressureFrontRight * 10.0) / 10.0;
+                    CurrentInputPres[2] = Math.Ceiling(data.NewData.TyrePressureRearLeft * 10.0) / 10.0;
+                    CurrentInputPres[3] = Math.Ceiling(data.NewData.TyrePressureRearRight * 10.0) / 10.0;
 
                     ResetPressureLoss();
 
