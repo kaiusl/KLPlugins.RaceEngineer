@@ -415,7 +415,6 @@ namespace RaceEngineerPlugin.Car {
             if (data.Item2.Count != 0) {
                 return new ML.RidgeRegression(data.Item1, data.Item2);
             } else {
-                SimHub.Logging.Current.Info("Got zero values from GetInputPresData query.");
                 return null;
             }            
         }
