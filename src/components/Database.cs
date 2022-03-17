@@ -220,10 +220,7 @@ namespace RaceEngineerPlugin.Database
 		private long eventId;
 		private long stintId;
 		private int numCommands = 0;
-		private Lap prevLap = new Lap();
-		private Stint stint = new Stint();
-		private Mutex dbMutex = new Mutex(); 
-		private Task lastTask;
+		private Mutex dbMutex = new Mutex();
 
 		public Database() {
 			var location = $@"{RaceEngineerPlugin.SETTINGS.DataLocation}\{RaceEngineerPlugin.GAME.Name}\data.db";
@@ -247,7 +244,7 @@ namespace RaceEngineerPlugin.Database
 			}
 		}
 
-		#region IDisposable Support
+		#region IDisposable
 		~Database() { 
 			Dispose(false);
 		}
@@ -255,7 +252,7 @@ namespace RaceEngineerPlugin.Database
 		private bool isDisposed = false;
 		protected virtual void Dispose(bool disposing) {
 			if (!isDisposed) {
-				RaceEngineerPlugin.LogInfo("Disposed.");
+				dbMutex.WaitOne();
 				if (transaction != null) {
 					transaction.Commit();
 				}
@@ -277,7 +274,11 @@ namespace RaceEngineerPlugin.Database
 					conn = null;
 				}
 
+				RaceEngineerPlugin.LogInfo("Disposed.");
 				isDisposed = true;
+				dbMutex.ReleaseMutex();
+				dbMutex.Dispose();
+				dbMutex = null;
 			}
 		}
 
@@ -289,27 +290,17 @@ namespace RaceEngineerPlugin.Database
 
 		public void CommitTransactionLocking() {
 			dbMutex.WaitOne();
-
 			CommitTransactionNonLocking();
-
 			dbMutex.ReleaseMutex();
 		}
 
 		public void CommitTransactionNonLocking() {
 			if (transaction != null && numCommands != 0) {
-				//Stopwatch sw = Stopwatch.StartNew();
-				if (lastTask != null) {
-					lastTask.Wait();
-					lastTask = null;
-				}
 				RaceEngineerPlugin.LogInfo("Commited db transaction");
 				transaction.Commit();
 				transaction.Dispose();
 				transaction = null;
 				numCommands = 0;
-				//sw.Stop();
-				//var ts = sw.Elapsed;
-				//File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommitTransaction_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 			}
 		}
 
@@ -371,7 +362,7 @@ namespace RaceEngineerPlugin.Database
 			new DBField(CASTER + $"_{TYRES[1]}", "INTEGER"),
 		});
 
-		private static string[] TYRES = new string[] { "lf", "rf", "lr", "rr" };
+		private static string[] TYRES = new string[] { "fl", "fr", "rl", "rr" };
 		private const string LAP_ID = "lap_id";
 		private const string SESSION_LAP_NR = "session_lap_nr";
 		private const string STINT_LAP_NR = "stint_lap_nr";
@@ -510,14 +501,8 @@ namespace RaceEngineerPlugin.Database
 
 		public void InsertEvent(string carName, string trackName) {
 			dbMutex.WaitOne();
-			if (transaction == null) {
-				transaction = conn.BeginTransaction();
-			}
-			if (lastTask != null) {
-				lastTask.Wait();
-				lastTask = null;
-			}
-
+			if (transaction == null) transaction = conn.BeginTransaction();
+			
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
 			SetParam(insertEventCmd, CAR_ID, carName);
@@ -530,30 +515,27 @@ namespace RaceEngineerPlugin.Database
 			var debugCmd = new SQLiteCommand(conn);
 			debugCmd.CommandText = $"SELECT * FROM {eventsTable.name} ORDER BY rowid DESC LIMIT 1";
 			var rdr = debugCmd.ExecuteReader();
-			dbMutex.ReleaseMutex();
-
 			rdr.Read();
 
 			var txt = $"Inserted event @ {stime}";
 			for (var i = 0; i < rdr.FieldCount; i++) {
 				txt += $"\n\t{rdr.GetName(i)} = {rdr.GetValue(i)}";
 			}
+			rdr.Close();
+			dbMutex.ReleaseMutex();
 
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertStint(PluginManager pm, Values v, GameData data) {
-			dbMutex.WaitOne();
-			if (transaction == null) transaction = conn.BeginTransaction();
-			if (lastTask != null) lastTask.Wait();
-
-			stint.Update(pm, v, data);
-			lastTask = Task.Run(() => InsertStint(eventId));
-			dbMutex.ReleaseMutex();
+			var stint = new Stint(pm, v, data);
+			_ = Task.Run(() => InsertStint(stint, eventId));
 		}
 
-		private void InsertStint(long eventId) {
+		private void InsertStint(Stint stint, long eventId) {
 			dbMutex.WaitOne();
+
+			if (transaction == null) transaction = conn.BeginTransaction();
 			SetParam(insertStintCmd, EVENT_ID, eventId);
 			SetParam(insertStintCmd, SESSION_TYPE, stint.session_type);
 			SetParam(insertStintCmd, STINT_NR, stint.stint_nr);
@@ -585,8 +567,6 @@ namespace RaceEngineerPlugin.Database
 			var debugCmd = new SQLiteCommand(conn);
 			debugCmd.CommandText = $"SELECT * FROM {stintsTable.name} ORDER BY rowid DESC LIMIT 1";
 			var rdr = debugCmd.ExecuteReader();
-			dbMutex.ReleaseMutex();
-
 			rdr.Read();
 
 			Func<int, string> fmt = i => { 
@@ -612,22 +592,20 @@ namespace RaceEngineerPlugin.Database
 					txt += $"\n\t{cname} = {fmt(i)}";
 				}
 			}
+			rdr.Close();
+			dbMutex.ReleaseMutex();
 
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertLap(PluginManager pm, Values v, GameData data) {
-			dbMutex.WaitOne();
-			if (transaction == null) transaction = conn.BeginTransaction();
-			if (lastTask != null) lastTask.Wait();
-			
-			prevLap.Update(pm, v, data);
-			lastTask = Task.Run(() => InsertLap());
-			dbMutex.ReleaseMutex();
+			var lap = new Lap(pm, v, data);
+			_ = Task.Run(() => InsertLap(lap, stintId));
 		}
 
-		private void InsertLap() {
+		private void InsertLap(Lap prevLap, long stintId) {
 			dbMutex.WaitOne();
+			if (transaction == null) transaction = conn.BeginTransaction();
 			SetParam(insertLapCmd, STINT_ID, stintId);
 			SetParam(insertLapCmd, SESSION_LAP_NR, prevLap.session_lap_nr);
 			SetParam(insertLapCmd, STINT_LAP_NR, prevLap.stint_lap_nr);
@@ -688,7 +666,6 @@ namespace RaceEngineerPlugin.Database
             var debugCmd = new SQLiteCommand(conn);
             debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
             var rdr = debugCmd.ExecuteReader();
-			dbMutex.ReleaseMutex();
             rdr.Read();
 
             Func<int, string> fmt = i => {
@@ -704,15 +681,17 @@ namespace RaceEngineerPlugin.Database
             var txt = $"Inserted lap @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
             for (var i = 0; i < rdr.FieldCount; i++) {
                 var cname = rdr.GetName(i);
-                if (cname.EndsWith("lf")) {
+                if (cname.EndsWith(TYRES[0])) {
                     txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
                     i += 3;
                 } else {
                     txt += $"\n\t{cname} = {fmt(i)}";
                 }
             }
+			rdr.Close();
+			dbMutex.ReleaseMutex();
 
-            RaceEngineerPlugin.LogInfo(txt);
+			RaceEngineerPlugin.LogInfo(txt);
 
         }
 		#endregion
@@ -742,14 +721,14 @@ namespace RaceEngineerPlugin.Database
 				LIMIT {numItems}";
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();
-			dbMutex.ReleaseMutex();
 			List<PrevData> list = new List<PrevData>(numItems);
 
 			while (rdr.Read()) {
 				if (HasNullFields(rdr)) continue;
 				list.Add(new PrevData(rdr.GetDouble(0), rdr.GetDouble(1)));
 			}
-
+			rdr.Close();
+			dbMutex.ReleaseMutex();
 			return list;
 		}
 
@@ -801,9 +780,9 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();
-			dbMutex.ReleaseMutex();
 			List<double> y = new List<double>();
 			List<double[]> x = new List<double[]>();
+
 			while (rdr.Read()) {
 				if (HasNullFields(rdr)) continue;
 
@@ -811,7 +790,8 @@ namespace RaceEngineerPlugin.Database
 				// Homogeneous coordinate, avg_press - loss, air_temp, track_temp
 				x.Add(new double[] { 1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4) });
 			}
-
+			rdr.Close();
+			dbMutex.ReleaseMutex();
 			RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with brake duct {brakeDuct} and compount ");
 
 			return Tuple.Create(x, y);
@@ -823,7 +803,6 @@ namespace RaceEngineerPlugin.Database
 			}
 			return false;
 		}
-
 
 		#endregion
 
