@@ -43,7 +43,6 @@ namespace RaceEngineerPlugin {
             }
             remainingInSession.Reset();
             remainingOnFuel.Reset();
-            db.CommitTransactionLocking();
             reset = true;
         }
 
@@ -83,7 +82,6 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
                 DisposeBroadcastClient();
             }
-            db.CommitTransactionLocking();
             RaceEngineerPlugin.LogInfo("OnNewEvent.");
             remainingInSession.Reset();
             remainingOnFuel.Reset();
@@ -215,24 +213,11 @@ namespace RaceEngineerPlugin {
                 int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
                 car.OnNewSession(pm, track.Name, trackGrip, db);
                 laps.OnNewSession(pm, car.Name, track.Name, trackGrip, db);
-                db.CommitTransactionLocking();
             }
             //sw.Stop();
             //stopwatch.Stop();
             //ts = sw.Elapsed;
             //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_OnNewSession_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
-
-            //stopwatch.Start();
-            //sw.Restart();
-            // Commit db if game is paused, or on track.
-            if (booleans.OldData.IsOnTrack && !booleans.NewData.IsOnTrack) {
-                db.CommitTransactionLocking();
-            }
-            //sw.Stop();
-            //stopwatch.Stop();
-
-            //ts = sw.Elapsed;
-            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_DBCommit_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
             //ts = stopwatch.Elapsed;
             //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 

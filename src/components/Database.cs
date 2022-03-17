@@ -219,8 +219,6 @@ namespace RaceEngineerPlugin.Database
 		private SQLiteCommand insertStintCmd;
 		private SQLiteCommand insertLapCmd;
 
-		private SQLiteTransaction transaction;
-
 		private long eventId;
 		private long stintId;
 		private int numCommands = 0;
@@ -237,7 +235,7 @@ namespace RaceEngineerPlugin.Database
 				eventsTable.CreateTable(conn);
 				stintsTable.CreateTableWForeignKey(conn, $"FOREIGN KEY({EVENT_ID}) REFERENCES {eventsTable.name}({EVENT_ID})");
 				lapsTable.CreateTableWForeignKey(conn, $"FOREIGN KEY({STINT_ID}) REFERENCES {stintsTable.name}({STINT_ID})");
-
+			
 				insertEventCmd = eventsTable.CreateInsertCmdWReturning(conn, EVENT_ID);
 				insertStintCmd = stintsTable.CreateInsertCmdWReturning(conn, STINT_ID);
 				insertLapCmd = lapsTable.CreateInsertCmd(conn);
@@ -257,19 +255,11 @@ namespace RaceEngineerPlugin.Database
 		protected virtual void Dispose(bool disposing) {
 			if (!isDisposed) {
 				dbMutex.WaitOne();
-				if (transaction != null) {
-					transaction.Commit();
-				}
-
+				
 				if (disposing) {
 					insertEventCmd.Dispose();
 					insertStintCmd.Dispose();
 					insertLapCmd.Dispose();
-				}
-
-				if (transaction != null) {
-					transaction.Dispose();
-					transaction = null;
 				}
 
 				if (conn != null) {
@@ -291,22 +281,6 @@ namespace RaceEngineerPlugin.Database
 			GC.SuppressFinalize(this);
 		}
 		#endregion
-
-		public void CommitTransactionLocking() {
-			dbMutex.WaitOne();
-			CommitTransactionNonLocking();
-			dbMutex.ReleaseMutex();
-		}
-
-		public void CommitTransactionNonLocking() {
-			if (transaction != null && numCommands != 0) {
-				RaceEngineerPlugin.LogInfo("Commited db transaction");
-				transaction.Commit();
-				transaction.Dispose();
-				transaction = null;
-				numCommands = 0;
-			}
-		}
 
 		#region TABLE DEFINITIONS
 
@@ -505,7 +479,6 @@ namespace RaceEngineerPlugin.Database
 
 		public void InsertEvent(string carName, string trackName) {
 			dbMutex.WaitOne();
-			if (transaction == null) transaction = conn.BeginTransaction();
 			
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
@@ -539,7 +512,6 @@ namespace RaceEngineerPlugin.Database
 
 		private void InsertStint(Stint s) {
 			dbMutex.WaitOne();
-			if (transaction == null) transaction = conn.BeginTransaction();
 
 			SetParam(insertStintCmd, EVENT_ID, s.eventId);
 			SetParam(insertStintCmd, SESSION_TYPE, s.session_type);
@@ -610,7 +582,7 @@ namespace RaceEngineerPlugin.Database
 
 		private void InsertLap(Lap l) {
 			dbMutex.WaitOne();
-			if (transaction == null) transaction = conn.BeginTransaction();
+
 			SetParam(insertLapCmd, STINT_ID, l.stint_id);
 			SetParam(insertLapCmd, SESSION_LAP_NR, l.session_lap_nr);
 			SetParam(insertLapCmd, STINT_LAP_NR, l.stint_lap_nr);
@@ -717,7 +689,6 @@ namespace RaceEngineerPlugin.Database
 
 			List<PrevData> list = new List<PrevData>(numItems);
 			dbMutex.WaitOne();
-			CommitTransactionNonLocking();
 
 			var cmd = new SQLiteCommand(conn) {
                 CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {lapsTable.name} AS l 
@@ -768,7 +739,6 @@ namespace RaceEngineerPlugin.Database
 			List<double[]> x = new List<double[]>();
 
 			dbMutex.WaitOne();
-			CommitTransactionNonLocking();
 
 			var cmd = new SQLiteCommand(conn) {
                 CommandText = $@"
