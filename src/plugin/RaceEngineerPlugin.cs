@@ -27,7 +27,7 @@ namespace RaceEngineerPlugin {
         private const string TYRE_PRES_PROP_NAME = "TyrePres";
         private const string TYRE_TEMP_PROP_NAME = "TyreTemp";
         private const string BRAKE_TEMP_PROP_NAME = "BrakeTemp";
-        private string[] tyreNames = new string[4] { "LF", "RF", "LR", "RR" };
+        private string[] tyreNames = new string[4] { "FL", "FR", "RL", "RR" };
 
         public static readonly Settings SETTINGS = new Settings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
@@ -51,7 +51,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         /// <param name="data"></param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
-            if (GAME.IsUnknown) { return; } // Unknown game is running, do nothing
+            if (!GAME.IsACC) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
@@ -59,14 +59,11 @@ namespace RaceEngineerPlugin {
 
                     values.OnDataUpdate(pluginManager, data);
 
-                    #region UPDATE PROPERTIES
-
                     if (values.booleans.NewData.HasFinishedLap) {
                         for (int i = 0; i < values.car.Fuel.PrevUsedPerLap.Count; i++) {
                             double lapTime = values.laps.PrevTimes[i];
                             var istr = i.ToString();
 
-                            //pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), fromSeconds(lapTime));
                             pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), lapTime);
                             if ((LapFlags.TimeDeltaToAvg & SETTINGS.LapFlags) != 0) {
                                 pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + istr, this.GetType(), lapTime - values.laps.PrevTimes.Avg);
@@ -74,8 +71,6 @@ namespace RaceEngineerPlugin {
                             pluginManager.SetPropertyValue(PREV_FUEL_PROP_NAME + istr, this.GetType(), values.car.Fuel.PrevUsedPerLap[i]);
                         }
                     }
-                    #endregion
-
                     //swatch.Stop();
                     //TimeSpan ts = swatch.Elapsed;
                     //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
@@ -99,12 +94,11 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
-            // Save settings
-            RaceEngineerPlugin.LogInfo("Disposed.");
             this.SaveCommonSettings("GeneralSettings", Settings);
             values.Dispose();
             sw.Dispose();
             f.Dispose();
+            RaceEngineerPlugin.LogInfo("Disposed.");
         }
 
         /// <summary>
@@ -143,24 +137,24 @@ namespace RaceEngineerPlugin {
 
             this.AttachDelegate("DBG_currentTyreSet", () => values.car.Tyres.currentTyreSet);
 
-            this.AttachDelegate("IsInMenu", () => values.booleans.NewData.IsInMenu);
+            this.AttachDelegate("IsInMenu", () => values.booleans.NewData.IsInMenu ? 1 : 0);
 
-            //this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
-            this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack);
-            this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap);
+            this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
+            this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack ? 1 : 0);
+            this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap ? 1 : 0);
 
-            this.AttachDelegate("BAirTemp", () => values.realtimeUpdate?.AmbientTemp);
-            this.AttachDelegate("BTrackTemp", () => values.realtimeUpdate?.TrackTemp);
-            this.AttachDelegate("BSessionPhase", () => values.realtimeUpdate?.Phase.ToString());
-            this.AttachDelegate("BSessionTime", () => values.realtimeUpdate?.SessionTime);
-            this.AttachDelegate("BRemainingTime", () => values.realtimeUpdate?.RemainingTime);
-            this.AttachDelegate("BTimeOfDay", () => values.realtimeUpdate?.TimeOfDay);
-            this.AttachDelegate("BRainLevel", () => values.realtimeUpdate?.RainLevel);
-            this.AttachDelegate("BClouds", () => values.realtimeUpdate?.Clouds);
-            this.AttachDelegate("BWetness", () => values.realtimeUpdate?.Wetness);
-            this.AttachDelegate("BSessionRemainingTime", () => values.realtimeUpdate?.SessionRemainingTime);
-            this.AttachDelegate("BSessionEndTime", () => values.realtimeUpdate?.SessionEndTime);
-            this.AttachDelegate("BSessionType", () => values.realtimeUpdate?.SessionType.ToString());
+            this.AttachDelegate("AirTemp", () => values.realtimeUpdate?.AmbientTemp);
+            this.AttachDelegate("TrackTemp", () => values.realtimeUpdate?.TrackTemp);
+            this.AttachDelegate("SessionPhase", () => values.realtimeUpdate?.Phase.ToString());
+            this.AttachDelegate("SessionTime", () => values.realtimeUpdate?.SessionTime);
+            this.AttachDelegate("RemainingTime", () => values.realtimeUpdate?.RemainingTime);
+            this.AttachDelegate("TimeOfDay", () => values.realtimeUpdate?.TimeOfDay);
+            this.AttachDelegate("RainLevel", () => values.realtimeUpdate?.RainLevel);
+            this.AttachDelegate("Clouds", () => values.realtimeUpdate?.Clouds);
+            this.AttachDelegate("Wetness", () => values.realtimeUpdate?.Wetness);
+            this.AttachDelegate("SessionRemainingTime", () => values.realtimeUpdate?.SessionRemainingTime);
+            this.AttachDelegate("SessionEndTime", () => values.realtimeUpdate?.SessionEndTime);
+            this.AttachDelegate("SessionType", () => values.realtimeUpdate?.SessionType.ToString());
 
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
@@ -258,6 +252,8 @@ namespace RaceEngineerPlugin {
             addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.tempColor, values.car.Brakes.tempColor, SETTINGS.BrakeTempFlags);
             #endregion
 
+            ///////////////////////
+
             #region ADD PROPERTIES
             // Add some properties where we cannot use delegates
 
@@ -273,20 +269,6 @@ namespace RaceEngineerPlugin {
             }
             #endregion
 
-            //////////////////////////////////////////////////////////
-
-            // Declare an event
-            this.AddEvent("SpeedWarning");
-
-            // Declare an action which can be called
-            this.AddAction("IncrementSpeedWarning", (a, b) => {
-                Settings.SpeedWarningLevel++;
-            });
-
-            // Declare an action which can be called
-            this.AddAction("DecrementSpeedWarning", (a, b) => {
-                Settings.SpeedWarningLevel--;
-            });
         }
 
         public static void LogToFile(string msq) {
