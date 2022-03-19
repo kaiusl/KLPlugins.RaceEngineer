@@ -3,7 +3,7 @@ using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Stats;
 using RaceEngineerPlugin.Color;
-using ACSharedMemory.ACC.Reader;
+using RaceEngineerPlugin.RawData;
 
 namespace RaceEngineerPlugin.Car {
     public class Brakes {
@@ -44,8 +44,8 @@ namespace RaceEngineerPlugin.Car {
             LapsNr += 1;
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
-            CheckPadChange(pm, data, rawData, booleans);
+        public void OnRegularUpdate(GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
+            CheckPadChange(rawData, booleans);
             UpdateOverLapData(data, booleans);
 
             if (!booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
@@ -60,30 +60,19 @@ namespace RaceEngineerPlugin.Car {
 
         #region PRIVATE METHODS
 
-        private void CheckPadChange(PluginManager pm, GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
+        private void CheckPadChange(ACCRawData rawData, Booleans.Booleans booleans) {
             // Other games don't have pad life properties
             if (!RaceEngineerPlugin.GAME.IsACC) return;
 
             // Pads can change at two moments:
             //    a) If we exit garage it's always new brakes
-            //    b) If we change brakes in pit stop. To check if changed, store current life at pit box entry and compare with on pit box exit.
+            //    b) If we change brakes in pit stop. Sudden change on ExitPitBox.
 
-            if (booleans.NewData.ExitedMenu) {
+            if (booleans.NewData.ExitedMenu || (booleans.NewData.ExitedPitBox && rawData.NewData.Physics.padLife[0] > rawData.OldData.Physics.padLife[0])) {
                 RaceEngineerPlugin.LogInfo("Brake pads changed.");
                 SetNr += 1;
                 LapsNr = 0;
-            } else if (booleans.NewData.ExitedPitBox) {
-                var currentPadLife = rawData.Physics.padLife[0];
-
-                if (currentPadLife > prevPadLife) {
-                    RaceEngineerPlugin.LogInfo("Brake pads changed.");
-                    SetNr += 1;
-                    LapsNr = 0;
-                }
-            } else if (booleans.NewData.EnteredPitBox) {
-                prevPadLife = rawData.Physics.padLife[0];
-                RaceEngineerPlugin.LogInfo($"Entered pit box. Set prevPadLife = {prevPadLife}");
-            }  
+            }
         }
 
         private void UpdateOverLapData(GameData data, Booleans.Booleans booleans) {

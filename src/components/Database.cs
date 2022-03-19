@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ACSharedMemory.ACC.MMFModels;
 using GameReaderCommon;
 using SimHub.Plugins;
 
@@ -33,11 +34,11 @@ namespace RaceEngineerPlugin.Database
 
 		public Stint() { }
 
-		public Stint(PluginManager pm, Values v, GameData data, long eventId) {
-			Update(pm, v, data, eventId);
+		public Stint(Values v, GameData data, long eventId) {
+			Update(v, data, eventId);
 		}
 
-		public void Update(PluginManager pm, Values v, GameData data, long eventId) {
+		public void Update(Values v, GameData data, long eventId) {
 			this.eventId = eventId;
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
@@ -55,8 +56,8 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				brake_pad_front = (int)v.RawData.Physics.frontBrakeCompound + 1;
-				brake_pad_rear = (int)v.RawData.Physics.rearBrakeCompound + 1;
+				brake_pad_front = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
+				brake_pad_rear = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
 				tyre_set = v.car.Tyres.currentTyreSet;
 			} else {
 				brake_pad_front = -1;
@@ -140,12 +141,12 @@ namespace RaceEngineerPlugin.Database
 		public Lap() { }
 
 
-		public Lap(PluginManager pm, Values v, GameData data, long stint_id) {
-			Update(pm, v, data, stint_id);
+		public Lap(Values v, GameData data, long stint_id) {
+			Update(v, data, stint_id);
 		}
 
 
-		public void Update(PluginManager pm, Values v, GameData data, long stint_id) {
+		public void Update(Values v, GameData data, long stint_id) {
 			this.stint_id = stint_id;
 			session_lap_nr = data.NewData.CompletedLaps;
 			stint_lap_nr = v.laps.StintLaps;
@@ -156,9 +157,9 @@ namespace RaceEngineerPlugin.Database
 			}
 			brake_lap_nr = v.car.Brakes.LapsNr;
 			air_temp = data.NewData.AirTemperature;
-			air_temp_delta = data.NewData.AirTemperature - v.weather.AirAtLapStart;
+			air_temp_delta = data.NewData.AirTemperature - v.weather.AirTempAtLapStart;
 			track_temp = data.NewData.RoadTemperature;
-			track_temp_delta = data.NewData.RoadTemperature - v.weather.TrackAtLapStart;
+			track_temp_delta = data.NewData.RoadTemperature - v.weather.TrackTempAtLapStart;
 			lap_time = v.laps.LastTime;
 			fuel_used = v.car.Fuel.LastUsedPerLap;
 			fuel_left = v.car.Fuel.Remaining;
@@ -185,14 +186,14 @@ namespace RaceEngineerPlugin.Database
 			ecu_map_changed = v.booleans.OldData.EcuMapChangedThisLap;
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				tc2 = v.RawData.Graphics.TCCut;
+				tc2 = v.RawData.NewData.Graphics.TCCut;
 
 				for (var i = 0; i < 4; i++) {
-					pad_life_left[i] = (float)v.RawData.Physics.padLife[i];
-					disc_life_left[i] = (float)v.RawData.Physics.discLife[i];
+					pad_life_left[i] = (float)v.RawData.NewData.Physics.padLife[i];
+					disc_life_left[i] = (float)v.RawData.NewData.Physics.discLife[i];
 				}
 
-				track_grip_status = (int)v.RawData.Graphics.trackGripStatus;
+				track_grip_status = (int)v.RawData.NewData.Graphics.trackGripStatus;
 			} else {
 				tc2 = -1;
 				for (var i = 0; i < 4; i++) {
@@ -208,8 +209,8 @@ namespace RaceEngineerPlugin.Database
 			is_outlap = v.booleans.OldData.IsOutLap;
 			is_inlap = v.booleans.OldData.IsInLap;
 
-			rain_intensity = (int)v.weather.RainIntensity;
-			rain_intensity_changed = v.weather.RainIntensityChangedThisLap;
+			rain_intensity = (int)v.RawData.NewData.Graphics.rainIntensity;
+			rain_intensity_changed = v.booleans.OldData.RainIntensityChangedThisLap;
 		}
 	}
 
@@ -514,8 +515,8 @@ namespace RaceEngineerPlugin.Database
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
-		public void InsertStint(PluginManager pm, Values v, GameData data) {
-			var stint = new Stint(pm, v, data, eventId);
+		public void InsertStint(Values v, GameData data) {
+			var stint = new Stint(v, data, eventId);
 			_ = Task.Run(() => InsertStint(stint));
 		}
 
@@ -584,8 +585,8 @@ namespace RaceEngineerPlugin.Database
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
-		public void InsertLap(PluginManager pm, Values v, GameData data) {
-			var lap = new Lap(pm, v, data, stintId);
+		public void InsertLap(Values v, GameData data) {
+			var lap = new Lap(v, data, stintId);
 			_ = Task.Run(() => InsertLap(lap));
 		}
 
@@ -727,7 +728,7 @@ namespace RaceEngineerPlugin.Database
 		private const double TYRE_PRES_LOSS_THRESHOLD = 0.25;
 		private const double AIR_TEMP_CHANGE_THRESHOLD = 0.25;
 		private const double TRACK_TEMP_CHANGE_THRESHOLD = 0.25;
-		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string trackGrip, ACCEnums.RainIntensity rainIntensity) {
+		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string trackGrip, ACC_RAIN_INTENSITY rainIntensity) {
 			string duct;
 			if (tyre < 2) {
 				duct = BRAKE_DUCT_FRONT;

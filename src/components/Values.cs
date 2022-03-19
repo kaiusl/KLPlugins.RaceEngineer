@@ -6,7 +6,8 @@ using System.IO;
 using ksBroadcastingNetwork;
 using ksBroadcastingNetwork.Structs;
 using System.Threading.Tasks;
-using ACSharedMemory.ACC.Reader;
+using RaceEngineerPlugin.RawData;
+using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 
 namespace RaceEngineerPlugin {
 
@@ -19,7 +20,7 @@ namespace RaceEngineerPlugin {
         public Track.Track track = new Track.Track();
         public Laps.Laps laps = new Laps.Laps();
         public Weather weather = new Weather();
-        public ACCRawData RawData;
+        public ACCRawData RawData = new ACCRawData();
 
         public Remaining.RemainingInSession remainingInSession = new Remaining.RemainingInSession();
         public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
@@ -65,20 +66,20 @@ namespace RaceEngineerPlugin {
         }
         #endregion
 
-        private void OnNewStint(PluginManager pm, GameData data) {
+        private void OnNewStint(GameData data) {
             laps.OnNewStint();
-            car.OnNewStint(pm, db);
-            db.InsertStint(pm, this, data);
+            car.OnNewStint(db);
+            db.InsertStint(this, data);
         }
 
-        public void OnNewEvent(PluginManager pm, GameData data) {
+        public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo("OnNewEvent.");
             remainingInSession.Reset();
             remainingOnFuel.Reset();
             booleans.OnNewEvent(data.NewData.SessionTypeName);
             track.OnNewEvent(data);
-            int trackGrip = (int)RawData.Graphics.trackGripStatus;
-            car.OnNewEvent(pm, data, trackGrip, db);
+            int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
+            car.OnNewEvent(data, trackGrip, db);
             laps.OnNewEvent(car.Name, track.Name, trackGrip, db);
             db.InsertEvent(car.Name, track.Name);
         }
@@ -94,26 +95,26 @@ namespace RaceEngineerPlugin {
         ///     OnNewEvent - at the start of event, eg at the start of first session
         /// 
         /// </summary>
-        public void OnDataUpdate(PluginManager pm, GameData data) {
+        public void OnDataUpdate(GameData data) {
             if (reset) { 
                 reset = false;
             }
 
-            RawData = (ACCRawData)data.NewData.GetRawDataObject();
+            RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
             if (!booleans.NewData.IsGameRunning) {
                 RaceEngineerPlugin.LogFileSeparator();
-                OnNewEvent(pm, data);
+                OnNewEvent(data);
             }
 
-            booleans.OnRegularUpdate(pm, data, RawData, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
+            booleans.OnRegularUpdate(data, RawData, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
             track.OnRegularUpdate(data);
-            car.OnRegularUpdate(pm, data, this);
-            weather.OnRegularUpdate(pm, data, RawData, booleans);
+            car.OnRegularUpdate(data, this);
+            weather.OnRegularUpdate(data, RawData, booleans);
             if (booleans.NewData.ExitedPitLane && data.OldData.SessionTypeName == data.NewData.SessionTypeName) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
-                OnNewStint(pm, data);
+                OnNewStint(data);
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
@@ -122,7 +123,7 @@ namespace RaceEngineerPlugin {
             {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
-                OnNewStint(pm, data);
+                OnNewStint(data);
                 booleans.RaceStartStintAdded();
             }
             remainingInSession.OnRegularUpdate(booleans, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
@@ -131,10 +132,10 @@ namespace RaceEngineerPlugin {
             if (booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 booleans.OnLapFinished(data);
-                car.OnLapFinished(pm, data, booleans);
+                car.OnLapFinished(data, booleans);
                 laps.OnLapFinished(data, booleans);
                 if (laps.LastTime != 0) {
-                    db.InsertLap(pm, this, data);
+                    db.InsertLap(this, data);
                 }
 
                 weather.OnLapFinishedAfterInsert(data);
@@ -146,9 +147,9 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 booleans.OnNewSession(data.NewData.SessionTypeName);
-                int trackGrip = (int)RawData.Graphics.trackGripStatus;
-                car.OnNewSession(pm, track.Name, trackGrip, db);
-                laps.OnNewSession(pm, car.Name, track.Name, trackGrip, db);
+                int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
+                car.OnNewSession(track.Name, trackGrip, db);
+                laps.OnNewSession(car.Name, track.Name, trackGrip, db);
             }
         }
 

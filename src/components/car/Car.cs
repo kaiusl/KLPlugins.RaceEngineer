@@ -74,21 +74,21 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnNewEvent(PluginManager pm, GameData data, int trackGrip, Database.Database db) {
+        public void OnNewEvent(GameData data, int trackGrip, Database.Database db) {
             CheckChange(data.NewData.CarModel);
             Fuel.OnNewEvent(Name, data.NewData.TrackId, trackGrip, db);
         }
 
-        public void OnNewSession(PluginManager pm, string trackName, int trackGrip, Database.Database db) {
-            Fuel.OnSessionChange(pm, Name, trackName, trackGrip, db);
+        public void OnNewSession(string trackName, int trackGrip, Database.Database db) {
+            Fuel.OnSessionChange(Name, trackName, trackGrip, db);
         }
 
-        public void OnNewStint(PluginManager pm, Database.Database db) {
-            Tyres.OnNewStint(pm, db);
+        public void OnNewStint(Database.Database db) {
+            Tyres.OnNewStint(db);
         }
 
-        public void OnLapFinished(PluginManager pm, GameData data, Booleans.Booleans booleans) { 
-            Tyres.OnLapFinished(pm, data.NewData.AirTemperature, data.NewData.RoadTemperature);
+        public void OnLapFinished(GameData data, Booleans.Booleans booleans) { 
+            Tyres.OnLapFinished(data.NewData.AirTemperature, data.NewData.RoadTemperature);
             Brakes.OnLapFinished();
             Fuel.OnLapFinished(data, booleans);
         }
@@ -97,16 +97,16 @@ namespace RaceEngineerPlugin.Car {
             Tyres.OnLapFinishedAfterInsert();
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Values v) {
+        public void OnRegularUpdate(GameData data, Values v) {
             CheckChange(data.NewData.CarModel);
            
             if (!v.booleans.NewData.IsMoving && (Setup == null || (v.booleans.OldData.IsSetupMenuVisible && !v.booleans.NewData.IsSetupMenuVisible))) {
                 UpdateSetup(data.NewData.TrackId);
             }
             
-            Tyres.OnRegularUpdate(pm, data, v);
-            Brakes.OnRegularUpdate(pm, data, v.RawData, v.booleans);
-            Fuel.OnRegularUpdate(pm, data, v.RawData, v.booleans);
+            Tyres.OnRegularUpdate(data, v);
+            Brakes.OnRegularUpdate(data, v.RawData, v.booleans);
+            Fuel.OnRegularUpdate(data, v.RawData, v.booleans);
         }
 
         #endregion

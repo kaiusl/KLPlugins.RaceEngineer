@@ -1,8 +1,8 @@
-using ACSharedMemory.ACC.Reader;
 using GameReaderCommon;
 using SimHub.Plugins;
 using System.Diagnostics;
 using System.IO;
+using RaceEngineerPlugin.RawData;
 
 namespace RaceEngineerPlugin.Booleans {
 
@@ -44,6 +44,7 @@ namespace RaceEngineerPlugin.Booleans {
 
         public bool IsInLap { get; private set; }
         public bool EcuMapChangedThisLap { get; private set; }
+        public bool RainIntensityChangedThisLap { get; private set; }
 
         private bool isSessionLimitSet = false;
 
@@ -86,9 +87,10 @@ namespace RaceEngineerPlugin.Booleans {
 
             IsInLap = o.IsInLap;
             EcuMapChangedThisLap = o.EcuMapChangedThisLap;
+            RainIntensityChangedThisLap = o.RainIntensityChangedThisLap;
         }
 
-        public void Update(PluginManager pm, GameData data, ACCRawData rawData, double minLapTime, double fuelUsedPrevLapStart) {
+        public void Update(GameData data, ACCRawData rawData, double minLapTime, double fuelUsedPrevLapStart) {
             IsGameRunning = data.GameRunning;
             IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
@@ -127,7 +129,7 @@ namespace RaceEngineerPlugin.Booleans {
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
             if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
-                IsSetupMenuVisible = rawData.Graphics.IsSetupMenuVisible == 1;
+                IsSetupMenuVisible = rawData.NewData.Graphics.IsSetupMenuVisible == 1;
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;
@@ -176,6 +178,11 @@ namespace RaceEngineerPlugin.Booleans {
             }
             //EcuMapChangedThisLap |= (data.OldData.EngineMap != data.NewData.EngineMap);
 
+            if (!RainIntensityChangedThisLap && !IsInMenu && !IsInPitLane && rawData.NewData.Graphics.rainIntensity != rawData.OldData.Graphics.rainIntensity) {
+                RaceEngineerPlugin.LogInfo("Set 'RainIntensityChangedThisLap = true'");
+                RainIntensityChangedThisLap = true;
+            }
+
         }
 
         public void Reset(string sessionTypeName) {
@@ -213,6 +220,7 @@ namespace RaceEngineerPlugin.Booleans {
 
             IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
             EcuMapChangedThisLap = false;
+            RainIntensityChangedThisLap = false;
 
             isSessionLimitSet = false;
         }
@@ -226,22 +234,24 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void OnSessionChange(string sessionTypeName) {
-            IsInPitLane = false;
-            IsOnTrack = false;
-            IsMoving = false;
-            HasFinishedLap = false;
-            IsSetupMenuVisible = false;
-            IsFuelWarning = false;
-            SavePrevLap = false;
-            HasSetupChanged = false;
-            IsGameRunning = true;
-            IsRaceStartStintAdded = false;
-            IsOutLap = sessionTypeName != "7"; // First lap of HOTSTINT is proper lap.
-            IsInLap = false;
-            HavePressuresChanged = false;
-            HasNewStintStarted = false;
-            IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
-            isSessionLimitSet = false;
+            Reset(sessionTypeName);
+            //IsInPitLane = false;
+            //IsOnTrack = false;
+            //IsMoving = false;
+            //HasFinishedLap = false;
+            //IsSetupMenuVisible = false;
+            //IsFuelWarning = false;
+            //SavePrevLap = false;
+            //HasSetupChanged = false;
+            //IsGameRunning = true;
+            //IsRaceStartStintAdded = false;
+            //IsOutLap = sessionTypeName != "7"; // First lap of HOTSTINT is proper lap.
+            //IsInLap = false;
+            //HavePressuresChanged = false;
+            //HasNewStintStarted = false;
+            //IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
+            //isSessionLimitSet = false;
+            //EcuMapChangedThisLap= false;
         }
 
         public void OnLapFinished(GameData data) {
@@ -302,9 +312,9 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnLapFinished(data);
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, ACCRawData rawData, double minLapTime, double fuelUsedLapStart) {
+        public void OnRegularUpdate(GameData data, ACCRawData rawData, double minLapTime, double fuelUsedLapStart) {
             OldData.Update(NewData);
-            NewData.Update(pm, data, rawData, minLapTime, fuelUsedLapStart);
+            NewData.Update(data, rawData, minLapTime, fuelUsedLapStart);
         }
 
     }

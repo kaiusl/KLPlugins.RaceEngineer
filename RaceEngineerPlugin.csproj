@@ -115,11 +115,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\components\ACCRawData.cs" />
     <Compile Include="src\components\Booleans.cs" />
     <Compile Include="src\components\car\Brakes.cs" />
     <Compile Include="src\components\car\Car.cs" />
     <Compile Include="src\components\car\CarSetup.cs" />
-    <Compile Include="src\components\AccEnums.cs" />
     <Compile Include="src\components\Weather.cs" />
     <Compile Include="src\components\color\Color.cs" />
     <Compile Include="src\components\color\ColorCalculator.cs" />

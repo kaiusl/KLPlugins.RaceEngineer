@@ -58,7 +58,7 @@ namespace RaceEngineerPlugin {
                 if (data.OldData != null && data.NewData != null) {
                     swatch.Restart();
   
-                    values.OnDataUpdate(pluginManager, data);
+                    values.OnDataUpdate(data);
 
                     //if (!rawPrinted && values.booleans.NewData.ExitedMenu) {
                     //    var raw = data.NewData.GetRawDataObject();

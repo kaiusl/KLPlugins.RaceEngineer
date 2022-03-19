@@ -36,7 +36,7 @@ namespace RaceEngineerPlugin.Laps {
         }
 
 
-        public void OnNewSession(PluginManager pm, string carName, string trackName, int trackGrip, Database.Database db) {
+        public void OnNewSession(string carName, string trackName, int trackGrip, Database.Database db) {
             Reset();
 
             foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
