@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Reflection;
+using ACSharedMemory.ACC.Reader;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -56,8 +57,17 @@ namespace RaceEngineerPlugin {
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
                     swatch.Restart();
-
+  
                     values.OnDataUpdate(pluginManager, data);
+
+                    //if (!rawPrinted && values.booleans.NewData.ExitedMenu) {
+                    //    var raw = data.NewData.GetRawDataObject();
+                    //    //var acc_RootData = JsonConvert.SerializeObject(raw, Formatting.Indented);
+                    //    //File.WriteAllText($"{SETTINGS.DataLocation}\\AccRawData.json", acc_RootData);
+                    //    //rawPrinted = true;
+                    //    var parsed = (ACCRawData)raw;
+                    //}
+
 
                     if (values.booleans.NewData.HasFinishedLap) {
                         for (int i = 0; i < values.car.Fuel.PrevUsedPerLap.Count; i++) {
@@ -136,6 +146,7 @@ namespace RaceEngineerPlugin {
             #region ADD DELEGATES
 
             this.AttachDelegate("DBG_currentTyreSet", () => values.car.Tyres.currentTyreSet);
+            this.AttachDelegate("DBG_weatherReport", () => values.weather.weatherSummary);
 
             this.AttachDelegate("IsInMenu", () => values.booleans.NewData.IsInMenu ? 1 : 0);
 
@@ -266,14 +277,6 @@ namespace RaceEngineerPlugin {
             }
         }
 
-        private TimeSpan fromSeconds(double seconds) {
-            if (double.IsNaN(seconds)) {
-                return TimeSpan.Zero;
-            } else {
-                return TimeSpan.FromSeconds(seconds);
-            }
-        }
-
         public static void LogInfo(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             if (SETTINGS.Log) {
                 var pathParts = sourceFilePath.Split('\\');
@@ -298,10 +301,6 @@ namespace RaceEngineerPlugin {
             if (SETTINGS.Log) {
                 LogToFile("\n----------------------------------------------------------\n");
             }
-        }
-
-        public static ACCEnums.TrackGrip TrackGripStatus(PluginManager pm) {
-            return (ACCEnums.TrackGrip)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.trackGripStatus");
         }
 
         static void PreJit() {

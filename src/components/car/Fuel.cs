@@ -2,6 +2,7 @@ using GameReaderCommon;
 using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Deque;
+using ACSharedMemory.ACC.Reader;
 
 namespace RaceEngineerPlugin.Car {
 
@@ -52,14 +53,14 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans) {
+        public void OnRegularUpdate(PluginManager pm, GameData data,  ACCRawData rawData, Booleans.Booleans booleans) {
             /////////////
             // Fuel left
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
             if (booleans.NewData.IsInMenu && booleans.NewData.IsSetupMenuVisible) {
-                double avgFuelPerLapACC = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.FuelXLap");
-                double estLaps = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.fuelEstimatedLaps");
+                double avgFuelPerLapACC =  rawData.Graphics.FuelXLap;
+                double estLaps = rawData.Graphics.fuelEstimatedLaps;
                 Remaining = estLaps * avgFuelPerLapACC;
             }
 

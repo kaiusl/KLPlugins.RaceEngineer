@@ -1,3 +1,4 @@
+using ACSharedMemory.ACC.Reader;
 using GameReaderCommon;
 using SimHub.Plugins;
 using System.Diagnostics;
@@ -87,7 +88,7 @@ namespace RaceEngineerPlugin.Booleans {
             EcuMapChangedThisLap = o.EcuMapChangedThisLap;
         }
 
-        public void Update(PluginManager pm, GameData data, double minLapTime, double fuelUsedPrevLapStart) {
+        public void Update(PluginManager pm, GameData data, ACCRawData rawData, double minLapTime, double fuelUsedPrevLapStart) {
             IsGameRunning = data.GameRunning;
             IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
@@ -126,7 +127,7 @@ namespace RaceEngineerPlugin.Booleans {
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
             if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
-                IsSetupMenuVisible = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.IsSetupMenuVisible") == 1;
+                IsSetupMenuVisible = rawData.Graphics.IsSetupMenuVisible == 1;
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;
@@ -301,9 +302,9 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnLapFinished(data);
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, double minLapTime, double fuelUsedLapStart) {
+        public void OnRegularUpdate(PluginManager pm, GameData data, ACCRawData rawData, double minLapTime, double fuelUsedLapStart) {
             OldData.Update(NewData);
-            NewData.Update(pm, data, minLapTime, fuelUsedLapStart);
+            NewData.Update(pm, data, rawData, minLapTime, fuelUsedLapStart);
         }
 
     }

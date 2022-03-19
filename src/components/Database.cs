@@ -55,8 +55,8 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				brake_pad_front = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.frontBrakeCompound") + 1;
-				brake_pad_rear = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.rearBrakeCompound") + 1;
+				brake_pad_front = (int)v.RawData.Physics.frontBrakeCompound + 1;
+				brake_pad_rear = (int)v.RawData.Physics.rearBrakeCompound + 1;
 				tyre_set = v.car.Tyres.currentTyreSet;
 			} else {
 				brake_pad_front = -1;
@@ -185,14 +185,14 @@ namespace RaceEngineerPlugin.Database
 			ecu_map_changed = v.booleans.OldData.EcuMapChangedThisLap;
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				tc2 = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.TCCut");
+				tc2 = v.RawData.Graphics.TCCut;
 
 				for (var i = 0; i < 4; i++) {
-					pad_life_left[i] = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife0" + $"{i + 1}");
-					disc_life_left[i] = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.discLife0" + $"{i + 1}");
+					pad_life_left[i] = (float)v.RawData.Physics.padLife[i];
+					disc_life_left[i] = (float)v.RawData.Physics.discLife[i];
 				}
 
-				track_grip_status = (int)RaceEngineerPlugin.TrackGripStatus(pm);
+				track_grip_status = (int)v.RawData.Graphics.trackGripStatus;
 			} else {
 				tc2 = -1;
 				for (var i = 0; i < 4; i++) {

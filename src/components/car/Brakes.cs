@@ -3,6 +3,7 @@ using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Stats;
 using RaceEngineerPlugin.Color;
+using ACSharedMemory.ACC.Reader;
 
 namespace RaceEngineerPlugin.Car {
     public class Brakes {
@@ -43,8 +44,8 @@ namespace RaceEngineerPlugin.Car {
             LapsNr += 1;
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans) {
-            CheckPadChange(pm, data, booleans);
+        public void OnRegularUpdate(PluginManager pm, GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
+            CheckPadChange(pm, data, rawData, booleans);
             UpdateOverLapData(data, booleans);
 
             if (!booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
@@ -59,7 +60,7 @@ namespace RaceEngineerPlugin.Car {
 
         #region PRIVATE METHODS
 
-        private void CheckPadChange(PluginManager pm, GameData data, Booleans.Booleans booleans) {
+        private void CheckPadChange(PluginManager pm, GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
             // Other games don't have pad life properties
             if (!RaceEngineerPlugin.GAME.IsACC) return;
 
@@ -72,7 +73,7 @@ namespace RaceEngineerPlugin.Car {
                 SetNr += 1;
                 LapsNr = 0;
             } else if (booleans.NewData.ExitedPitBox) {
-                var currentPadLife = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife01");
+                var currentPadLife = rawData.Physics.padLife[0];
 
                 if (currentPadLife > prevPadLife) {
                     RaceEngineerPlugin.LogInfo("Brake pads changed.");
@@ -80,7 +81,7 @@ namespace RaceEngineerPlugin.Car {
                     LapsNr = 0;
                 }
             } else if (booleans.NewData.EnteredPitBox) {
-                prevPadLife = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife01");
+                prevPadLife = rawData.Physics.padLife[0];
                 RaceEngineerPlugin.LogInfo($"Entered pit box. Set prevPadLife = {prevPadLife}");
             }  
         }

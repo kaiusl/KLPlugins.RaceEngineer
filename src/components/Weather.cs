@@ -2,8 +2,21 @@ using GameReaderCommon;
 using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Deque;
+using System.Collections.Generic;
+using ACSharedMemory.ACC.Reader;
 
 namespace RaceEngineerPlugin {
+
+    public class WeatherPoint { 
+        public ACCEnums.RainIntensity RainIntensity { get; }
+        public DateTime Time { get; }
+
+        public WeatherPoint(ACCEnums.RainIntensity rainIntensity, DateTime time) {
+            RainIntensity = rainIntensity;
+            Time = time;
+        }
+    }
+
 
     public class Weather {
         public double AirTemp { get; private set; }
@@ -11,32 +24,38 @@ namespace RaceEngineerPlugin {
         public double AirAtLapStart { get; private set; }
         public double TrackAtLapStart { get; private set; }
 
-        public ACCEnums.RainIntensity RainIntensity { get; private set; }
-        public ACCEnums.RainIntensity RainIntensityIn10Min { get; private set; }
-        public ACCEnums.RainIntensity RainIntensityIn30Min { get; private set; }
+        public ACCEnums.RainIntensity? RainIntensity { get; private set; }
+        public ACCEnums.RainIntensity? RainIntensityIn10Min { get; private set; }
+        public ACCEnums.RainIntensity? RainIntensityIn30Min { get; private set; }
 
         public bool RainIntensityChangedThisLap { get; private set; }
 
-        public ACCEnums.RainIntensity PrevRainIntensity { get; private set; }
-        public ACCEnums.RainIntensity PrevRainIntensityIn10Min { get; private set; }
-        public ACCEnums.RainIntensity PrevRainIntensityIn30Min { get; private set; }
+        public ACCEnums.RainIntensity? PrevRainIntensity { get; private set; }
+        public ACCEnums.RainIntensity? PrevRainIntensityIn10Min { get; private set; }
+        public ACCEnums.RainIntensity? PrevRainIntensityIn30Min { get; private set; }
+
+        public List<WeatherPoint> Future { get; }
+
+        public string weatherSummary = "";
 
         // Keep track of weather changes, predict exact time for weather change
 
         public Weather() {
+            Future = new List<WeatherPoint>();
             Reset();
         }
 
         public void Reset() {
             AirAtLapStart = double.NaN;
             TrackAtLapStart = double.NaN;
-            RainIntensity = ACCEnums.RainIntensity.NoRain;
-            RainIntensityIn10Min = ACCEnums.RainIntensity.NoRain;
-            RainIntensityIn30Min = ACCEnums.RainIntensity.NoRain;
-            PrevRainIntensity = ACCEnums.RainIntensity.NoRain;
-            PrevRainIntensityIn10Min = ACCEnums.RainIntensity.NoRain;
-            PrevRainIntensityIn30Min = ACCEnums.RainIntensity.NoRain;
+            RainIntensity = null;
+            RainIntensityIn10Min = null;
+            RainIntensityIn30Min = null;
+            PrevRainIntensity = null;
+            PrevRainIntensityIn10Min = null;
+            PrevRainIntensityIn30Min = null;
             RainIntensityChangedThisLap = false;
+            Future.Clear();
         }
 
         #region On... METHODS
@@ -47,7 +66,7 @@ namespace RaceEngineerPlugin {
             RainIntensityChangedThisLap = false;
         }
 
-        public void OnRegularUpdate(PluginManager pm, GameData data, Booleans.Booleans booleans) {
+        public void OnRegularUpdate(PluginManager pm, GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
             if (booleans.NewData.EnteredMenu) {
                 AirAtLapStart = double.NaN;
                 TrackAtLapStart = double.NaN;
@@ -74,24 +93,47 @@ namespace RaceEngineerPlugin {
             }
 
             if (RaceEngineerPlugin.GAME.IsACC && data.NewData.AirTemperature == 0.0) {
-                AirTemp = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Realtime.AmbientTemp");
-                TrackTemp = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Realtime.TrackTemp");
+                AirTemp = rawData.Realtime.AmbientTemp;
+                TrackTemp = rawData.Realtime.TrackTemp;
             } else { 
                 AirTemp = data.NewData.AirTemperature;
                 TrackTemp = data.NewData.RoadTemperature;
             }
 
             if (RaceEngineerPlugin.GAME.IsACC) {
-                PrevRainIntensity = RainIntensity;
-                PrevRainIntensityIn10Min = RainIntensityIn10Min;
-                PrevRainIntensityIn30Min = RainIntensityIn30Min;
-                RainIntensity = (ACCEnums.RainIntensity)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.rainIntensity");
-                RainIntensityIn10Min = (ACCEnums.RainIntensity)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.rainIntensityIn10Min");
-                RainIntensityIn30Min = (ACCEnums.RainIntensity)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.rainIntensityIn30Min");
+                RainIntensity = (ACCEnums.RainIntensity)rawData.Graphics.rainIntensity;
+                RainIntensityIn10Min = (ACCEnums.RainIntensity)rawData.Graphics.rainIntensityIn10min;
+                RainIntensityIn30Min = (ACCEnums.RainIntensity)rawData.Graphics.rainIntensityIn30min;
 
                 if (!RainIntensityChangedThisLap && PrevRainIntensity != RainIntensity) {
                     RainIntensityChangedThisLap = true;
                 }
+
+                if (PrevRainIntensityIn10Min != RainIntensityIn10Min) {
+                    var now = data.NewData.PacketTime;
+                    Future.Add(new WeatherPoint((ACCEnums.RainIntensity)RainIntensityIn10Min, now.AddMinutes(10)));
+                    Future.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+                    weatherSummary = "";
+                    foreach (var a in Future) {
+                        weatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
+                    }
+                }
+                if (PrevRainIntensityIn30Min != RainIntensityIn30Min) {
+                    var now = data.NewData.PacketTime;
+                    Future.Add(new WeatherPoint((ACCEnums.RainIntensity)RainIntensityIn10Min, now.AddMinutes(30)));
+                    Future.Sort((a, b) => a.Time.CompareTo(b.Time));
+                    weatherSummary = "";
+                    foreach (var a in Future) {
+                        weatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
+                    }
+                }
+
+                PrevRainIntensity = RainIntensity;
+                PrevRainIntensityIn10Min = RainIntensityIn10Min;
+                PrevRainIntensityIn30Min = RainIntensityIn30Min;
+
+
             }
 
         }
