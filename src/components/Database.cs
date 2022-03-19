@@ -55,8 +55,8 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				brake_pad_front = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.frontBrakeCompound") + 1;
-				brake_pad_rear = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.rearBrakeCompound") + 1;
+				brake_pad_front = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.frontBrakeCompound") + 1;
+				brake_pad_rear = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.rearBrakeCompound") + 1;
 				tyre_set = v.car.Tyres.currentTyreSet;
 			} else {
 				brake_pad_front = -1;
@@ -129,11 +129,13 @@ namespace RaceEngineerPlugin.Database
 		public int tc2;
 		public int ecu_map;
 		public bool ecu_map_changed;
-		public string track_grip_status;
+		public int track_grip_status;
 		public bool is_valid;
 		public bool is_valid_fuel_lap;
 		public bool is_outlap;
 		public bool is_inlap;
+		public int rain_intensity;
+		public bool rain_intensity_changed;
 
 		public Lap() { }
 
@@ -154,9 +156,9 @@ namespace RaceEngineerPlugin.Database
 			}
 			brake_lap_nr = v.car.Brakes.LapsNr;
 			air_temp = data.NewData.AirTemperature;
-			air_temp_delta = data.NewData.AirTemperature - v.temps.AirAtLapStart;
+			air_temp_delta = data.NewData.AirTemperature - v.weather.AirAtLapStart;
 			track_temp = data.NewData.RoadTemperature;
-			track_temp_delta = data.NewData.RoadTemperature - v.temps.TrackAtLapStart;
+			track_temp_delta = data.NewData.RoadTemperature - v.weather.TrackAtLapStart;
 			lap_time = v.laps.LastTime;
 			fuel_used = v.car.Fuel.LastUsedPerLap;
 			fuel_left = v.car.Fuel.Remaining;
@@ -183,21 +185,21 @@ namespace RaceEngineerPlugin.Database
 			ecu_map_changed = v.booleans.OldData.EcuMapChangedThisLap;
 
 			if (RaceEngineerPlugin.GAME.IsACC) {
-				tc2 = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.TCCut");
+				tc2 = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.TCCut");
 
 				for (var i = 0; i < 4; i++) {
-					pad_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife0" + $"{i + 1}");
-					disc_life_left[i] = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.discLife0" + $"{i + 1}");
+					pad_life_left[i] = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife0" + $"{i + 1}");
+					disc_life_left[i] = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.discLife0" + $"{i + 1}");
 				}
 
-				track_grip_status = RaceEngineerPlugin.TrackGripStatus(pm);
+				track_grip_status = (int)RaceEngineerPlugin.TrackGripStatus(pm);
 			} else {
 				tc2 = -1;
 				for (var i = 0; i < 4; i++) {
 					pad_life_left[i] = -1;
 				}
 
-				track_grip_status = null;
+				track_grip_status = -1;
 			}
 
 			is_valid = v.booleans.NewData.SavePrevLap;
@@ -205,6 +207,9 @@ namespace RaceEngineerPlugin.Database
 			is_valid_fuel_lap = v.booleans.OldData.IsValidFuelLap;
 			is_outlap = v.booleans.OldData.IsOutLap;
 			is_inlap = v.booleans.OldData.IsInLap;
+
+			rain_intensity = (int)v.weather.RainIntensity;
+			rain_intensity_changed = v.weather.RainIntensityChangedThisLap;
 		}
 	}
 
@@ -377,6 +382,8 @@ namespace RaceEngineerPlugin.Database
 		private const string IS_VALID_FUEL_LAP = "is_valid_fuel_lap";
 		private const string IS_OUTLAP = "is_outlap";
 		private const string IS_INLAP = "is_inlap";
+		private const string RAIN_INTENSITY = "rain_intensity";
+		private const string RAIN_INTENSITY_CHANGED = "rain_intensity_changed";
 
 		private DBTable lapsTable = new DBTable("laps", new DBField[] {
 			new DBField(LAP_ID, "INTEGER PRIMARY KEY"),
@@ -458,11 +465,13 @@ namespace RaceEngineerPlugin.Database
 			new DBField(TC2, "INTEGER"),
 			new DBField(ECU_MAP, "INTEGER"),
 			new DBField(ECU_MAP_CHANGED, "INTEGER"),
-			new DBField(TRACK_GRIP_STATUS, "TEXT"),
+			new DBField(TRACK_GRIP_STATUS, "INTEGER"),
 			new DBField(IS_VALID, "INTEGER"),
 			new DBField(IS_VALID_FUEL_LAP, "INTEGER"),
 			new DBField(IS_OUTLAP, "INTEGER"),
 			new DBField(IS_INLAP, "INTEGER"),
+			new DBField(RAIN_INTENSITY, "INTEGER"),
+			new DBField(RAIN_INTENSITY_CHANGED, "INTEGER")
 		});
 
         #endregion
@@ -634,6 +643,9 @@ namespace RaceEngineerPlugin.Database
 			SetParam(insertLapCmd, IS_OUTLAP, l.is_outlap);
 			SetParam(insertLapCmd, IS_INLAP, l.is_inlap);
 
+			SetParam(insertLapCmd, RAIN_INTENSITY, l.rain_intensity);
+			SetParam(insertLapCmd, RAIN_INTENSITY_CHANGED, l.rain_intensity_changed);
+
 
 			insertLapCmd.ExecuteNonQuery();
 			numCommands++;
@@ -715,22 +727,12 @@ namespace RaceEngineerPlugin.Database
 		private const double TYRE_PRES_LOSS_THRESHOLD = 0.25;
 		private const double AIR_TEMP_CHANGE_THRESHOLD = 0.25;
 		private const double TRACK_TEMP_CHANGE_THRESHOLD = 0.25;
-		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string track_grip_status) {
+		public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string trackGrip, ACCEnums.RainIntensity rainIntensity) {
 			string duct;
 			if (tyre < 2) {
 				duct = BRAKE_DUCT_FRONT;
 			} else {
 				duct = BRAKE_DUCT_REAR;
-			}
-
-			string track_grip;
-			if (track_grip_status == "Green" || track_grip_status == "Fast" || track_grip_status == "Optimum") {
-				// For dry conditions use all available dry data, pressures don't change that much
-				// Potentially could learn difference and apply to data.
-				track_grip = "'Green', 'Fast', 'Optimum'";
-			} else {
-				// For wet use only given conditions. Even then it's not that accurate since WET includes light rain, medium rain and so on.
-				track_grip = $"'{track_grip_status}'";
 			}
 
 			var ty = TYRES[tyre];
@@ -753,14 +755,17 @@ namespace RaceEngineerPlugin.Database
 						AND l.{TYRE_PRES_LOSS}_{ty} > -{TYRE_PRES_LOSS_THRESHOLD}
 						AND l.{AIR_TEMP_DELTA} < {AIR_TEMP_CHANGE_THRESHOLD} AND l.{AIR_TEMP_DELTA} > -{AIR_TEMP_CHANGE_THRESHOLD}
 						AND l.{TRACK_TEMP_DELTA} < {TRACK_TEMP_CHANGE_THRESHOLD} AND l.{TRACK_TEMP_DELTA} > -{TRACK_TEMP_CHANGE_THRESHOLD}
-						AND l.{TYRE_PRES_LOSS_LAP}_{ty} == 0"
+						AND l.{TYRE_PRES_LOSS_LAP}_{ty} == 0
+						AND l.{RAIN_INTENSITY_CHANGED} == 0
+						AND l.{RAIN_INTENSITY} == {(int)rainIntensity}"
             };
             if (-1 < brakeDuct && brakeDuct < 7) {
 				cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
 			}
-			if (track_grip != "Unknown") {
-				cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in ({track_grip})";
+			if (trackGrip != null) {
+				cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in {trackGrip}";
 			}
+
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();
 

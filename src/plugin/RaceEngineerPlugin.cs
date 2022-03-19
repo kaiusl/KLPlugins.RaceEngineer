@@ -55,7 +55,7 @@ namespace RaceEngineerPlugin {
 
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
-                    //swatch.Restart();
+                    swatch.Restart();
 
                     values.OnDataUpdate(pluginManager, data);
 
@@ -71,9 +71,9 @@ namespace RaceEngineerPlugin {
                             pluginManager.SetPropertyValue(PREV_FUEL_PROP_NAME + istr, this.GetType(), values.car.Fuel.PrevUsedPerLap[i]);
                         }
                     }
-                    //swatch.Stop();
-                    //TimeSpan ts = swatch.Elapsed;
-                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
+                    swatch.Stop();
+                    TimeSpan ts = swatch.Elapsed;
+                    File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
                 }
             } else {
                 values.OnGameNotRunning();
@@ -128,7 +128,7 @@ namespace RaceEngineerPlugin {
             Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
 
             // DataCorePlugin should be built before, thus this property should be available.
-            var gameName = (string)pluginManager.GetPropertyValue("DataCorePlugin.CurrentGame");
+            var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
             GAME = new Game.Game(gameName);
             GAME_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
             values = new Values();
@@ -142,20 +142,6 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
             this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack ? 1 : 0);
             this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap ? 1 : 0);
-
-            this.AttachDelegate("AirTemp", () => values.realtimeUpdate?.AmbientTemp);
-            this.AttachDelegate("TrackTemp", () => values.realtimeUpdate?.TrackTemp);
-            this.AttachDelegate("SessionPhase", () => values.realtimeUpdate?.Phase.ToString());
-            this.AttachDelegate("SessionTime", () => values.realtimeUpdate?.SessionTime);
-            this.AttachDelegate("RemainingTime", () => values.realtimeUpdate?.RemainingTime);
-            this.AttachDelegate("TimeOfDay", () => values.realtimeUpdate?.TimeOfDay);
-            this.AttachDelegate("RainLevel", () => values.realtimeUpdate?.RainLevel);
-            this.AttachDelegate("Clouds", () => values.realtimeUpdate?.Clouds);
-            this.AttachDelegate("Wetness", () => values.realtimeUpdate?.Wetness);
-            this.AttachDelegate("SessionRemainingTime", () => values.realtimeUpdate?.SessionRemainingTime);
-            this.AttachDelegate("SessionEndTime", () => values.realtimeUpdate?.SessionEndTime);
-            this.AttachDelegate("SessionType", () => values.realtimeUpdate?.SessionType.ToString());
-
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
                 if ((StatsFlags.Min & settings) != 0) {
@@ -198,7 +184,9 @@ namespace RaceEngineerPlugin {
             };
            
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
-            addTyres("PredictedIdealInputTyrePres", values.car.Tyres.PredictedIdealInputPres);
+            addTyres("PredictedIdealInputTyrePresDry", values.car.Tyres.PredictedIdealInputPresDry);
+            addTyres("PredictedIdealInputTyrePresWet", values.car.Tyres.PredictedIdealInputPresNowWet);
+            addTyres("PredictedIdealInputTyrePresIn30MinWet", values.car.Tyres.PredictedIdealInputPresFutureWet);
             addTyres("CurrentInputTyrePres", values.car.Tyres.CurrentInputPres);
             addTyres("TyrePresLoss", values.car.Tyres.PresLoss);
 
@@ -312,24 +300,8 @@ namespace RaceEngineerPlugin {
             }
         }
 
-        public static string TrackGripStatus(PluginManager pm) {
-            if (GAME.IsACC) {
-                var gs = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
-                string gs_str;
-                switch (gs) {
-                    case 0: gs_str = "Green"; break;
-                    case 1: gs_str = "Fast"; break;
-                    case 2: gs_str = "Optimum"; break;
-                    case 3: gs_str = "Greasy"; break;
-                    case 4: gs_str = "Damp"; break;
-                    case 5: gs_str = "Wet"; break;
-                    case 6: gs_str = "Flooded"; break;
-                    default: gs_str = "Unknown"; break;
-                }
-                return gs_str;
-            } else {
-                return "Unknown";
-            }
+        public static ACCEnums.TrackGrip TrackGripStatus(PluginManager pm) {
+            return (ACCEnums.TrackGrip)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.trackGripStatus");
         }
 
         static void PreJit() {

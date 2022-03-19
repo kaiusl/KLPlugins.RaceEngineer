@@ -72,7 +72,7 @@ namespace RaceEngineerPlugin.Car {
                 SetNr += 1;
                 LapsNr = 0;
             } else if (booleans.NewData.ExitedPitBox) {
-                var currentPadLife = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife01");
+                var currentPadLife = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife01");
 
                 if (currentPadLife > prevPadLife) {
                     RaceEngineerPlugin.LogInfo("Brake pads changed.");
@@ -80,7 +80,7 @@ namespace RaceEngineerPlugin.Car {
                     LapsNr = 0;
                 }
             } else if (booleans.NewData.EnteredPitBox) {
-                prevPadLife = (float)pm.GetPropertyValue("DataCorePlugin.GameRawData.Physics.padLife01");
+                prevPadLife = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Physics.padLife01");
                 RaceEngineerPlugin.LogInfo($"Entered pit box. Set prevPadLife = {prevPadLife}");
             }  
         }

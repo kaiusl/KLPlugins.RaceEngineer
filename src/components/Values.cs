@@ -17,10 +17,10 @@ namespace RaceEngineerPlugin {
         public Car.Car car = new Car.Car();
         public Track.Track track = new Track.Track();
         public Laps.Laps laps = new Laps.Laps();
-        public Temps temps = new Temps();
-        public RealtimeUpdate realtimeUpdate = null;
+        public Weather weather = new Weather();
+        //public RealtimeUpdate realtimeUpdate = null;
 
-        public ACCUdpRemoteClient broadcastClient;
+        //public ACCUdpRemoteClient broadcastClient;
 
         public Remaining.RemainingInSession remainingInSession = new Remaining.RemainingInSession();
         public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
@@ -36,11 +36,11 @@ namespace RaceEngineerPlugin {
             car.Reset();
             track.Reset();
             laps.Reset();
-            temps.Reset();
-            realtimeUpdate = null;
-            if (broadcastClient != null) {
-                DisposeBroadcastClient();
-            }
+            weather.Reset();
+            //realtimeUpdate = null;
+            //if (broadcastClient != null) {
+            //    DisposeBroadcastClient();
+            //}
             remainingInSession.Reset();
             remainingOnFuel.Reset();
             reset = true;
@@ -59,7 +59,7 @@ namespace RaceEngineerPlugin {
                 if (disposing) {
                     RaceEngineerPlugin.LogInfo("Disposed");
                     db.Dispose();
-                    DisposeBroadcastClient();
+                   // DisposeBroadcastClient();
                 }
 
                 isDisposed = true;
@@ -78,20 +78,20 @@ namespace RaceEngineerPlugin {
         }
 
         public void OnNewEvent(PluginManager pm, GameData data) {
-            if (broadcastClient != null) {
-                RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
-                DisposeBroadcastClient();
-            }
+            //if (broadcastClient != null) {
+            //    RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
+            //    DisposeBroadcastClient();
+            //}
             RaceEngineerPlugin.LogInfo("OnNewEvent.");
             remainingInSession.Reset();
             remainingOnFuel.Reset();
             booleans.OnNewEvent(data.NewData.SessionTypeName);
             track.OnNewEvent(data);
-            int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
+            int trackGrip = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.trackGripStatus");
             car.OnNewEvent(pm, data, trackGrip, db);
             laps.OnNewEvent(car.Name, track.Name, trackGrip, db);
             db.InsertEvent(car.Name, track.Name);
-            ConnectToBroadcastClient();
+            //ConnectToBroadcastClient();
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace RaceEngineerPlugin {
             }
 
             //Stopwatch stopwatch = new Stopwatch();
-            //Stopwatch sw = new Stopwatch();
+            Stopwatch sw = new Stopwatch();
             //stopwatch.Start();
             //sw.Start();
 
@@ -146,7 +146,7 @@ namespace RaceEngineerPlugin {
 
             //stopwatch.Start();
             //sw.Restart();
-            temps.OnRegularUpdate(data, booleans);
+            weather.OnRegularUpdate(pm, data, booleans);
             //sw.Stop();
             //stopwatch.Stop();
             //ts = sw.Elapsed;
@@ -195,7 +195,7 @@ namespace RaceEngineerPlugin {
                     db.InsertLap(pm, this, data);
                 }
 
-                temps.OnLapFinishedAfterInsert(data);
+                weather.OnLapFinishedAfterInsert(data);
                 car.OnLapFinishedAfterInsert();
                 RaceEngineerPlugin.LogFileSeparator();
             }
@@ -210,7 +210,7 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 booleans.OnNewSession(data.NewData.SessionTypeName);
-                int trackGrip = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.trackGripStatus");
+                int trackGrip = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.trackGripStatus");
                 car.OnNewSession(pm, track.Name, trackGrip, db);
                 laps.OnNewSession(pm, car.Name, track.Name, trackGrip, db);
             }
@@ -221,6 +221,21 @@ namespace RaceEngineerPlugin {
             //ts = stopwatch.Elapsed;
             //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
 
+            //try {
+            //    sw.Restart();
+            //    int trackGrip2 = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.trackGripStatus");
+            //    sw.Stop();
+            //    var ts = sw.Elapsed;
+            //    File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_GetProperty_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+            //} catch (Exception ex) { 
+                
+            //}
+            
+            
+            //ts = stopwatch.Elapsed;
+            //File.AppendAllText($"{RaceEngineerPlugin.SETTINGS.DataLocation}\\Logs\\RETiming_Total_{RaceEngineerPlugin.pluginStartTime}.txt", $"{ts.TotalMilliseconds}\n");
+
+
         }
 
         public void OnGameNotRunning() {
@@ -230,36 +245,36 @@ namespace RaceEngineerPlugin {
             }
         }
 
-        #region Broadcast client connection
-        public void ConnectToBroadcastClient() {
-            broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 1000);
-            broadcastClient.MessageHandler.OnRealtimeUpdate += OnBroadcastRealtimeUpdate;
-            broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
-        }
+        //#region Broadcast client connection
+        //public void ConnectToBroadcastClient() {
+        //    broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 1000);
+        //    broadcastClient.MessageHandler.OnRealtimeUpdate += OnBroadcastRealtimeUpdate;
+        //    broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
+        //}
 
-        public void DisposeBroadcastClient() {
-            if (broadcastClient != null) {
-                broadcastClient.Shutdown();
-                broadcastClient.Dispose();
-                broadcastClient = null;
-            }
-            if (realtimeUpdate != null) {
-                realtimeUpdate = null;
-            }
-        }
+        //public void DisposeBroadcastClient() {
+        //    if (broadcastClient != null) {
+        //        broadcastClient.Shutdown();
+        //        broadcastClient.Dispose();
+        //        broadcastClient = null;
+        //    }
+        //    if (realtimeUpdate != null) {
+        //        realtimeUpdate = null;
+        //    }
+        //}
 
-        private void OnBroadcastRealtimeUpdate(string sender, RealtimeUpdate update) {
-            realtimeUpdate = update;
-        }
+        //private void OnBroadcastRealtimeUpdate(string sender, RealtimeUpdate update) {
+        //    realtimeUpdate = update;
+        //}
 
-        private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
-            if (connectionSuccess) {
-                RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
-            } else {
-                RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
-            }
-        }
-        #endregion
+        //private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
+        //    if (connectionSuccess) {
+        //        RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
+        //    } else {
+        //        RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
+        //    }
+        //}
+        //#endregion
 
     }
 

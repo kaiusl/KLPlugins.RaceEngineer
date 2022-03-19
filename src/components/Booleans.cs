@@ -126,7 +126,7 @@ namespace RaceEngineerPlugin.Booleans {
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
             if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
-                IsSetupMenuVisible = (int)pm.GetPropertyValue("DataCorePlugin.GameRawData.Graphics.IsSetupMenuVisible") == 1;
+                IsSetupMenuVisible = (int)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.IsSetupMenuVisible") == 1;
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;

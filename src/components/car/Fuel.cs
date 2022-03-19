@@ -58,8 +58,8 @@ namespace RaceEngineerPlugin.Car {
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
             if (booleans.NewData.IsInMenu && booleans.NewData.IsSetupMenuVisible) {
-                double avgFuelPerLapACC = (float)pm.GetPropertyValue("GameRawData.Graphics.FuelXLap");
-                double estLaps = (float)pm.GetPropertyValue("GameRawData.Graphics.fuelEstimatedLaps");
+                double avgFuelPerLapACC = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.FuelXLap");
+                double estLaps = (float)pm.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("GameRawData.Graphics.fuelEstimatedLaps");
                 Remaining = estLaps * avgFuelPerLapACC;
             }
 

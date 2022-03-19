@@ -78,6 +78,32 @@
 - Separate colors to separate plugin? Altough much of logic would need to be same, eg when to reload color values.
 - Something else useful in broadcast data?
 
+## Tyre pressure calculation
+
+### Different cases to take care of
+
+- Simple 1: All show dry  - use one model
+- Simple 2: All same rain - use one model
+- Stopped raining: All rain intensity == NoRain but track is (FLOODED, WET, DAMP, GREASY) atm. 
+    - Current: (light rain, drizzle, no rain) + current track
+    - Future: no rain + dry track
+- Will start raining
+    - Current: no rain + dry track
+    - Future: dirzzle + damp track || light/medium/heavy + wet track || thunderstorm + flooded track
+- Increase rain
+    - Dry -> drizzle/light rain: dirzzle/light rain + damp track
+
+
+- Dry tyres
+    - No rain + dry track
+
+- Wet tyres
+    - Drizzle + damp/greasy
+    - Light rain + damp
+    - Light rain + wet
+    - Medium rain + wet
+    - Heavy rain + wet
+    - Thunderstorm + flooded
 
 
 ## Machine learning
