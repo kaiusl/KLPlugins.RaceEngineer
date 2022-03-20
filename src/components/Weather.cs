@@ -25,14 +25,14 @@ namespace RaceEngineerPlugin {
         public double AirTempAtLapStart { get; private set; }
         public double TrackTempAtLapStart { get; private set; }
 
-        public List<WeatherPoint> Future { get; }
+        public List<WeatherPoint> Forecast { get; }
 
         public string weatherSummary = "";
 
         // Keep track of weather changes, predict exact time for weather change
 
         public Weather() {
-            Future = new List<WeatherPoint>();
+            Forecast = new List<WeatherPoint>();
             Reset();
         }
 
@@ -41,7 +41,7 @@ namespace RaceEngineerPlugin {
             TrackTemp = double.NaN;
             AirTempAtLapStart = double.NaN;
             TrackTempAtLapStart = double.NaN;
-            Future.Clear();
+            Forecast.Clear();
         }
 
         #region On... METHODS
@@ -87,23 +87,24 @@ namespace RaceEngineerPlugin {
 
 
             if (RaceEngineerPlugin.GAME.IsACC) {
-                
-                if (rawData.OldData.Graphics.rainIntensityIn10min != rawData.NewData.Graphics.rainIntensityIn10min) {
-                    var now = data.NewData.PacketTime;
-                    Future.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn10min, now.AddMinutes(10)));
-                    Future.Sort((a, b) => a.Time.CompareTo(b.Time));
-
-                    weatherSummary = "";
-                    foreach (var a in Future) {
-                        weatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
-                    }
+                var now = data.NewData.PacketTime;
+                var changed = false;
+                if (now < data.SessionStartDate.AddMinutes(20) && rawData.OldData.Graphics.rainIntensityIn10min != rawData.NewData.Graphics.rainIntensityIn10min) {
+                    Forecast.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn10min, now.AddMinutes(10)));
+                    Forecast.Sort((a, b) => a.Time.CompareTo(b.Time));
+                    changed = true;
                 }
                 if (rawData.OldData.Graphics.rainIntensityIn30min != rawData.NewData.Graphics.rainIntensityIn30min) {
-                    var now = data.NewData.PacketTime;
-                    Future.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn30min, now.AddMinutes(30)));
-                    Future.Sort((a, b) => a.Time.CompareTo(b.Time));
+                    Forecast.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn30min, now.AddMinutes(30)));
+                    Forecast.Sort((a, b) => a.Time.CompareTo(b.Time));
+                    changed = true;
+                }
+
+                var lenprev = Forecast.Count;
+                Forecast.RemoveAll((w) => w.Time < now);
+                if (changed || lenprev != Forecast.Count) {
                     weatherSummary = "";
-                    foreach (var a in Future) {
+                    foreach (var a in Forecast) {
                         weatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
                     }
                 }
