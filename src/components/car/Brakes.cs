@@ -13,7 +13,6 @@ namespace RaceEngineerPlugin.Car {
         public ColorCalculator tempColor { get; private set; }
         public string[] TempColor { get; private set; }
 
-        private float prevPadLife = 0.0f;
         private WheelsRunningStats tempRunning = new WheelsRunningStats();
         private double lastSampleTimeSec = DateTime.Now.Second;
 
@@ -33,8 +32,6 @@ namespace RaceEngineerPlugin.Car {
                 TempColor[i] = "#000000";
             }
             tempColor.UpdateInterpolation(RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
-
-            prevPadLife = 0.0f;
             tempRunning.Reset();
         }
 
