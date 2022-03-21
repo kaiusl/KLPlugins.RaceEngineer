@@ -110,7 +110,7 @@ namespace RaceEngineerPlugin {
             booleans.OnRegularUpdate(data, this);
             track.OnRegularUpdate(data);
             car.OnRegularUpdate(data, this);
-            weather.OnRegularUpdate(data, RawData, booleans);
+            weather.OnRegularUpdate(data, this);
 
 
             var sessTypeNew = RawData.NewData.Realtime.SessionType;
@@ -129,7 +129,7 @@ namespace RaceEngineerPlugin {
                 booleans.RaceStartStintAdded();
             }
 
-            remainingInSession.OnRegularUpdate(this, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps);
+            remainingInSession.OnRegularUpdate(data, this);
             remainingOnFuel.OnRegularUpdate(this);
 
             if (booleans.NewData.HasFinishedLap) {

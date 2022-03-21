@@ -1,4 +1,6 @@
-﻿namespace RaceEngineerPlugin.Remaining {
+﻿using GameReaderCommon;
+
+namespace RaceEngineerPlugin.Remaining {
 
     /// <summary>
     /// Class to store and calculate current laps/time left in session and fuel needed.
@@ -14,14 +16,16 @@
             fuelNeeded.Reset();
         }
 
-        public void OnRegularUpdate(Values v, double timeLeft, double lapsLeft) {
+        public void OnRegularUpdate(GameData data, Values v) {
             if (v.booleans.NewData.IsTimeLimitedSession) {
+                var timeLeft = data.NewData.SessionTimeLeft.TotalSeconds;
                 time.Set(timeLeft);
 
                 laps.Min = timeLeft / v.laps.PrevTimes.Max;
                 laps.Max = timeLeft / v.laps.PrevTimes.Min;
                 laps.Avg = timeLeft / v.laps.PrevTimes.Avg;
             } else if (v.booleans.NewData.IsLapLimitedSession) {
+                var lapsLeft = data.NewData.RemainingLaps;
                 laps.Set(lapsLeft);
                 time.Min = lapsLeft * v.laps.PrevTimes.Min;
                 time.Max = lapsLeft * v.laps.PrevTimes.Max;

@@ -52,17 +52,17 @@ namespace RaceEngineerPlugin {
             TrackTempAtLapStart = data.NewData.RoadTemperature;
         }
 
-        public void OnRegularUpdate(GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
-            if (booleans.NewData.EnteredMenu) {
+        public void OnRegularUpdate(GameData data, Values v) {
+            if (v.booleans.NewData.EnteredMenu) {
                 AirTempAtLapStart = double.NaN;
                 TrackTempAtLapStart = double.NaN;
                 RaceEngineerPlugin.LogInfo($"Reset temps at lap start to '{AirTempAtLapStart}' and '{TrackTempAtLapStart}'");
             }
 
-            if (booleans.NewData.IsMoving && double.IsNaN(AirTempAtLapStart)) {
+            if (v.booleans.NewData.IsMoving && double.IsNaN(AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
-                switch (rawData.NewData.Realtime.SessionType) {
+                switch (v.RawData.NewData.Realtime.SessionType) {
                     case RaceSessionType.Race: case RaceSessionType.Hotstint:
                         if (data.OldData.SessionTimeLeft != data.NewData.SessionTimeLeft) {
                             set_lap_start_temps = true;
@@ -81,8 +81,8 @@ namespace RaceEngineerPlugin {
             }
 
             if (RaceEngineerPlugin.GAME.IsACC && data.NewData.AirTemperature == 0.0) {
-                AirTemp = rawData.NewData.Realtime.AmbientTemp;
-                TrackTemp = rawData.NewData.Realtime.TrackTemp;
+                AirTemp = v.RawData.NewData.Realtime.AmbientTemp;
+                TrackTemp = v.RawData.NewData.Realtime.TrackTemp;
             } else {
                 AirTemp = data.NewData.AirTemperature;
                 TrackTemp = data.NewData.RoadTemperature;
@@ -92,13 +92,13 @@ namespace RaceEngineerPlugin {
             if (RaceEngineerPlugin.GAME.IsACC) {
                 var now = data.NewData.PacketTime;
                 var changed = false;
-                if (now < data.SessionStartDate.AddMinutes(20) && rawData.OldData.Graphics.rainIntensityIn10min != rawData.NewData.Graphics.rainIntensityIn10min) {
-                    Forecast.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn10min, now.AddMinutes(10)));
+                if (now < data.SessionStartDate.AddMinutes(20) && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {
+                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn10min, now.AddMinutes(10)));
                     Forecast.Sort((a, b) => a.Time.CompareTo(b.Time));
                     changed = true;
                 }
-                if (rawData.OldData.Graphics.rainIntensityIn30min != rawData.NewData.Graphics.rainIntensityIn30min) {
-                    Forecast.Add(new WeatherPoint(rawData.NewData.Graphics.rainIntensityIn30min, now.AddMinutes(30)));
+                if (v.RawData.OldData.Graphics.rainIntensityIn30min != v.RawData.NewData.Graphics.rainIntensityIn30min) {
+                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn30min, now.AddMinutes(30)));
                     Forecast.Sort((a, b) => a.Time.CompareTo(b.Time));
                     changed = true;
                 }
