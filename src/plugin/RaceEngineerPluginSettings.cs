@@ -32,7 +32,6 @@ namespace RaceEngineerPlugin {
         public bool ShowAllLaps { get; set; }
 
         public StatsFlags PrevLapsStatsFlags { get => prevLapsStats; }
-        public LapFlags LapFlags { get => lapFlags; }
         public StatsFlags PrevFuelPerLapStatsFlags { get => prevFuelPerLapStats; }
         public StatsFlags RemainingStatsFlags { get => remainingStats; }
         public WheelFlags TyrePresFlags { get => tyrePresFlags; }
@@ -40,7 +39,6 @@ namespace RaceEngineerPlugin {
         public WheelFlags BrakeTempFlags { get => brakeTempFlags; }
 
         private StatsFlags prevLapsStats;
-        private LapFlags lapFlags;
         private StatsFlags prevFuelPerLapStats;
         private StatsFlags remainingStats;
         private WheelFlags tyrePresFlags;
@@ -78,7 +76,7 @@ namespace RaceEngineerPlugin {
             ShowAllLaps = s.ShowAllLaps;
 
 
-            ParseLapFlags(s.PrevLapsInfo, ref prevLapsStats, ref lapFlags, "PrevLapsInfo");
+            ParseLapFlags(s.PrevLapsInfo, ref prevLapsStats, "PrevLapsInfo");
             ParseStatsFlags(s.PrevFuelPerLapInfo, ref prevFuelPerLapStats, "PrevFuelPerLapInfo");
             ParseRemainingStatsFlags(s.RemainingInfo, ref remainingStats, "RemainingInfo");
             ParseWheelFlags(s.TyrePresInfo, ref tyrePresFlags, "TyrePresInfo");
@@ -87,21 +85,13 @@ namespace RaceEngineerPlugin {
 
         }
 
-        public void ParseLapFlags(string[] stats, ref StatsFlags statsFlags, ref LapFlags lapFlags, string varName) {
+        public void ParseLapFlags(string[] stats, ref StatsFlags statsFlags, string varName) {
             foreach (var v in stats) {
-                if (v == "TimeDeltaToAvg") {
-                    if (Enum.TryParse(v, out LapFlags newVariant)) {
-                        lapFlags |= newVariant;
-                    } else {
-                        RaceEngineerPlugin.LogWarn($"Found unknown setting '{v}' in {varName}");
-                    }
+                if (Enum.TryParse(v, out StatsFlags newVariant)) {
+                    statsFlags |= newVariant;
                 } else {
-                    if (Enum.TryParse(v, out StatsFlags newVariant)) {
-                        statsFlags |= newVariant;
-                    } else {
-                        RaceEngineerPlugin.LogWarn($"Found unknown setting '{v}' in {varName}");
-                    }
-                }                
+                    RaceEngineerPlugin.LogWarn($"Found unknown setting '{v}' in {varName}");
+                }           
             }
         }
 
@@ -149,11 +139,6 @@ namespace RaceEngineerPlugin {
         Q3 = 1 << 6
     }
 
-    [Flags]
-    public enum LapFlags { 
-        None = 0,
-        TimeDeltaToAvg = 1 << 0,
-    }
 
     [Flags]
     public enum WheelFlags {
@@ -215,7 +200,7 @@ namespace RaceEngineerPlugin {
             FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
             Log = true;
             ShowAllLaps = false;
-            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3", "TimeDeltaToAvg" };
+            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3"};
             PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
             TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
             TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };

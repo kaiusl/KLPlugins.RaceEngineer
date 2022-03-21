@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Reflection;
 using ACSharedMemory.ACC.Reader;
+using RaceEngineerPlugin.Deque;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -60,27 +61,6 @@ namespace RaceEngineerPlugin {
   
                     values.OnDataUpdate(data);
 
-                    //if (!rawPrinted && values.booleans.NewData.ExitedMenu) {
-                    //    var raw = data.NewData.GetRawDataObject();
-                    //    //var acc_RootData = JsonConvert.SerializeObject(raw, Formatting.Indented);
-                    //    //File.WriteAllText($"{SETTINGS.DataLocation}\\AccRawData.json", acc_RootData);
-                    //    //rawPrinted = true;
-                    //    var parsed = (ACCRawData)raw;
-                    //}
-
-
-                    if (values.booleans.NewData.HasFinishedLap) {
-                        for (int i = 0; i < values.car.Fuel.PrevUsedPerLap.Count; i++) {
-                            double lapTime = values.laps.PrevTimes[i];
-                            var istr = i.ToString();
-
-                            pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), lapTime);
-                            if ((LapFlags.TimeDeltaToAvg & SETTINGS.LapFlags) != 0) {
-                                pluginManager.SetPropertyValue(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + istr, this.GetType(), lapTime - values.laps.PrevTimes.Avg);
-                            }
-                            pluginManager.SetPropertyValue(PREV_FUEL_PROP_NAME + istr, this.GetType(), values.car.Fuel.PrevUsedPerLap[i]);
-                        }
-                    }
                     swatch.Stop();
                     TimeSpan ts = swatch.Elapsed;
                     File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
@@ -249,23 +229,46 @@ namespace RaceEngineerPlugin {
             addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR, SETTINGS.TyrePresFlags);
             addTyresStats("TyreTempOverLap", values.car.Tyres.TempOverLap, values.car.Tyres.TempColorF, values.car.Tyres.TempColorR, SETTINGS.TyreTempFlags);
             addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.tempColor, values.car.Brakes.tempColor, SETTINGS.BrakeTempFlags);
-            #endregion
 
-            ///////////////////////
 
-            #region ADD PROPERTIES
-            // Add some properties where we cannot use delegates
 
-            // Number of available properties depends on runtime conditions (eg how many laps are completed)
-            for (int i = 0; i < SETTINGS.NumPreviousValuesStored; i++) {
-                var istr = i.ToString();
+            Action<string, FixedSizeDequeStats> addPrevData = (name, values) => {
+                if (SETTINGS.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
+                if (SETTINGS.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
+                if (SETTINGS.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
+                if (SETTINGS.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => values[3]);
+                if (SETTINGS.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => values[4]);
+                if (SETTINGS.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => values[5]);
+                if (SETTINGS.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => values[6]);
+                if (SETTINGS.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => values[7]);
+                if (SETTINGS.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => values[8]);
+                if (SETTINGS.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => values[9]);
+                if (SETTINGS.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => values[10]);
+                if (SETTINGS.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => values[11]);
+                if (SETTINGS.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => values[12]);
+                if (SETTINGS.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => values[13]);
+                if (SETTINGS.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => values[14]);
+                if (SETTINGS.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => values[15]);
+                if (SETTINGS.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => values[16]);
+                if (SETTINGS.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => values[17]);
+                if (SETTINGS.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => values[18]);
+                if (SETTINGS.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => values[19]);
+                if (SETTINGS.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => values[20]);
+                if (SETTINGS.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => values[21]);
+                if (SETTINGS.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => values[22]);
+                if (SETTINGS.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => values[23]);
+                if (SETTINGS.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => values[24]);
+                if (SETTINGS.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => values[25]);
+                if (SETTINGS.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => values[26]);
+                if (SETTINGS.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => values[27]);
+                if (SETTINGS.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
+                if (SETTINGS.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
+                if (SETTINGS.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
+            };
 
-                pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + istr, this.GetType(), 0.0);
-                if ((LapFlags.TimeDeltaToAvg & SETTINGS.LapFlags) != 0) {
-                    pluginManager.AddProperty(PREV_LAPTIME_PROP_NAME + "DeltaToAvg" + istr, this.GetType(), 0.0);
-                }
-                pluginManager.AddProperty(PREV_FUEL_PROP_NAME + istr, this.GetType(), 0.0);
-            }
+            addPrevData("PrevLapTime", values.laps.PrevTimes);
+            addPrevData("PrevFuelPerLap", values.car.Fuel.PrevUsedPerLap);
+
             #endregion
 
         }
