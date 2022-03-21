@@ -65,8 +65,8 @@ namespace RaceEngineerPlugin.Deque {
         /// </summary>
         /// <param name="value">The value.</param>
         public void AddToFront(double value) {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
 
             if (Count == Capacity) {
                 double oldData = Data.RemoveFromBack();
@@ -75,19 +75,19 @@ namespace RaceEngineerPlugin.Deque {
             SetBounds();
             switch (removeOutliers) {
                 case RemoveOutliers.Upper:
-                    s = new DescriptiveStatistics(Data.Where(x => x < upperBound));
+                    s = new DescriptiveStatistics(Data.Where(x => x < upperBound && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.Lower:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x));
+                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.Both:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && x < upperBound));
+                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && x < upperBound && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.QPlus1:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound - 1 < x && x < upperBound + 1));
+                    s = new DescriptiveStatistics(Data.Where(x => lowerBound - 1 < x && x < upperBound + 1 && !double.IsNaN(x)));
                     break;
                 default:
-                    s = new DescriptiveStatistics(Data);
+                    s = new DescriptiveStatistics(Data.Where(x => !double.IsNaN(x)));
                     break;
             }
 
@@ -96,18 +96,18 @@ namespace RaceEngineerPlugin.Deque {
             Stats.Min = s.Minimum;
             Stats.Max = s.Maximum;
 
-            var t = sw.Elapsed;
-            if (RaceEngineerPlugin.SETTINGS.Log) {
-                string txt = "Data = [";
-                foreach (var a in Data) {
-                    txt += $"{a:0.000}, ";
-                }
+            //var t = sw.Elapsed;
+            //if (RaceEngineerPlugin.SETTINGS.Log) {
+            //    string txt = "Data = [";
+            //    foreach (var a in Data) {
+            //        txt += $"{a:0.000}, ";
+            //    }
     //            RaceEngineerPlugin.LogInfo($@"{txt}],
     //(Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
     //(Avg, Std) = ({Avg}, {Std}),
     //(lowerBound, upperBound) = ({lowerBound}, {upperBound}),
     //Finished in {t.TotalMilliseconds}ms");
-            }
+            
         }
 
         private void SetBounds() {
@@ -122,6 +122,13 @@ namespace RaceEngineerPlugin.Deque {
                 lowerBound = Q1 - iqr3;
                 upperBound = Q3 + iqr3;
             }  
+        }
+
+        public void Fill(double value) {
+            Data.Clear();
+            for (int i = 0; i < Capacity; i++) {
+                Data.AddToFront(value);
+            }
         }
 
         public double this[int key] {
