@@ -29,7 +29,6 @@ namespace RaceEngineerPlugin.Car {
 
         public void OnNewEvent(Values v) {
             foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
-                RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
                 PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
@@ -38,17 +37,16 @@ namespace RaceEngineerPlugin.Car {
             Reset();
 
             foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
-                RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
                 PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
         public void OnLapFinished(GameData data, Values v) {
-            LastUsedPerLap = (double)RemainingAtLapStart - data.NewData.Fuel;
+            LastUsedPerLap = RemainingAtLapStart - data.NewData.Fuel;
             RemainingAtLapStart = data.NewData.Fuel;
             RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
 
-            if (v.booleans.NewData.HasFinishedLap && v.booleans.NewData.SavePrevLap && v.booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
+            if (v.booleans.NewData.SavePrevLap) {
                 RaceEngineerPlugin.LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
                 PrevUsedPerLap.AddToFront(LastUsedPerLap);
             }
