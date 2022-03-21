@@ -130,6 +130,8 @@
     <Compile Include="src\components\Laps.cs" />
     <Compile Include="src\components\Remaining.cs" />
     <Compile Include="src\components\Stats.cs" />
+    <Compile Include="src\ksBroadcastingNetwork\ACCUdpRemoteClient.cs" />
+    <Compile Include="src\ksBroadcastingNetwork\BroadcastingNetworkProtocol.cs" />
     <Compile Include="src\ml\RidgeRegression.cs" />
     <Compile Include="src\plugin\RaceEngineerPlugin.cs" />
     <Compile Include="src\plugin\RaceEngineerPluginSettings.cs" />

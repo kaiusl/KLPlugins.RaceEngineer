@@ -39,7 +39,7 @@ namespace RaceEngineerPlugin.Booleans {
         public bool SavePrevLap { get; private set; }
         public bool HasSetupChanged { get; private set; }
 
-        public bool IsGameRunning { get; private set; }
+        public bool IsNewEvent { get; private set; }
         public bool IsRaceStartStintAdded { get; private set; }
         public bool IsOutLap { get; private set; }
 
@@ -82,7 +82,7 @@ namespace RaceEngineerPlugin.Booleans {
             SavePrevLap = o.SavePrevLap;
             HasSetupChanged = o.HasSetupChanged;
 
-            IsGameRunning = o.IsGameRunning;
+            IsNewEvent = o.IsNewEvent;
             IsRaceStartStintAdded = o.IsRaceStartStintAdded;
             IsOutLap = o.IsOutLap;
 
@@ -92,7 +92,6 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void Update(GameData data, Values v) {
-            IsGameRunning = data.GameRunning;
             IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
             EnteredMenu = !wasInMenu && IsInMenu;
@@ -214,7 +213,7 @@ namespace RaceEngineerPlugin.Booleans {
             SavePrevLap = false;
             HasSetupChanged = false;
 
-            IsGameRunning = false;
+            IsNewEvent = true;
             IsRaceStartStintAdded = false;
             IsOutLap = !(sessionType == RaceSessionType.Hotstint || sessionType == RaceSessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
 
@@ -231,12 +230,12 @@ namespace RaceEngineerPlugin.Booleans {
 
         public void OnNewEvent(RaceSessionType sessionType) { 
             Reset(sessionType);
-            IsGameRunning = true;
+            IsNewEvent = false;
         }
 
         public void OnSessionChange(RaceSessionType sessionType) {
             Reset(sessionType);
-            IsGameRunning = true;
+            IsNewEvent = false;
         }
 
         public void OnLapFinished(GameData data) {
@@ -246,12 +245,6 @@ namespace RaceEngineerPlugin.Booleans {
             IsInLap = false;
             EcuMapChangedThisLap = false;
             RaceEngineerPlugin.LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
-        }
-
-        public void OnGameNotRunning() {
-            if (IsGameRunning) { 
-                IsGameRunning = false;
-            }
         }
 
     }
@@ -278,10 +271,6 @@ namespace RaceEngineerPlugin.Booleans {
         public void RaceStartStintAdded() {
             RaceEngineerPlugin.LogInfo("Booleans.RaceStartStintAdded()");
             NewData.RaceStartStintAdded();
-        }
-
-        public void OnGameNotRunning() {
-            NewData.OnGameNotRunning();
         }
 
         public void OnNewEvent(RaceSessionType sessionType) {

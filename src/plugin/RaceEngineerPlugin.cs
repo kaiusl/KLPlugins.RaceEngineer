@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using ACSharedMemory.ACC.Reader;
 using RaceEngineerPlugin.Deque;
+using GameReaderCommon.Enums;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -47,26 +48,18 @@ namespace RaceEngineerPlugin {
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
             if (!GAME.IsACC) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
-            if (data.GameRunning) {
-                if (data.OldData != null && data.NewData != null) {
-                    //var swatch = Stopwatch.StartNew();
-  
-                    values.OnDataUpdate(data);
+            if (data.GameRunning && data.OldData != null && data.NewData != null) {
+                //var swatch = Stopwatch.StartNew();
 
-                    //swatch.Stop();
-                    //TimeSpan ts = swatch.Elapsed;
-                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
-                }
-            } else {
-                values.OnGameNotRunning();
-                if (sw != null && !flushed) {
-                    sw.Flush();
-                    flushed = true;
-                }
+                values.OnDataUpdate(data);
+
+                //swatch.Stop();
+                //TimeSpan ts = swatch.Elapsed;
+                //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
             }
         }
 
-        private int BoolToInt(bool b) { 
+        private int BoolToInt(bool b) {
             return b ? 1 : 0;
         }
 
@@ -114,6 +107,10 @@ namespace RaceEngineerPlugin {
             GAME = new Game.Game(gameName);
             GAME_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
             values = new Values();
+
+            pluginManager.GameStateChanged += OnGameStateChanged;
+
+            pluginManager.SessionRestart += OnSessionRestart;
 
             #region ADD DELEGATES
 
@@ -165,7 +162,7 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + Car.Tyres.Names[2], () => values[2]);
                 this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
             };
-           
+
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
             addTyres("PredictedIdealInputTyrePresDry", values.car.Tyres.PredictedIdealInputPresDry);
             addTyres("PredictedIdealInputTyrePresWet", values.car.Tyres.PredictedIdealInputPresNowWet);
@@ -263,6 +260,28 @@ namespace RaceEngineerPlugin {
 
             #endregion
 
+        }
+
+        public void OnGameStateChanged(bool running, PluginManager manager) {
+            LogInfo($"GameStateChanged to {running}");
+            if (!running) {
+                values.OnGameNotRunning();
+                if (sw != null && !flushed) {
+                    sw.Flush();
+                    flushed = true;
+                }
+            } else {
+                values.OnGameStateChanged(running);
+            }
+        }
+
+        public void OnSessionRestart(PluginManager pm) {
+            LogInfo("OnSessionRestart");
+        }
+
+
+        public void OnGameStatusChanged(GAME_STATUS status, PluginManager manager) {
+            LogInfo($"GameStatusChanged to {status}");
         }
 
         public static void LogToFile(string msq) {

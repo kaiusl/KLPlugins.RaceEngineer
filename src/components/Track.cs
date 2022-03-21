@@ -10,8 +10,7 @@ namespace RaceEngineerPlugin.Track {
             Name = null;
         }
 
-        public void OnNewEvent(GameData data) { 
-            Reset();
+        public void OnNewEvent(GameData data) {
             CheckChange(data.NewData.TrackId);
         }
 
@@ -21,8 +20,7 @@ namespace RaceEngineerPlugin.Track {
 
         private void CheckChange(string newTrackName) {
             if (newTrackName != null) {
-                var hasChanged = Name != newTrackName;
-                if (hasChanged) {
+                if (Name != newTrackName) {
                     RaceEngineerPlugin.LogInfo($"Track changed from '{Name}' to '{newTrackName}'");
                     Name = newTrackName;
                 }
