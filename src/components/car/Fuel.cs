@@ -3,6 +3,8 @@ using SimHub.Plugins;
 using System;
 using RaceEngineerPlugin.Deque;
 using RaceEngineerPlugin.RawData;
+using ACSharedMemory.ACC.MMFModels;
+using ksBroadcastingNetwork;
 
 namespace RaceEngineerPlugin.Car {
 
@@ -64,7 +66,7 @@ namespace RaceEngineerPlugin.Car {
             }
 
             // This happens when we jump to pits, reset fuel
-            if (data.OldData.Fuel != 0.0 && data.NewData.Fuel == 0.0) {
+            if (v.booleans.NewData.EnteredMenu) {
                 RemainingAtLapStart = 0.0;
                 RaceEngineerPlugin.LogInfo($"Reset fuel at lap start to '{RemainingAtLapStart}'");
             }
@@ -72,9 +74,11 @@ namespace RaceEngineerPlugin.Car {
             if (v.booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
                 bool set_lap_start_fuel = false;
 
+                var sessType = v.RawData.NewData.Realtime.SessionType;
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
-                if (data.NewData.SessionTypeName == "RACE" || data.NewData.SessionTypeName == "7") { // "7" is Simhubs value for HOTSTINT
-                    if (data.OldData.SessionTimeLeft != data.NewData.SessionTimeLeft) {
+                if (RaceEngineerPlugin.GAME.IsACC && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
+                    var sessPhase = v.RawData.NewData.Realtime.Phase;
+                    if (sessPhase == SessionPhase.Session && sessPhase == SessionPhase.PreSession) {
                         set_lap_start_fuel = true;
                     }
                 } else {

@@ -3,6 +3,7 @@ using SimHub.Plugins;
 using System.Diagnostics;
 using System.IO;
 using RaceEngineerPlugin.RawData;
+using ksBroadcastingNetwork;
 
 namespace RaceEngineerPlugin.Booleans {
 
@@ -49,7 +50,7 @@ namespace RaceEngineerPlugin.Booleans {
         private bool isSessionLimitSet = false;
 
         public BooleansBase() {
-            Reset(null);
+            Reset();
         }
 
         public void Update(BooleansBase o) {
@@ -184,7 +185,7 @@ namespace RaceEngineerPlugin.Booleans {
 
         }
 
-        public void Reset(string sessionTypeName) {
+        public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
             IsInMenu = true;
             EnteredMenu = false;
             ExitedMenu = false;
@@ -215,9 +216,9 @@ namespace RaceEngineerPlugin.Booleans {
 
             IsGameRunning = false;
             IsRaceStartStintAdded = false;
-            IsOutLap = !(sessionTypeName == "7" || sessionTypeName == "HOTLAP"); // First lap of HOTSTINT/HOTLAP is proper lap.
+            IsOutLap = !(sessionType == RaceSessionType.Hotstint || sessionType == RaceSessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
 
-            IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
+            IsValidFuelLap = sessionType == RaceSessionType.Hotstint; // First lap of HOTSTINT is proper lap
             EcuMapChangedThisLap = false;
             RainIntensityChangedThisLap = false;
 
@@ -228,12 +229,12 @@ namespace RaceEngineerPlugin.Booleans {
             IsRaceStartStintAdded = true;
         }
 
-        public void OnNewEvent(string sessionTypeName) { 
-            OnSessionChange(sessionTypeName);
+        public void OnNewEvent(RaceSessionType sessionType) { 
+            OnSessionChange(sessionType);
         }
 
-        public void OnSessionChange(string sessionTypeName) {
-            Reset(sessionTypeName);
+        public void OnSessionChange(RaceSessionType sessionType) {
+            Reset(sessionType);
             //IsInPitLane = false;
             //IsOnTrack = false;
             //IsMoving = false;
@@ -255,7 +256,7 @@ namespace RaceEngineerPlugin.Booleans {
 
         public void OnLapFinished(GameData data) {
             // HOTLAP doesn't have fuel usage, thus set isValidFuelLap = false in that case always, otherwise reset to valid lap in other cases
-            IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
+            IsValidFuelLap =  data.NewData.SessionTypeName != "HOTLAP";
             IsOutLap = false;
             IsInLap = false;
             EcuMapChangedThisLap = false;
@@ -283,10 +284,10 @@ namespace RaceEngineerPlugin.Booleans {
             OldData = new BooleansBase();
         }
 
-        public void Reset(string sessionTypeName) {
+        public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
             RaceEngineerPlugin.LogInfo("Booleans.Reset()");
-            OldData.Reset(null);
-            NewData.Reset(sessionTypeName);
+            OldData.Reset(sessionType);
+            NewData.Reset(sessionType);
         }
 
         public void RaceStartStintAdded() {
@@ -298,13 +299,13 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnGameNotRunning();
         }
 
-        public void OnNewEvent(string sessionTypeName) {
-            NewData.OnNewEvent(sessionTypeName);
-            OldData.OnNewEvent(sessionTypeName);
+        public void OnNewEvent(RaceSessionType sessionType) {
+            NewData.OnNewEvent(sessionType);
+            OldData.OnNewEvent(sessionType);
         }
 
-        public void OnNewSession(string sessionTypeName) {
-            NewData.OnSessionChange(sessionTypeName);
+        public void OnNewSession(RaceSessionType sessionType) {
+            NewData.OnSessionChange(sessionType);
         }
 
         public void OnLapFinished(GameData data) {

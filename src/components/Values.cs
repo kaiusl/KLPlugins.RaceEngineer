@@ -32,7 +32,7 @@ namespace RaceEngineerPlugin {
         public Values() {}
 
         public void Reset() {
-            booleans.Reset(null);
+            booleans.Reset();
             car.Reset();
             track.Reset();
             laps.Reset();
@@ -76,7 +76,7 @@ namespace RaceEngineerPlugin {
             RaceEngineerPlugin.LogInfo("OnNewEvent.");
             remainingInSession.Reset();
             remainingOnFuel.Reset();
-            booleans.OnNewEvent(data.NewData.SessionTypeName);
+            booleans.OnNewEvent(RawData.NewData.Realtime.SessionType);
             track.OnNewEvent(data);
             int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
             car.OnNewEvent(data, this);
@@ -111,21 +111,24 @@ namespace RaceEngineerPlugin {
             track.OnRegularUpdate(data);
             car.OnRegularUpdate(data, this);
             weather.OnRegularUpdate(data, RawData, booleans);
-            if (booleans.NewData.ExitedPitLane && data.OldData.SessionTypeName == data.NewData.SessionTypeName) {
+
+
+            var sessTypeNew = RawData.NewData.Realtime.SessionType;
+            if (booleans.NewData.ExitedPitLane && sessTypeNew == RawData.OldData.Realtime.SessionType) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(data);
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if ((data.NewData.SessionTypeName == "RACE" || data.NewData.SessionTypeName == "7" || data.NewData.SessionTypeName == "HOTLAP") && 
-                !booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving) 
+            if (!booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving && (sessTypeNew == RaceSessionType.Race || sessTypeNew == RaceSessionType.Hotstint || sessTypeNew == RaceSessionType.Hotlap)) 
             {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 OnNewStint(data);
                 booleans.RaceStartStintAdded();
             }
+
             remainingInSession.OnRegularUpdate(this, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps);
             remainingOnFuel.OnRegularUpdate(this);
 
@@ -143,10 +146,10 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
-            if (data.OldData.SessionTypeName != data.NewData.SessionTypeName) {
+            if (sessTypeNew != RawData.OldData.Realtime.SessionType) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
-                booleans.OnNewSession(data.NewData.SessionTypeName);
+                booleans.OnNewSession(sessTypeNew);
                 int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
                 car.OnNewSession(this);
                 laps.OnNewSession(this);
