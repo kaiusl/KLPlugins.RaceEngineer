@@ -17,8 +17,8 @@ namespace RaceEngineerPlugin.Car {
         private DateTime lastSampleTimeSec = DateTime.Now;
 
         public Brakes() {
-            LapsNr = 0;
             SetNr = 0;
+            LapsNr = 0;
             TempOverLap = new WheelsStats();
             tempColor = new ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
             TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
@@ -46,13 +46,8 @@ namespace RaceEngineerPlugin.Car {
         public void OnRegularUpdate(GameData data, Values v) {
             CheckPadChange(v);
             UpdateOverLapData(data, v);
-
-            if (!v.booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
-                TempColor[0] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
-                TempColor[1] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontRight).ToHEX();
-                TempColor[2] = tempColor.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
-                TempColor[3] = tempColor.GetColor(data.NewData.BrakeTemperatureRearRight).ToHEX();
-            }
+            UpdateColors(data, v);
+            
         }
 
         #endregion
@@ -88,6 +83,15 @@ namespace RaceEngineerPlugin.Car {
                 tempRunning.Update(currentTemp);
 
                 lastSampleTimeSec = now;
+            }
+        }
+
+        private void UpdateColors(GameData data, Values v) {
+            if (!v.booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
+                TempColor[0] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
+                TempColor[1] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontRight).ToHEX();
+                TempColor[2] = tempColor.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
+                TempColor[3] = tempColor.GetColor(data.NewData.BrakeTemperatureRearRight).ToHEX();
             }
         }
 
