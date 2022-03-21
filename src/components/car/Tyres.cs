@@ -13,6 +13,9 @@ using ACSharedMemory.ACC.MMFModels;
 namespace RaceEngineerPlugin.Car {
 
     public class Tyres {
+        public static string[] Names = new string[4] { "FL", "FR", "RL", "RR" };
+
+
         public string Name { get; private set; }
 
         public double[] IdealInputPres { get; }

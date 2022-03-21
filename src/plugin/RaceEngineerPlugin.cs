@@ -24,13 +24,6 @@ namespace RaceEngineerPlugin {
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.sdkmenuicon);
         public string LeftMenuTitle => "Race Engineer Plugin";
 
-        private const string PREV_LAPTIME_PROP_NAME = "PrevLapTime";
-        private const string PREV_FUEL_PROP_NAME = "PrevFuelPerLap";
-        private const string TYRE_PRES_PROP_NAME = "TyrePres";
-        private const string TYRE_TEMP_PROP_NAME = "TyreTemp";
-        private const string BRAKE_TEMP_PROP_NAME = "BrakeTemp";
-        private string[] tyreNames = new string[4] { "FL", "FR", "RL", "RR" };
-
         public static readonly Settings SETTINGS = new Settings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GAME_PATH; // Same as above
@@ -40,7 +33,6 @@ namespace RaceEngineerPlugin {
 
         public static string pluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
 
-        private Stopwatch swatch = new Stopwatch();
         private Values values;
 
         /// <summary>
@@ -57,13 +49,13 @@ namespace RaceEngineerPlugin {
 
             if (data.GameRunning) {
                 if (data.OldData != null && data.NewData != null) {
-                    swatch.Restart();
+                    //var swatch = Stopwatch.StartNew();
   
                     values.OnDataUpdate(data);
 
-                    swatch.Stop();
-                    TimeSpan ts = swatch.Elapsed;
-                    File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
+                    //swatch.Stop();
+                    //TimeSpan ts = swatch.Elapsed;
+                    //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
                 }
             } else {
                 values.OnGameNotRunning();
@@ -88,7 +80,7 @@ namespace RaceEngineerPlugin {
             values.Dispose();
             sw.Dispose();
             f.Dispose();
-            RaceEngineerPlugin.LogInfo("Disposed.");
+            LogInfo("Disposed.");
         }
 
         /// <summary>
@@ -168,10 +160,10 @@ namespace RaceEngineerPlugin {
 
 
             Action<string, double[]> addTyres = (name, values) => {
-                this.AttachDelegate(name + tyreNames[0], () => values[0]);
-                this.AttachDelegate(name + tyreNames[1], () => values[1]);
-                this.AttachDelegate(name + tyreNames[2], () => values[2]);
-                this.AttachDelegate(name + tyreNames[3], () => values[3]);
+                this.AttachDelegate(name + Car.Tyres.Names[0], () => values[0]);
+                this.AttachDelegate(name + Car.Tyres.Names[1], () => values[1]);
+                this.AttachDelegate(name + Car.Tyres.Names[2], () => values[2]);
+                this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
             };
            
             addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
@@ -183,10 +175,10 @@ namespace RaceEngineerPlugin {
 
             Action<string, string[], WheelFlags> addTyresColor = (name, values, flag) => {
                 if ((WheelFlags.Color & flag) != 0) {
-                    this.AttachDelegate(name + tyreNames[0] + "Color", () => values[0]);
-                    this.AttachDelegate(name + tyreNames[1] + "Color", () => values[1]);
-                    this.AttachDelegate(name + tyreNames[2] + "Color", () => values[2]);
-                    this.AttachDelegate(name + tyreNames[3] + "Color", () => values[3]);
+                    this.AttachDelegate(name + Car.Tyres.Names[0] + "Color", () => values[0]);
+                    this.AttachDelegate(name + Car.Tyres.Names[1] + "Color", () => values[1]);
+                    this.AttachDelegate(name + Car.Tyres.Names[2] + "Color", () => values[2]);
+                    this.AttachDelegate(name + Car.Tyres.Names[3] + "Color", () => values[3]);
                 }
             };
 
@@ -220,10 +212,10 @@ namespace RaceEngineerPlugin {
             };
 
             Action<string, Stats.WheelsStats, Color.ColorCalculator, Color.ColorCalculator, WheelFlags> addTyresStats = (name, values, ccf, ccr, flags) => {
-                addStatsWColor(name + tyreNames[0], values[0], ccf, flags);
-                addStatsWColor(name + tyreNames[1], values[1], ccf, flags);
-                addStatsWColor(name + tyreNames[2], values[2], ccr, flags);
-                addStatsWColor(name + tyreNames[3], values[3], ccr, flags);
+                addStatsWColor(name + Car.Tyres.Names[0], values[0], ccf, flags);
+                addStatsWColor(name + Car.Tyres.Names[1], values[1], ccf, flags);
+                addStatsWColor(name + Car.Tyres.Names[2], values[2], ccr, flags);
+                addStatsWColor(name + Car.Tyres.Names[3], values[3], ccr, flags);
             };
 
             addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR, SETTINGS.TyrePresFlags);

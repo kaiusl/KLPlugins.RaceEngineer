@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ACSharedMemory.ACC.MMFModels;
 using GameReaderCommon;
 using SimHub.Plugins;
+using RaceEngineerPlugin.Car;
 
 namespace RaceEngineerPlugin.Database
 {
@@ -302,6 +303,7 @@ namespace RaceEngineerPlugin.Database
 			new DBField(START_TIME, "TEXT")
 		});
 
+		private static string[] TYRES = new string[] { Tyres.Names[0].ToLower(), Tyres.Names[1].ToLower(), Tyres.Names[2].ToLower(), Tyres.Names[3].ToLower() };
 		private const string STINT_ID = "stint_id";
 		private const string SESSION_TYPE = "session_type";
 		private const string STINT_NR = "stint_nr";
@@ -346,7 +348,6 @@ namespace RaceEngineerPlugin.Database
 			new DBField(CASTER + $"_{TYRES[1]}", "INTEGER"),
 		});
 
-		private static string[] TYRES = new string[] { "fl", "fr", "rl", "rr" };
 		private const string LAP_ID = "lap_id";
 		private const string SESSION_LAP_NR = "session_lap_nr";
 		private const string STINT_LAP_NR = "stint_lap_nr";
