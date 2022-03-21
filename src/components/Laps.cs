@@ -17,29 +17,29 @@ namespace RaceEngineerPlugin.Laps {
             StintNr = 0;
             StintLaps = 0;
             PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.Upper);
+            PrevTimes.Fill(double.NaN);
         }
 
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Laps.Reset()");
-            PrevTimes.Clear();
+            PrevTimes.Fill(double.NaN);
             maxTime = 1000;
             LastTime = 0.0;
             StintNr = 0;
             StintLaps = 0;
         }
 
-        public void OnNewEvent(string carName, string trackName, int trackGrip, Database.Database db) {
-            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+        public void OnNewEvent(Values v) {
+            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 PrevTimes.AddToFront(pd.lapTime);
             }
         }
 
-
-        public void OnNewSession(string carName, string trackName, int trackGrip, Database.Database db) {
+        public void OnNewSession(Values v) {
             Reset();
 
-            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 PrevTimes.AddToFront(pd.lapTime);
             }
@@ -50,10 +50,10 @@ namespace RaceEngineerPlugin.Laps {
             StintLaps = 0;
         }
 
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
+        public void OnLapFinished(GameData data, Values v) {
             StintLaps += 1;
             LastTime = data.NewData.LastLapTime.TotalSeconds;
-            if (booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
+            if (v.booleans.NewData.SavePrevLap && v.booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
                 RaceEngineerPlugin.LogInfo($"Added laptime '{LastTime}' to deque.");
                 PrevTimes.AddToFront(LastTime);
                 maxTime = PrevTimes.Min + 30;

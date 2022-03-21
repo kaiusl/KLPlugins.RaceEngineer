@@ -14,23 +14,23 @@
             fuelNeeded.Reset();
         }
 
-        public void OnRegularUpdate(Booleans.Booleans booleans, double timeLeft, double lapsLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
-            if (booleans.NewData.IsTimeLimitedSession) {
+        public void OnRegularUpdate(Values v, double timeLeft, double lapsLeft) {
+            if (v.booleans.NewData.IsTimeLimitedSession) {
                 time.Set(timeLeft);
 
-                laps.Min = timeLeft / lapTime.Max;
-                laps.Max = timeLeft / lapTime.Min;
-                laps.Avg = timeLeft / lapTime.Avg;
-            } else if (booleans.NewData.IsLapLimitedSession) {
+                laps.Min = timeLeft / v.laps.PrevTimes.Max;
+                laps.Max = timeLeft / v.laps.PrevTimes.Min;
+                laps.Avg = timeLeft / v.laps.PrevTimes.Avg;
+            } else if (v.booleans.NewData.IsLapLimitedSession) {
                 laps.Set(lapsLeft);
-                time.Min = lapsLeft * lapTime.Min;
-                time.Max = lapsLeft * lapTime.Max;
-                time.Avg = lapsLeft * lapTime.Avg;
+                time.Min = lapsLeft * v.laps.PrevTimes.Min;
+                time.Max = lapsLeft * v.laps.PrevTimes.Max;
+                time.Avg = lapsLeft * v.laps.PrevTimes.Avg;
             }
 
-            fuelNeeded.Min = laps.Min * fuelUsed.Min;
-            fuelNeeded.Max = laps.Max * fuelUsed.Max;
-            fuelNeeded.Avg = laps.Avg * fuelUsed.Avg;
+            fuelNeeded.Min = laps.Min * v.car.Fuel.PrevUsedPerLap.Min;
+            fuelNeeded.Max = laps.Max * v.car.Fuel.PrevUsedPerLap.Max;
+            fuelNeeded.Avg = laps.Avg * v.car.Fuel.PrevUsedPerLap.Avg;
         }
     }
 
@@ -46,13 +46,13 @@
             laps.Reset();
         }
 
-        public void OnRegularUpdate(double fuelLeft, Stats.Stats fuelUsed, Stats.Stats lapTime) {
-            laps.Min = fuelLeft / fuelUsed.Max;
-            laps.Max = fuelLeft / fuelUsed.Min;
-            laps.Avg = fuelLeft / fuelUsed.Avg;
-            time.Min = laps.Min * lapTime.Min;
-            time.Max = laps.Max * lapTime.Max;
-            time.Avg = laps.Avg * lapTime.Avg;
+        public void OnRegularUpdate(Values v) {
+            laps.Min = v.car.Fuel.Remaining / v.car.Fuel.PrevUsedPerLap.Max;
+            laps.Max = v.car.Fuel.Remaining / v.car.Fuel.PrevUsedPerLap.Min;
+            laps.Avg = v.car.Fuel.Remaining / v.car.Fuel.PrevUsedPerLap.Avg;
+            time.Min = laps.Min * v.laps.PrevTimes.Min;
+            time.Max = laps.Max * v.laps.PrevTimes.Max;
+            time.Avg = laps.Avg * v.laps.PrevTimes.Avg;
         }
     }
 

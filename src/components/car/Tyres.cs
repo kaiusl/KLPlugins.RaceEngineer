@@ -111,7 +111,7 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnNewStint(Database.Database db) {
+        public void OnNewStint() {
             if (RaceEngineerPlugin.GAME.IsACC) {
                 if (!SetLaps[Name].ContainsKey(currentTyreSet)) {
                     SetLaps[Name][currentTyreSet] = 0;

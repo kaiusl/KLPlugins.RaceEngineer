@@ -74,23 +74,23 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnNewEvent(GameData data, int trackGrip, Database.Database db) {
+        public void OnNewEvent(GameData data, Values v) {
             CheckChange(data.NewData.CarModel);
-            Fuel.OnNewEvent(Name, data.NewData.TrackId, trackGrip, db);
+            Fuel.OnNewEvent(v);
         }
 
-        public void OnNewSession(string trackName, int trackGrip, Database.Database db) {
-            Fuel.OnSessionChange(Name, trackName, trackGrip, db);
+        public void OnNewSession(Values v) {
+            Fuel.OnSessionChange(v);
         }
 
-        public void OnNewStint(Database.Database db) {
-            Tyres.OnNewStint(db);
+        public void OnNewStint() {
+            Tyres.OnNewStint();
         }
 
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) { 
+        public void OnLapFinished(GameData data, Values v) { 
             Tyres.OnLapFinished(data.NewData.AirTemperature, data.NewData.RoadTemperature);
             Brakes.OnLapFinished();
-            Fuel.OnLapFinished(data, booleans);
+            Fuel.OnLapFinished(data, v);
         }
 
         public void OnLapFinishedAfterInsert() {
@@ -105,8 +105,8 @@ namespace RaceEngineerPlugin.Car {
             }
             
             Tyres.OnRegularUpdate(data, v);
-            Brakes.OnRegularUpdate(data, v.RawData, v.booleans);
-            Fuel.OnRegularUpdate(data, v.RawData, v.booleans);
+            Brakes.OnRegularUpdate(data, v);
+            Fuel.OnRegularUpdate(data, v);
         }
 
         #endregion

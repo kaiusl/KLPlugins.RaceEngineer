@@ -14,7 +14,7 @@ namespace RaceEngineerPlugin.Car {
         public string[] TempColor { get; private set; }
 
         private WheelsRunningStats tempRunning = new WheelsRunningStats();
-        private double lastSampleTimeSec = DateTime.Now.Second;
+        private DateTime lastSampleTimeSec = DateTime.Now;
 
         public Brakes() {
             LapsNr = 0;
@@ -39,13 +39,15 @@ namespace RaceEngineerPlugin.Car {
 
         public void OnLapFinished() {
             LapsNr += 1;
+            TempOverLap.Update(tempRunning);
+            tempRunning.Reset();
         }
 
-        public void OnRegularUpdate(GameData data, ACCRawData rawData, Booleans.Booleans booleans) {
-            CheckPadChange(rawData, booleans);
-            UpdateOverLapData(data, booleans);
+        public void OnRegularUpdate(GameData data, Values v) {
+            CheckPadChange(v);
+            UpdateOverLapData(data, v);
 
-            if (!booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
+            if (!v.booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
                 TempColor[0] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
                 TempColor[1] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontRight).ToHEX();
                 TempColor[2] = tempColor.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
@@ -57,7 +59,7 @@ namespace RaceEngineerPlugin.Car {
 
         #region PRIVATE METHODS
 
-        private void CheckPadChange(ACCRawData rawData, Booleans.Booleans booleans) {
+        private void CheckPadChange(Values v) {
             // Other games don't have pad life properties
             if (!RaceEngineerPlugin.GAME.IsACC) return;
 
@@ -65,23 +67,18 @@ namespace RaceEngineerPlugin.Car {
             //    a) If we exit garage it's always new brakes
             //    b) If we change brakes in pit stop. Sudden change on ExitPitBox.
 
-            if (booleans.NewData.ExitedMenu || (booleans.NewData.ExitedPitBox && rawData.NewData.Physics.padLife[0] > rawData.OldData.Physics.padLife[0])) {
+            if (v.booleans.NewData.ExitedMenu || (v.booleans.NewData.ExitedPitBox && v.RawData.NewData.Physics.padLife[0] > v.RawData.OldData.Physics.padLife[0])) {
                 RaceEngineerPlugin.LogInfo("Brake pads changed.");
                 SetNr += 1;
                 LapsNr = 0;
             }
         }
 
-        private void UpdateOverLapData(GameData data, Booleans.Booleans booleans) {
-            double now = data.FrameTime.Second;
-            if (booleans.NewData.HasFinishedLap) {
-                // Copy last lap results and reset counters
-                TempOverLap.Update(tempRunning);
-                tempRunning.Reset();
-            }
-
+        private void UpdateOverLapData(GameData data, Values v) {
+            var now = data.NewData.PacketTime;
+            var elapsedSec = (now - lastSampleTimeSec).TotalSeconds;
             // Add sample to counters
-            if (booleans.NewData.IsMoving && booleans.NewData.IsOnTrack && lastSampleTimeSec != now) {
+            if (v.booleans.NewData.IsMoving && v.booleans.NewData.IsOnTrack && elapsedSec > 1) {
                 double[] currentTemp = new double[] {
                     data.NewData.BrakeTemperatureFrontLeft,
                     data.NewData.BrakeTemperatureFrontRight,

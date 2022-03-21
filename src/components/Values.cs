@@ -68,8 +68,8 @@ namespace RaceEngineerPlugin {
 
         private void OnNewStint(GameData data) {
             laps.OnNewStint();
-            car.OnNewStint(db);
-            db.InsertStint(this, data);
+            car.OnNewStint();
+            db.InsertStint(data, this);
         }
 
         public void OnNewEvent(GameData data) {
@@ -79,8 +79,8 @@ namespace RaceEngineerPlugin {
             booleans.OnNewEvent(data.NewData.SessionTypeName);
             track.OnNewEvent(data);
             int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
-            car.OnNewEvent(data, trackGrip, db);
-            laps.OnNewEvent(car.Name, track.Name, trackGrip, db);
+            car.OnNewEvent(data, this);
+            laps.OnNewEvent(this);
             db.InsertEvent(car.Name, track.Name);
         }
 
@@ -107,7 +107,7 @@ namespace RaceEngineerPlugin {
                 OnNewEvent(data);
             }
 
-            booleans.OnRegularUpdate(data, RawData, laps.PrevTimes.Min, car.Fuel.RemainingAtLapStart);
+            booleans.OnRegularUpdate(data, this);
             track.OnRegularUpdate(data);
             car.OnRegularUpdate(data, this);
             weather.OnRegularUpdate(data, RawData, booleans);
@@ -126,16 +126,16 @@ namespace RaceEngineerPlugin {
                 OnNewStint(data);
                 booleans.RaceStartStintAdded();
             }
-            remainingInSession.OnRegularUpdate(booleans, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
-            remainingOnFuel.OnRegularUpdate(car.Fuel.Remaining, car.Fuel.PrevUsedPerLap.Stats, laps.PrevTimes.Stats);
+            remainingInSession.OnRegularUpdate(this, data.NewData.SessionTimeLeft.TotalSeconds, data.NewData.RemainingLaps);
+            remainingOnFuel.OnRegularUpdate(this);
 
             if (booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 booleans.OnLapFinished(data);
-                car.OnLapFinished(data, booleans);
-                laps.OnLapFinished(data, booleans);
+                car.OnLapFinished(data, this);
+                laps.OnLapFinished(data, this);
                 if (laps.LastTime != 0) {
-                    db.InsertLap(this, data);
+                    db.InsertLap(data, this);
                 }
 
                 weather.OnLapFinishedAfterInsert(data);
@@ -148,8 +148,8 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogInfo("New session");
                 booleans.OnNewSession(data.NewData.SessionTypeName);
                 int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
-                car.OnNewSession(track.Name, trackGrip, db);
-                laps.OnNewSession(car.Name, track.Name, trackGrip, db);
+                car.OnNewSession(this);
+                laps.OnNewSession(this);
             }
         }
 

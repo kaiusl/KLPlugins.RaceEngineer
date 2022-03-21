@@ -14,6 +14,7 @@ namespace RaceEngineerPlugin.Car {
 
         public Fuel() { 
             PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.None);
+            PrevUsedPerLap.Fill(double.NaN);
         }
 
         public void Reset() {
@@ -21,46 +22,46 @@ namespace RaceEngineerPlugin.Car {
             Remaining = 0.0;
             RemainingAtLapStart = 0.0;
             LastUsedPerLap = 0.0;
-            PrevUsedPerLap.Clear();
+            PrevUsedPerLap.Fill(double.NaN);
         }
 
         #region On... METHODS
 
-        public void OnNewEvent(string carName, string trackName, int trackGrip, Database.Database db) {
-            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+        public void OnNewEvent(Values v) {
+            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
                 PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
-        public void OnSessionChange(string carName, string trackName, int trackGrip, Database.Database db) {
+        public void OnSessionChange(Values v) {
             Reset();
 
-            foreach (Database.PrevData pd in db.GetPrevSessionData(carName, trackName, RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, trackGrip)) {
+            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read fuel '{pd.fuelUsed}' from database.");
                 PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
-        public void OnLapFinished(GameData data, Booleans.Booleans booleans) {
+        public void OnLapFinished(GameData data, Values v) {
             LastUsedPerLap = (double)RemainingAtLapStart - data.NewData.Fuel;
             RemainingAtLapStart = data.NewData.Fuel;
             RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
 
-            if (booleans.NewData.HasFinishedLap && booleans.NewData.SavePrevLap && booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
+            if (v.booleans.NewData.HasFinishedLap && v.booleans.NewData.SavePrevLap && v.booleans.OldData.IsValidFuelLap && LastUsedPerLap > 0) {
                 RaceEngineerPlugin.LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
                 PrevUsedPerLap.AddToFront(LastUsedPerLap);
             }
         }
 
-        public void OnRegularUpdate(GameData data,  ACCRawData rawData, Booleans.Booleans booleans) {
+        public void OnRegularUpdate(GameData data, Values v) {
             /////////////
             // Fuel left
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
-            if (booleans.NewData.IsInMenu && booleans.NewData.IsSetupMenuVisible) {
-                double avgFuelPerLapACC =  rawData.NewData.Graphics.FuelXLap;
-                double estLaps = rawData.NewData.Graphics.fuelEstimatedLaps;
+            if (v.booleans.NewData.IsInMenu && v.booleans.NewData.IsSetupMenuVisible) {
+                double avgFuelPerLapACC =  v.RawData.NewData.Graphics.FuelXLap;
+                double estLaps = v.RawData.NewData.Graphics.fuelEstimatedLaps;
                 Remaining = estLaps * avgFuelPerLapACC;
             }
 
@@ -70,7 +71,7 @@ namespace RaceEngineerPlugin.Car {
                 RaceEngineerPlugin.LogInfo($"Reset fuel at lap start to '{RemainingAtLapStart}'");
             }
 
-            if (booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
+            if (v.booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
                 bool set_lap_start_fuel = false;
 
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
@@ -96,9 +97,6 @@ namespace RaceEngineerPlugin.Car {
 
         #endregion
 
-        #region PRIVATE METHODS
-
-        #endregion
 
     }
 

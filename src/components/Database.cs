@@ -515,7 +515,7 @@ namespace RaceEngineerPlugin.Database
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
-		public void InsertStint(Values v, GameData data) {
+		public void InsertStint(GameData data, Values v) {
 			var stint = new Stint(v, data, eventId);
 			_ = Task.Run(() => InsertStint(stint));
 		}
@@ -585,7 +585,7 @@ namespace RaceEngineerPlugin.Database
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
-		public void InsertLap(Values v, GameData data) {
+		public void InsertLap(GameData data, Values v) {
 			var lap = new Lap(v, data, stintId);
 			_ = Task.Run(() => InsertLap(lap));
 		}
@@ -688,28 +688,30 @@ namespace RaceEngineerPlugin.Database
 
 		#region QUERIES
 
-		public List<PrevData> GetPrevSessionData(string carName, string trackName, int numItems, int trackGrip) {
+		public List<PrevData> GetPrevSessionData(Values v) {
+			var trackGrip = (int)v.RawData.NewData.Graphics.trackGripStatus;
 			string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
 			if (0 < trackGrip && trackGrip < 3) {
 				conds += "('Green', 'Fast', 'Optimum')";
-			} else if (trackGrip == 3) {
-				conds += "('Green', 'Fast', 'Optimum', 'Greasy', 'Damp')";
-			} else if (trackGrip == 4) {
-				conds += "('Greasy', 'Damp', 'Wet')";
 			} else {
-				conds += "('Damp', 'Wet', 'Flooded')";
+				conds += $"('{trackGrip}')";
 			}
 
-			List<PrevData> list = new List<PrevData>(numItems);
+			List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored);
 			dbMutex.WaitOne();
 
 			var cmd = new SQLiteCommand(conn) {
                 CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {lapsTable.name} AS l 
 					INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
 					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
-					WHERE e.{CAR_ID} == '{carName}' AND e.{TRACK_ID} == '{trackName}' {conds}
+					WHERE 
+						e.{CAR_ID} == '{v.car.Name}' 
+						AND e.{TRACK_ID} == '{v.track.Name}' 
+						{conds} 
+						AND l.{RAIN_INTENSITY} == {(int)v.RawData.NewData.Graphics.rainIntensity} 
+						AND l.{RAIN_INTENSITY_CHANGED} == 0
 					ORDER BY l.{LAP_ID} DESC
-					LIMIT {numItems}"
+					LIMIT {RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored}"
             };
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();

@@ -90,7 +90,7 @@ namespace RaceEngineerPlugin.Booleans {
             RainIntensityChangedThisLap = o.RainIntensityChangedThisLap;
         }
 
-        public void Update(GameData data, ACCRawData rawData, double minLapTime, double fuelUsedPrevLapStart) {
+        public void Update(GameData data, Values v) {
             IsGameRunning = data.GameRunning;
             IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
@@ -129,7 +129,7 @@ namespace RaceEngineerPlugin.Booleans {
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
             if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
-                IsSetupMenuVisible = rawData.NewData.Graphics.IsSetupMenuVisible == 1;
+                IsSetupMenuVisible = v.RawData.NewData.Graphics.IsSetupMenuVisible == 1;
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;
@@ -150,13 +150,12 @@ namespace RaceEngineerPlugin.Booleans {
 
             if (HasFinishedLap) {
                 SavePrevLap = lastLapTime > 0.0
-                    && (double.IsNaN(minLapTime) || lastLapTime < minLapTime + 30)
                     && IsValidFuelLap
-                    && fuelUsedPrevLapStart != 0.0
-                    && fuelUsedPrevLapStart > data.NewData.Fuel
+                    && v.car.Fuel.RemainingAtLapStart != 0.0
+                    && v.car.Fuel.RemainingAtLapStart > data.NewData.Fuel
                     && !IsInLap
                     && !IsOutLap;
-                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'minLapTime = {minLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {fuelUsedPrevLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
+                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {v.car.Fuel.RemainingAtLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
             }
 
             if (!IsInLap && (EnteredPitLane || EnteredMenu)) {
@@ -178,7 +177,7 @@ namespace RaceEngineerPlugin.Booleans {
             }
             //EcuMapChangedThisLap |= (data.OldData.EngineMap != data.NewData.EngineMap);
 
-            if (!RainIntensityChangedThisLap && !IsInMenu && !IsInPitLane && rawData.NewData.Graphics.rainIntensity != rawData.OldData.Graphics.rainIntensity) {
+            if (!RainIntensityChangedThisLap && !IsInMenu && !IsInPitLane && v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity) {
                 RaceEngineerPlugin.LogInfo("Set 'RainIntensityChangedThisLap = true'");
                 RainIntensityChangedThisLap = true;
             }
@@ -312,9 +311,9 @@ namespace RaceEngineerPlugin.Booleans {
             NewData.OnLapFinished(data);
         }
 
-        public void OnRegularUpdate(GameData data, ACCRawData rawData, double minLapTime, double fuelUsedLapStart) {
+        public void OnRegularUpdate(GameData data, Values v) {
             OldData.Update(NewData);
-            NewData.Update(data, rawData, minLapTime, fuelUsedLapStart);
+            NewData.Update(data, v);
         }
 
     }
