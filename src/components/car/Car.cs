@@ -133,13 +133,13 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void ReadInfo() {
-            string fname = $@"{RaceEngineerPlugin.GAME_PATH}\cars\{Name}.json";
+            string fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\{Name}.json";
             if (!File.Exists(fname)) {
                 if (RaceEngineerPlugin.GAME.IsACC) {
                     var carClass = Name.ToLower().Contains("gt4") ? "gt4" : "gt3";
-                    fname = $@"{RaceEngineerPlugin.GAME_PATH}\cars\def_{carClass}.json";
+                    fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\def_{carClass}.json";
                 } else {
-                    fname = $@"{RaceEngineerPlugin.GAME_PATH}\cars\def.json";
+                    fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\def.json";
                 }
             }
 

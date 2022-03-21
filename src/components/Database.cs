@@ -43,10 +43,7 @@ namespace RaceEngineerPlugin.Database
 			this.eventId = eventId;
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
-			string sessType = data.NewData.SessionTypeName;
-			if (sessType == "7") {
-				sessType = "HOTSTINT";
-			}
+			string sessType = v.Session.RaceSessionType.ToString();
 			session_type = sessType;
 			stint_nr = v.laps.StintNr;
 			start_time = stime;

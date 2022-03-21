@@ -12,6 +12,7 @@ using System.Reflection;
 using ACSharedMemory.ACC.Reader;
 using RaceEngineerPlugin.Deque;
 using GameReaderCommon.Enums;
+using ksBroadcastingNetwork;
 
 namespace RaceEngineerPlugin {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -27,7 +28,7 @@ namespace RaceEngineerPlugin {
 
         public static readonly Settings SETTINGS = new Settings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
-        public static string GAME_PATH; // Same as above
+        public static string GAME_DATA_PATH; // Same as above
         private static FileStream f;
         private static StreamWriter sw;
         private static bool flushed = false;
@@ -91,6 +92,9 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
+            var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
+            if (gameName != Game.Game.ACC_NAME) return;
+
             if (SETTINGS.Log) {
                 var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{pluginStartTime}.txt";
                 Directory.CreateDirectory(Path.GetDirectoryName(fpath));
@@ -103,14 +107,13 @@ namespace RaceEngineerPlugin {
             Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
 
             // DataCorePlugin should be built before, thus this property should be available.
-            var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
+            
             GAME = new Game.Game(gameName);
-            GAME_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
+            GAME_DATA_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
             values = new Values();
 
+            pluginManager.GameStateChanged += values.OnGameStateChanged;
             pluginManager.GameStateChanged += OnGameStateChanged;
-
-            pluginManager.SessionRestart += OnSessionRestart;
 
             #region ADD DELEGATES
 
@@ -265,23 +268,11 @@ namespace RaceEngineerPlugin {
         public void OnGameStateChanged(bool running, PluginManager manager) {
             LogInfo($"GameStateChanged to {running}");
             if (!running) {
-                values.OnGameNotRunning();
                 if (sw != null && !flushed) {
                     sw.Flush();
                     flushed = true;
                 }
-            } else {
-                values.OnGameStateChanged(running);
             }
-        }
-
-        public void OnSessionRestart(PluginManager pm) {
-            LogInfo("OnSessionRestart");
-        }
-
-
-        public void OnGameStatusChanged(GAME_STATUS status, PluginManager manager) {
-            LogInfo($"GameStatusChanged to {status}");
         }
 
         public static void LogToFile(string msq) {
@@ -336,7 +327,42 @@ namespace RaceEngineerPlugin {
 
             var t = sw.Elapsed;
             LogInfo($"Prejit finished in {t.TotalMilliseconds}ms");
+
         }
+
+    }
+
+
+    public static class Helpers {
+
+        public static RaceSessionType RaceSessionTypeFromString(string s) {
+            switch (s) {
+                case "PRACTICE":
+                    return RaceSessionType.Practice;
+                case "QUALIFY":
+                    return RaceSessionType.Qualifying;
+                case "RACE":
+                    return RaceSessionType.Race;
+                case "HOTLAP":
+                    return RaceSessionType.Hotlap;
+                case "7":
+                    return RaceSessionType.Hotstint;
+                case "8":
+                    return RaceSessionType.HotlapSuperpole;
+                default:
+                    return RaceSessionType.Practice;
+
+            }
+        }
+
+        //var sessTypeStr = data.NewData.SessionTypeName;
+        //RaceSessionType sessType;
+        //switch (sessTypeStr) {
+        //    case "RACE":
+        //        sessType = RaceSessionType.Race;
+        //        break;
+        //    case ""
+        //}       
 
     }
 }

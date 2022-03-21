@@ -120,6 +120,7 @@
     <Compile Include="src\components\car\Brakes.cs" />
     <Compile Include="src\components\car\Car.cs" />
     <Compile Include="src\components\car\CarSetup.cs" />
+    <Compile Include="src\components\Session.cs" />
     <Compile Include="src\components\Weather.cs" />
     <Compile Include="src\components\color\Color.cs" />
     <Compile Include="src\components\color\ColorCalculator.cs" />

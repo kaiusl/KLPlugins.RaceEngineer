@@ -62,7 +62,7 @@ namespace RaceEngineerPlugin {
             if (v.booleans.NewData.IsMoving && double.IsNaN(AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
-                switch (v.RawData.NewData.Realtime.SessionType) {
+                switch (v.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName)) {
                     case RaceSessionType.Race: case RaceSessionType.Hotstint:
                         if (data.OldData.SessionTimeLeft != data.NewData.SessionTimeLeft) {
                             set_lap_start_temps = true;
@@ -81,8 +81,8 @@ namespace RaceEngineerPlugin {
             }
 
             if (RaceEngineerPlugin.GAME.IsACC && data.NewData.AirTemperature == 0.0) {
-                AirTemp = v.RawData.NewData.Realtime.AmbientTemp;
-                TrackTemp = v.RawData.NewData.Realtime.TrackTemp;
+                AirTemp = v.RawData.NewData.Realtime?.AmbientTemp ?? 0.0;
+                TrackTemp = v.RawData.NewData.Realtime?.TrackTemp ?? 0.0;
             } else {
                 AirTemp = data.NewData.AirTemperature;
                 TrackTemp = data.NewData.RoadTemperature;

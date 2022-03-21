@@ -278,8 +278,8 @@ namespace RaceEngineerPlugin.Booleans {
             OldData.OnNewEvent(sessionType);
         }
 
-        public void OnNewSession(RaceSessionType sessionType) {
-            NewData.OnSessionChange(sessionType);
+        public void OnNewSession(Values v) {
+            NewData.OnSessionChange(v.Session.RaceSessionType ?? RaceSessionType.Practice);
         }
 
         public void OnLapFinished(GameData data) {

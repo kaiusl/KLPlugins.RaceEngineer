@@ -21,6 +21,7 @@ namespace RaceEngineerPlugin {
         public Laps.Laps laps = new Laps.Laps();
         public Weather weather = new Weather();
         public ACCRawData RawData = new ACCRawData();
+        public Session Session = new Session();
 
         public ACCUdpRemoteClient broadcastClient;
 
@@ -28,6 +29,7 @@ namespace RaceEngineerPlugin {
         public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
 
         public Database.Database db = new Database.Database();
+
 
         public Values() {}
 
@@ -44,6 +46,7 @@ namespace RaceEngineerPlugin {
             remainingInSession.Reset();
             remainingOnFuel.Reset();
             RawData.Reset();
+            Session.Reset();
         }
 
 
@@ -77,31 +80,23 @@ namespace RaceEngineerPlugin {
             db.InsertStint(data, this);
         }
 
-        public void OnGameStateChanged(bool running) {
+        public void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
                 if (broadcastClient != null) {
                     RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
                     DisposeBroadcastClient();
                 }
                 ConnectToBroadcastClient();
+            } else {
+                Reset();
             }
 
         }
 
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent. {data.NewData}");
-
-            //var sessTypeStr = data.NewData.SessionTypeName;
-            //RaceSessionType sessType;
-            //switch (sessTypeStr) {
-            //    case "RACE":
-            //        sessType = RaceSessionType.Race;
-            //        break;
-            //    case ""
-            //}       
-
-
-            booleans.OnNewEvent(RawData.NewData.Realtime.SessionType);
+            var sessType = RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+            booleans.OnNewEvent(sessType);
             track.OnNewEvent(data);
             car.OnNewEvent(data, this);
             laps.OnNewEvent(this);
@@ -129,20 +124,19 @@ namespace RaceEngineerPlugin {
             }
 
             booleans.OnRegularUpdate(data, this);
+            Session.OnRegularUpdate(data, this);
             track.OnRegularUpdate(data);
             car.OnRegularUpdate(data, this);
             weather.OnRegularUpdate(data, this);
 
-
-            var sessTypeNew = RawData.NewData.Realtime.SessionType;
-            if (booleans.NewData.ExitedPitLane && sessTypeNew == RawData.OldData.Realtime.SessionType) {
+            if (booleans.NewData.ExitedPitLane && !Session.IsRaceSessionChange) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(data);
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving && (sessTypeNew == RaceSessionType.Race || sessTypeNew == RaceSessionType.Hotstint || sessTypeNew == RaceSessionType.Hotlap)) 
+            if (!booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) 
             {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
@@ -167,22 +161,18 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
-            if (sessTypeNew != RawData.OldData.Realtime.SessionType) {
+            if (Session.IsRaceSessionChange) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
-                booleans.OnNewSession(sessTypeNew);
+                booleans.OnNewSession(this);
                 car.OnNewSession(this);
                 laps.OnNewSession(this);
             }
         }
 
-        public void OnGameNotRunning() {
-            Reset();
-        }
-
         #region Broadcast client connection
         public void ConnectToBroadcastClient() {
-            broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 1000);
+            broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
             broadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
             broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
         }
