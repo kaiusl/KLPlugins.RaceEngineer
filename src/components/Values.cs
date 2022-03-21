@@ -150,7 +150,6 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 booleans.OnNewSession(sessTypeNew);
-                int trackGrip = (int)RawData.NewData.Graphics.trackGripStatus;
                 car.OnNewSession(this);
                 laps.OnNewSession(this);
             }
