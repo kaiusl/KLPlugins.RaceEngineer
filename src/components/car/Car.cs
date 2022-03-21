@@ -133,13 +133,13 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void ReadInfo() {
-            string fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\{Name}.json";
+            string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{Name}.json";
             if (!File.Exists(fname)) {
-                if (RaceEngineerPlugin.GAME.IsAcc) {
+                if (RaceEngineerPlugin.Game.IsAcc) {
                     var carClass = Name.ToLower().Contains("gt4") ? "gt4" : "gt3";
-                    fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\def_{carClass}.json";
+                    fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def_{carClass}.json";
                 } else {
-                    fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\def.json";
+                    fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
                 }
             }
 
@@ -153,7 +153,7 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void UpdateSetup(string trackName) {
-            string fname = $@"{RaceEngineerPlugin.SETTINGS.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
+            string fname = $@"{RaceEngineerPlugin.Settings.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
             try {
                 Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");

@@ -53,7 +53,7 @@ namespace RaceEngineerPlugin.Database
 				TyrePresIn[i] = v.Car.Tyres.CurrentInputPres[i];
 			}
 
-			if (RaceEngineerPlugin.GAME.IsAcc) {
+			if (RaceEngineerPlugin.Game.IsAcc) {
 				BrakePadFront = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
 				BrakePadReat = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
 				TyreSet = v.Car.Tyres.CurrentTyreSet;
@@ -148,7 +148,7 @@ namespace RaceEngineerPlugin.Database
 			this.StintId = stint_id;
 			SessionLapNr = data.NewData.CompletedLaps;
 			StintLapNr = v.Laps.StintLaps;
-			if (RaceEngineerPlugin.GAME.IsAcc) {
+			if (RaceEngineerPlugin.Game.IsAcc) {
 				TyresetLapNr = v.Car.Tyres.GetCurrentSetLaps();
 			} else {
 				TyresetLapNr = 0;
@@ -183,7 +183,7 @@ namespace RaceEngineerPlugin.Database
 			EcuMap = data.NewData.EngineMap;
 			EcuMapChanged = v.Booleans.OldData.EcuMapChangedThisLap;
 
-			if (RaceEngineerPlugin.GAME.IsAcc) {
+			if (RaceEngineerPlugin.Game.IsAcc) {
 				Tc2 = v.RawData.NewData.Graphics.TCCut;
 
 				for (var i = 0; i < 4; i++) {
@@ -228,7 +228,7 @@ namespace RaceEngineerPlugin.Database
 		private Mutex _dbMutex = new Mutex();
 
 		public Database() {
-			var location = $@"{RaceEngineerPlugin.SETTINGS.DataLocation}\{RaceEngineerPlugin.GAME.Name}\data.db";
+			var location = $@"{RaceEngineerPlugin.Settings.DataLocation}\{RaceEngineerPlugin.Game.Name}\data.db";
 			if (!File.Exists(location)) {
 				Directory.CreateDirectory(Path.GetDirectoryName(location));
 			}
@@ -694,7 +694,7 @@ namespace RaceEngineerPlugin.Database
 				conds += $"('{trackGrip}')";
 			}
 
-			List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored);
+			List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.Settings.NumPreviousValuesStored);
 			_dbMutex.WaitOne();
 
 			var cmd = new SQLiteCommand(_conn) {
@@ -708,7 +708,7 @@ namespace RaceEngineerPlugin.Database
 						AND l.{RAIN_INTENSITY} == {(int)v.RawData.NewData.Graphics.rainIntensity} 
 						AND l.{RAIN_INTENSITY_CHANGED} == 0
 					ORDER BY l.{LAP_ID} DESC
-					LIMIT {RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored}"
+					LIMIT {RaceEngineerPlugin.Settings.NumPreviousValuesStored}"
             };
 
 			SQLiteDataReader rdr = cmd.ExecuteReader();

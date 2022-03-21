@@ -16,7 +16,7 @@ namespace RaceEngineerPlugin.Laps {
         public Laps() {
             StintNr = 0;
             StintLaps = 0;
-            PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.Upper);
+            PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
             PrevTimes.Fill(double.NaN);
         }
 

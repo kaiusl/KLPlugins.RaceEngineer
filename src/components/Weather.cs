@@ -80,7 +80,7 @@ namespace RaceEngineerPlugin {
                 }
             }
 
-            if (RaceEngineerPlugin.GAME.IsAcc && data.NewData.AirTemperature == 0.0) {
+            if (RaceEngineerPlugin.Game.IsAcc && data.NewData.AirTemperature == 0.0) {
                 AirTemp = v.RawData.NewData.Realtime?.AmbientTemp ?? 0.0;
                 TrackTemp = v.RawData.NewData.Realtime?.TrackTemp ?? 0.0;
             } else {
@@ -89,7 +89,7 @@ namespace RaceEngineerPlugin {
             }
 
 
-            if (RaceEngineerPlugin.GAME.IsAcc) {
+            if (RaceEngineerPlugin.Game.IsAcc) {
                 var now = data.NewData.PacketTime;
                 var changed = false;
                 if (now < data.SessionStartDate.AddMinutes(20) && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {

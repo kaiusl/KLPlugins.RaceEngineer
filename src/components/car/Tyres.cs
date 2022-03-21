@@ -88,10 +88,10 @@ namespace RaceEngineerPlugin.Car {
             PresOverLap.Reset();
             TempOverLap.Reset();
 
-            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
-            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
-            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
-            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
+            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
 
             SetLaps.Clear();
             InputTyrePresPredictorDry = null;
@@ -109,14 +109,14 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public int GetCurrentSetLaps() {
-            if (!RaceEngineerPlugin.GAME.IsAcc) return -1;
+            if (!RaceEngineerPlugin.Game.IsAcc) return -1;
             return SetLaps[Name][CurrentTyreSet];
         }
 
         #region On... METHODS
 
         public void OnNewStint() {
-            if (RaceEngineerPlugin.GAME.IsAcc) {
+            if (RaceEngineerPlugin.Game.IsAcc) {
                 if (!SetLaps[Name].ContainsKey(CurrentTyreSet)) {
                     SetLaps[Name][CurrentTyreSet] = 0;
                 }
@@ -124,7 +124,7 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void OnLapFinished(double airtemp, double tracktemp) {
-            if (RaceEngineerPlugin.GAME.IsAcc) {
+            if (RaceEngineerPlugin.Game.IsAcc) {
                 SetLaps[Name][CurrentTyreSet] += 1;
             }
 
@@ -157,14 +157,14 @@ namespace RaceEngineerPlugin.Car {
 
         private void UpdateColors(GameData data, bool isInMenu) {
             if (!isInMenu) {
-                if ((WheelFlags.Color & RaceEngineerPlugin.SETTINGS.TyrePresFlags) != 0) {
+                if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
                     PresColor[0] = PresColorF.GetColor(data.NewData.TyrePressureFrontLeft).ToHEX();
                     PresColor[1] = PresColorF.GetColor(data.NewData.TyrePressureFrontRight).ToHEX();
                     PresColor[2] = PresColorR.GetColor(data.NewData.TyrePressureRearLeft).ToHEX();
                     PresColor[3] = PresColorR.GetColor(data.NewData.TyrePressureRearRight).ToHEX();
                 }
 
-                if ((WheelFlags.Color & RaceEngineerPlugin.SETTINGS.TyreTempFlags) != 0) {
+                if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
                     TempColor[0] = TempColorF.GetColor(data.NewData.TyreTemperatureFrontLeft).ToHEX();
                     TempColor[1] = TempColorF.GetColor(data.NewData.TyreTemperatureFrontRight).ToHEX();
                     TempColor[2] = TempColorR.GetColor(data.NewData.TyreTemperatureRearLeft).ToHEX();
@@ -197,7 +197,7 @@ namespace RaceEngineerPlugin.Car {
                 }
                 CurrentTyreSet = _wetSet;
             } else {
-                CurrentTyreSet = RaceEngineerPlugin.GAME.IsAcc ? v.RawData.NewData.Graphics.currentTyreSet : -1;
+                CurrentTyreSet = RaceEngineerPlugin.Game.IsAcc ? v.RawData.NewData.Graphics.currentTyreSet : -1;
             }
 
             if (newTyreName == null || newTyreName == Name) return;
@@ -401,10 +401,10 @@ namespace RaceEngineerPlugin.Car {
 
         private void ResetColors() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
-            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
-            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.PresColor, RaceEngineerPlugin.SETTINGS.TyrePresColorDefValues);
-            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
-            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.TyreTempColorDefValues);
+            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
         }
 
         private void ResetValues() {

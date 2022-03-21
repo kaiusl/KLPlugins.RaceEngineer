@@ -19,16 +19,16 @@ namespace RaceEngineerPlugin {
     [PluginAuthor("Kaius Loos")]
     [PluginName("RaceEngineerPlugin")]
     public class RaceEngineerPlugin : IPlugin, IDataPlugin, IWPFSettingsV2 {
-        public const string PLUGIN_NAME = "RACE ENGINEER";
-
-        public RaceEngineerPluginSettings Settings;
+        public const string PluginName = "RACE ENGINEER";
+        
+        public RaceEngineerPluginSettings ShSettings;
         public PluginManager PluginManager { get; set; }
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.sdkmenuicon);
         public string LeftMenuTitle => "Race Engineer Plugin";
 
-        public static readonly Settings SETTINGS = new Settings();
-        public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
-        public static string GAME_DATA_PATH; // Same as above
+        public static readonly Settings Settings = new Settings();
+        public static Game.Game Game; // Const during the lifetime of this plugin, plugin is rebuilt at game change
+        public static string GameDataPath; // Same as above
         public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
 
         private static FileStream _logFile;
@@ -47,7 +47,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         /// <param name="data"></param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
-            if (!GAME.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
+            if (!Game.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
             if (data.GameRunning && data.OldData != null && data.NewData != null) {
                 //var swatch = Stopwatch.StartNew();
@@ -70,7 +70,7 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
-            this.SaveCommonSettings("GeneralSettings", Settings);
+            this.SaveCommonSettings("GeneralSettings", ShSettings);
             _values.Dispose();
             _logSw.Dispose();
             _logFile.Dispose();
@@ -93,10 +93,10 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
             var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
-            if (gameName != Game.Game.AccName) return;
+            if (gameName != global::RaceEngineerPlugin.Game.Game.AccName) return;
 
-            if (SETTINGS.Log) {
-                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
+            if (Settings.Log) {
+                var fpath = $"{Settings.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
                 Directory.CreateDirectory(Path.GetDirectoryName(fpath));
                 _logFile = File.Create(fpath);
                 _logSw = new StreamWriter(_logFile);
@@ -104,12 +104,12 @@ namespace RaceEngineerPlugin {
             PreJit();
 
             LogInfo("Starting plugin");
-            Settings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
+            ShSettings = this.ReadCommonSettings<RaceEngineerPluginSettings>("GeneralSettings", () => new RaceEngineerPluginSettings());
 
             // DataCorePlugin should be built before, thus this property should be available.
             
-            GAME = new Game.Game(gameName);
-            GAME_DATA_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
+            Game = new Game.Game(gameName);
+            GameDataPath = $@"{Settings.DataLocation}\{gameName}";
             _values = new Values();
 
             pluginManager.GameStateChanged += _values.OnGameStateChanged;
@@ -150,13 +150,13 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addStats("LapTime", _values.Laps.PrevTimes.Stats, SETTINGS.PrevLapsStatsFlags);
-            addStats("FuelPerLap", _values.Car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStatsFlags);
-            addStats("LapsRemainingOnFuel", _values.RemainingOnFuel.Laps, SETTINGS.RemainingStatsFlags);
-            addStats("TimeRemainingOnFuel", _values.RemainingOnFuel.Time, SETTINGS.RemainingStatsFlags);
-            addStats("LapsRemainingInSession", _values.RemainingInSession.Laps, SETTINGS.RemainingStatsFlags);
-            addStats("TimeRemainingInSession", _values.RemainingInSession.Time, SETTINGS.RemainingStatsFlags);
-            addStats("FuelNeededInSession", _values.RemainingInSession.FuelNeeded, SETTINGS.RemainingStatsFlags);
+            addStats("LapTime", _values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
+            addStats("FuelPerLap", _values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
+            addStats("LapsRemainingOnFuel", _values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
+            addStats("TimeRemainingOnFuel", _values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
+            addStats("LapsRemainingInSession", _values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
+            addStats("TimeRemainingInSession", _values.RemainingInSession.Time, Settings.RemainingStatsFlags);
+            addStats("FuelNeededInSession", _values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
             Action<string, double[]> addTyres = (name, values) => {
@@ -182,9 +182,9 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addTyresColor("TyrePres", _values.Car.Tyres.PresColor, SETTINGS.TyrePresFlags);
-            addTyresColor("TyreTemp", _values.Car.Tyres.TempColor, SETTINGS.TyreTempFlags);
-            addTyresColor("BrakeTemp", _values.Car.Brakes.TempColor, SETTINGS.BrakeTempFlags);
+            addTyresColor("TyrePres", _values.Car.Tyres.PresColor, Settings.TyrePresFlags);
+            addTyresColor("TyreTemp", _values.Car.Tyres.TempColor, Settings.TyreTempFlags);
+            addTyresColor("BrakeTemp", _values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
 
             Action<string, Stats.Stats, Color.ColorCalculator, WheelFlags> addStatsWColor = (name, v, cc, flags) => {
                 if ((WheelFlags.Min & flags) != 0) {
@@ -218,44 +218,44 @@ namespace RaceEngineerPlugin {
                 addStatsWColor(name + Car.Tyres.Names[3], values[3], ccr, flags);
             };
 
-            addTyresStats("TyrePresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, SETTINGS.TyrePresFlags);
-            addTyresStats("TyreTempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, SETTINGS.TyreTempFlags);
-            addTyresStats("BrakeTempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, SETTINGS.BrakeTempFlags);
+            addTyresStats("TyrePresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, Settings.TyrePresFlags);
+            addTyresStats("TyreTempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, Settings.TyreTempFlags);
+            addTyresStats("BrakeTempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, Settings.BrakeTempFlags);
 
 
 
             Action<string, FixedSizeDequeStats> addPrevData = (name, values) => {
-                if (SETTINGS.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
-                if (SETTINGS.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
-                if (SETTINGS.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
-                if (SETTINGS.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => values[3]);
-                if (SETTINGS.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => values[4]);
-                if (SETTINGS.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => values[5]);
-                if (SETTINGS.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => values[6]);
-                if (SETTINGS.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => values[7]);
-                if (SETTINGS.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => values[8]);
-                if (SETTINGS.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => values[9]);
-                if (SETTINGS.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => values[10]);
-                if (SETTINGS.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => values[11]);
-                if (SETTINGS.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => values[12]);
-                if (SETTINGS.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => values[13]);
-                if (SETTINGS.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => values[14]);
-                if (SETTINGS.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => values[15]);
-                if (SETTINGS.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => values[16]);
-                if (SETTINGS.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => values[17]);
-                if (SETTINGS.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => values[18]);
-                if (SETTINGS.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => values[19]);
-                if (SETTINGS.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => values[20]);
-                if (SETTINGS.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => values[21]);
-                if (SETTINGS.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => values[22]);
-                if (SETTINGS.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => values[23]);
-                if (SETTINGS.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => values[24]);
-                if (SETTINGS.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => values[25]);
-                if (SETTINGS.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => values[26]);
-                if (SETTINGS.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => values[27]);
-                if (SETTINGS.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
-                if (SETTINGS.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
-                if (SETTINGS.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
+                if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
+                if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
+                if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
+                if (Settings.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => values[3]);
+                if (Settings.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => values[4]);
+                if (Settings.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => values[5]);
+                if (Settings.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => values[6]);
+                if (Settings.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => values[7]);
+                if (Settings.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => values[8]);
+                if (Settings.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => values[9]);
+                if (Settings.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => values[10]);
+                if (Settings.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => values[11]);
+                if (Settings.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => values[12]);
+                if (Settings.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => values[13]);
+                if (Settings.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => values[14]);
+                if (Settings.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => values[15]);
+                if (Settings.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => values[16]);
+                if (Settings.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => values[17]);
+                if (Settings.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => values[18]);
+                if (Settings.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => values[19]);
+                if (Settings.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => values[20]);
+                if (Settings.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => values[21]);
+                if (Settings.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => values[22]);
+                if (Settings.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => values[23]);
+                if (Settings.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => values[24]);
+                if (Settings.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => values[25]);
+                if (Settings.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => values[26]);
+                if (Settings.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => values[27]);
+                if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
+                if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
+                if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
             };
 
             addPrevData("PrevLapTime", _values.Laps.PrevTimes);
@@ -283,27 +283,27 @@ namespace RaceEngineerPlugin {
         }
 
         public static void LogInfo(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
-            if (SETTINGS.Log) {
+            if (Settings.Log) {
                 var pathParts = sourceFilePath.Split('\\');
-                SimHub.Logging.Current.Info($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+                SimHub.Logging.Current.Info($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
                 LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} INFO ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
             }
         }
 
         public static void LogWarn(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             var pathParts = sourceFilePath.Split('\\');
-            SimHub.Logging.Current.Warn($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+            SimHub.Logging.Current.Warn($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
             LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} WARN ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogError(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             var pathParts = sourceFilePath.Split('\\');
-            SimHub.Logging.Current.Error($"{PLUGIN_NAME} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
+            SimHub.Logging.Current.Error($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
             LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ERROR ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogFileSeparator() {
-            if (SETTINGS.Log) {
+            if (Settings.Log) {
                 LogToFile("\n----------------------------------------------------------\n");
             }
         }

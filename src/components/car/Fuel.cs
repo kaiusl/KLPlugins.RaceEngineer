@@ -15,7 +15,7 @@ namespace RaceEngineerPlugin.Car {
         public FixedSizeDequeStats PrevUsedPerLap { get; private set; }
 
         public Fuel() { 
-            PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.None);
+            PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
             Reset();
         }
 
@@ -59,7 +59,7 @@ namespace RaceEngineerPlugin.Car {
             // Fuel left
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
-            if (RaceEngineerPlugin.GAME.IsAcc && Remaining == 0.0) {
+            if (RaceEngineerPlugin.Game.IsAcc && Remaining == 0.0) {
                 double avgFuelPerLapACC =  v.RawData.NewData.Graphics.FuelXLap;
                 double estLaps = v.RawData.NewData.Graphics.fuelEstimatedLaps;
                 Remaining = estLaps * avgFuelPerLapACC;
@@ -76,7 +76,7 @@ namespace RaceEngineerPlugin.Car {
 
                 var sessType = v.RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
-                if (RaceEngineerPlugin.GAME.IsAcc && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
+                if (RaceEngineerPlugin.Game.IsAcc && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
                     var sessPhase = v.RawData?.NewData?.Realtime?.Phase;
                     if ((sessPhase != null && sessPhase == SessionPhase.Session && sessPhase == SessionPhase.PreSession) || (data.NewData.SessionTimeLeft != data.OldData.SessionTimeLeft)) {
                         set_lap_start_fuel = true;

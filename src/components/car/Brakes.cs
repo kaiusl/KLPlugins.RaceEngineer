@@ -20,7 +20,7 @@ namespace RaceEngineerPlugin.Car {
             SetNr = 0;
             LapsNr = 0;
             TempOverLap = new WheelsStats();
-            tempColor = new ColorCalculator(RaceEngineerPlugin.SETTINGS.TempColor, RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
+            tempColor = new ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
         }
 
@@ -31,7 +31,7 @@ namespace RaceEngineerPlugin.Car {
             for (int i = 0; i < 4; i++) {
                 TempColor[i] = "#000000";
             }
-            tempColor.UpdateInterpolation(RaceEngineerPlugin.SETTINGS.BrakeTempColorDefValues);
+            tempColor.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             _tempRunning.Reset();
         }
 
@@ -56,7 +56,7 @@ namespace RaceEngineerPlugin.Car {
 
         private void CheckPadChange(Values v) {
             // Other games don't have pad life properties
-            if (!RaceEngineerPlugin.GAME.IsAcc) return;
+            if (!RaceEngineerPlugin.Game.IsAcc) return;
 
             // Pads can change at two moments:
             //    a) If we exit garage it's always new brakes
@@ -87,7 +87,7 @@ namespace RaceEngineerPlugin.Car {
         }
 
         private void UpdateColors(GameData data, Values v) {
-            if (!v.Booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.SETTINGS.BrakeTempFlags) != 0) {
+            if (!v.Booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
                 TempColor[0] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
                 TempColor[1] = tempColor.GetColor(data.NewData.BrakeTemperatureFrontRight).ToHEX();
                 TempColor[2] = tempColor.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
