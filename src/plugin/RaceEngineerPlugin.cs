@@ -32,8 +32,8 @@ namespace RaceEngineerPlugin {
         public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
 
         private static FileStream _logFile;
-        private static StreamWriter _logSw;
-        private static bool _logFlushed = false;
+        private static StreamWriter _logWriter;
+        private static bool _isLogFlushed = false;
 
         private Values _values;
 
@@ -72,7 +72,7 @@ namespace RaceEngineerPlugin {
         public void End(PluginManager pluginManager) {
             this.SaveCommonSettings("GeneralSettings", ShSettings);
             _values.Dispose();
-            _logSw.Dispose();
+            _logWriter.Dispose();
             _logFile.Dispose();
             LogInfo("Disposed.");
         }
@@ -99,7 +99,7 @@ namespace RaceEngineerPlugin {
                 var fpath = $"{Settings.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
                 Directory.CreateDirectory(Path.GetDirectoryName(fpath));
                 _logFile = File.Create(fpath);
-                _logSw = new StreamWriter(_logFile);
+                _logWriter = new StreamWriter(_logFile);
             }
             PreJit();
 
@@ -113,7 +113,15 @@ namespace RaceEngineerPlugin {
             _values = new Values();
 
             pluginManager.GameStateChanged += _values.OnGameStateChanged;
-            pluginManager.GameStateChanged += OnGameStateChanged;
+            pluginManager.GameStateChanged +=  (bool running, PluginManager _) => {
+                LogInfo($"GameStateChanged to {running}");
+                if (!running) {
+                    if (_logWriter != null && !_isLogFlushed) {
+                        _logWriter.Flush();
+                        _isLogFlushed = true;
+                    }
+                }
+            };
 
             #region ADD DELEGATES
 
@@ -265,20 +273,11 @@ namespace RaceEngineerPlugin {
 
         }
 
-        public void OnGameStateChanged(bool running, PluginManager manager) {
-            LogInfo($"GameStateChanged to {running}");
-            if (!running) {
-                if (_logSw != null && !_logFlushed) {
-                    _logSw.Flush();
-                    _logFlushed = true;
-                }
-            }
-        }
 
         public static void LogToFile(string msq) {
             if (_logFile != null) { 
-                _logSw.WriteLine(msq);
-                _logFlushed = false;
+                _logWriter.WriteLine(msq);
+                _isLogFlushed = false;
             }
         }
 
@@ -354,15 +353,5 @@ namespace RaceEngineerPlugin {
 
             }
         }
-
-        //var sessTypeStr = data.NewData.SessionTypeName;
-        //RaceSessionType sessType;
-        //switch (sessTypeStr) {
-        //    case "RACE":
-        //        sessType = RaceSessionType.Race;
-        //        break;
-        //    case ""
-        //}       
-
     }
 }
