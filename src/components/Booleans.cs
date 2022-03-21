@@ -230,28 +230,13 @@ namespace RaceEngineerPlugin.Booleans {
         }
 
         public void OnNewEvent(RaceSessionType sessionType) { 
-            OnSessionChange(sessionType);
+            Reset(sessionType);
+            IsGameRunning = true;
         }
 
         public void OnSessionChange(RaceSessionType sessionType) {
             Reset(sessionType);
-            //IsInPitLane = false;
-            //IsOnTrack = false;
-            //IsMoving = false;
-            //HasFinishedLap = false;
-            //IsSetupMenuVisible = false;
-            //IsFuelWarning = false;
-            //SavePrevLap = false;
-            //HasSetupChanged = false;
-            //IsGameRunning = true;
-            //IsRaceStartStintAdded = false;
-            //IsOutLap = sessionTypeName != "7"; // First lap of HOTSTINT is proper lap.
-            //IsInLap = false;
-            //HavePressuresChanged = false;
-            //HasNewStintStarted = false;
-            //IsValidFuelLap = sessionTypeName == "7"; // First lap of HOTSTINT is proper lap
-            //isSessionLimitSet = false;
-            //EcuMapChangedThisLap= false;
+            IsGameRunning = true;
         }
 
         public void OnLapFinished(GameData data) {
