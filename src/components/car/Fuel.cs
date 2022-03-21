@@ -57,7 +57,7 @@ namespace RaceEngineerPlugin.Car {
             // Fuel left
             Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
-            if (v.booleans.NewData.IsInMenu && v.booleans.NewData.IsSetupMenuVisible) {
+            if (RaceEngineerPlugin.GAME.IsACC && Remaining == 0.0) {
                 double avgFuelPerLapACC =  v.RawData.NewData.Graphics.FuelXLap;
                 double estLaps = v.RawData.NewData.Graphics.fuelEstimatedLaps;
                 Remaining = estLaps * avgFuelPerLapACC;
