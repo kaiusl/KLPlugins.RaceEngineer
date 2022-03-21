@@ -14,18 +14,16 @@
 
 ## Definite todos
 
-- [ ] Try to get rid of as much pm.GetProperty as possible. That thing is quite slow.
-- [ ] Use machine learning to provide input tyre pressures.
-  - [See more below...](#input-tyre-pressures)
-- [ ] Rework loading of previous data to be more representative of current condition.
-  - [ ] How to handle not enough data? Widen requirements? Don't load?
+- [ ] Use machine learning to provide expected fuel consumption, for now and future conditions.
 - [ ] Add graphical settings manager inside SimHub
-- [ ] SetPropertyValue-s are quite expensive. Try delegates and 
 
     
 
 #### *DONE!*
 
+- [x] Use machine learning to provide input tyre pressures.
+  - [See more below...](#input-tyre-pressures)
+- [x] Try to get rid of as much pm.GetProperty as possible. That thing is quite slow.
 - [x] Move database interactions to different thread or use async
   - [x] Passed inserts off to separate threads. Joining every thread before next interaction with db.
   - [x] How to pass of queries to separate threads? Synced by mutex as they are not on main thread, possible interactions are quite far apart (in time) and thus we can afford a simple mutex.

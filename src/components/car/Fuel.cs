@@ -14,7 +14,7 @@ namespace RaceEngineerPlugin.Car {
 
         public Fuel() { 
             PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored, RemoveOutliers.None);
-            PrevUsedPerLap.Fill(double.NaN);
+            Reset();
         }
 
         public void Reset() {
