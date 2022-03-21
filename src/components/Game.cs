@@ -6,49 +6,49 @@
     /// The gameName is constant in each plugin reload and thus we can set it once and simplyfy game checks alot.
     /// </summary>
     public class Game {
-        public const string AC_NAME = "AssettoCorsa";
-        public const string ACC_NAME = "AssettoCorsaCompetizione";
-        public const string RF2_NAME = "RFactor2";
-        public const string IRACING_NAME = "IRacing";
-        public const string R3E_NAME = "RRRE";
+        public const string AcName = "AssettoCorsa";
+        public const string AccName = "AssettoCorsaCompetizione";
+        public const string Rf2Name = "RFactor2";
+        public const string IracingName = "IRacing";
+        public const string R3eName = "RRRE";
 
-        public bool IsAC { get => _isAC; }
-        public bool IsACC { get => _isACC; }
+        public bool IsAc { get => _isAc; }
+        public bool IsAcc { get => _isAcc; }
         public bool IsRf2 { get => _isRf2; }
         public bool IsIracing { get => _isIracing; }
-        public bool IsR3E { get => _isR3E; }
+        public bool IsR3e { get => _isR3e; }
         public bool IsUnknown { get => _isUnknown;  }
         public string Name { get => _name; }
 
-        private readonly bool _isAC = false;
-        private readonly bool _isACC = false;
+        private readonly bool _isAc = false;
+        private readonly bool _isAcc = false;
         private readonly bool _isRf2 = false;
         private readonly bool _isIracing = false;
-        private readonly bool _isR3E = false;
+        private readonly bool _isR3e = false;
         private readonly bool _isUnknown = false;
         private readonly string _name;
 
         public Game(string gameName) {
             _name = gameName;
             switch (gameName) {
-                case AC_NAME:
-                    _isAC = true;
+                case AcName:
+                    _isAc = true;
                     RaceEngineerPlugin.LogInfo("Game set to AC");
                     break;
-                case ACC_NAME:
-                    _isACC = true;
+                case AccName:
+                    _isAcc = true;
                     RaceEngineerPlugin.LogInfo("Game set to ACC");
                     break;
-                case RF2_NAME:
+                case Rf2Name:
                     _isRf2 = true;
                     RaceEngineerPlugin.LogInfo("Game set to RF2");
                     break;
-                case IRACING_NAME:
+                case IracingName:
                     _isIracing = true;
                     RaceEngineerPlugin.LogInfo("Game set to IRacing");
                     break;
-                case R3E_NAME:
-                    _isR3E = true;
+                case R3eName:
+                    _isR3e = true;
                     RaceEngineerPlugin.LogInfo("Game set to R3E");
                     break;
                 default:

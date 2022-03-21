@@ -11,7 +11,7 @@ namespace RaceEngineerPlugin.Laps {
         public int StintNr { get; private set; }
         public int StintLaps { get; private set; }
 
-        private double maxTime = 1000;
+        private double _maxTime = 1000;
 
         public Laps() {
             StintNr = 0;
@@ -23,14 +23,14 @@ namespace RaceEngineerPlugin.Laps {
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Laps.Reset()");
             PrevTimes.Fill(double.NaN);
-            maxTime = 1000;
+            _maxTime = 1000;
             LastTime = 0.0;
             StintNr = 0;
             StintLaps = 0;
         }
 
         public void OnNewEvent(Values v) {
-            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 PrevTimes.AddToFront(pd.lapTime);
             }
@@ -39,7 +39,7 @@ namespace RaceEngineerPlugin.Laps {
         public void OnNewSession(Values v) {
             Reset();
 
-            foreach (Database.PrevData pd in v.db.GetPrevSessionData(v)) {
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 PrevTimes.AddToFront(pd.lapTime);
             }
@@ -53,10 +53,10 @@ namespace RaceEngineerPlugin.Laps {
         public void OnLapFinished(GameData data, Values v) {
             StintLaps += 1;
             LastTime = data.NewData.LastLapTime.TotalSeconds;
-            if (v.booleans.NewData.SavePrevLap && v.booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < maxTime) {
+            if (v.Booleans.NewData.SavePrevLap && v.Booleans.OldData.IsValidFuelLap && 0 < LastTime && LastTime < _maxTime) {
                 RaceEngineerPlugin.LogInfo($"Added laptime '{LastTime}' to deque.");
                 PrevTimes.AddToFront(LastTime);
-                maxTime = PrevTimes.Min + 30;
+                _maxTime = PrevTimes.Min + 30;
             }
         }
     }

@@ -13,20 +13,20 @@ namespace RaceEngineerPlugin.Color {
         private int _h;
         private double _s;
         private double _v;
-        private readonly char[] digits = "0123456789ABCDEF".ToCharArray();
-        private bool hexSet = false;
-        private char[] hexDigits = new char[7];
-        private string hex = null;
+        private readonly char[] _digits = "0123456789ABCDEF".ToCharArray();
+        private bool _hexSet = false;
+        private char[] _hexDigits = new char[7];
+        private string _hex = null;
 
         public HSV(int h, double s, double v) {
-            _h = h;
-            _s = s;
-            _v = v;
-            hexDigits[0] = '#';
+            this._h = h;
+            this._s = s;
+            this._v = v;
+            _hexDigits[0] = '#';
         }
 
         public HSV(string hex) {
-            hexDigits[0] = '#';
+            _hexDigits[0] = '#';
             double r = byte.Parse(hex.Substring(1, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
             double g = byte.Parse(hex.Substring(3, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
             double b = byte.Parse(hex.Substring(5, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
@@ -56,14 +56,14 @@ namespace RaceEngineerPlugin.Color {
         }
 
         public void Update(int h, double s, double v) {
-            _h = h;
-            _s = s;
-            _v = v;
-            hexSet = false;
+            this._h = h;
+            this._s = s;
+            this._v = v;
+            _hexSet = false;
         }
 
         public string ToHEX() {
-            if (!hexSet) {
+            if (!_hexSet) {
                 var c = _s * _v;
                 var x = c * (1 - Math.Abs((_h / 60.0) % 2 - 1));
                 var m = _v - c;
@@ -105,15 +105,15 @@ namespace RaceEngineerPlugin.Color {
                 var bb = (byte)Math.Floor((b + m) * 255);
 
                 // Algorith from here https://www.baeldung.com/java-byte-arrays-hex-strings
-                hexDigits[1] = digits[(rb >> 4) & 0xF];
-                hexDigits[2] = digits[rb & 0xF];
-                hexDigits[3] = digits[(gb >> 4) & 0xF];
-                hexDigits[4] = digits[gb & 0xF];
-                hexDigits[5] = digits[(bb >> 4) & 0xF];
-                hexDigits[6] = digits[bb & 0xF];
-                hex = new string(hexDigits);
+                _hexDigits[1] = _digits[(rb >> 4) & 0xF];
+                _hexDigits[2] = _digits[rb & 0xF];
+                _hexDigits[3] = _digits[(gb >> 4) & 0xF];
+                _hexDigits[4] = _digits[gb & 0xF];
+                _hexDigits[5] = _digits[(bb >> 4) & 0xF];
+                _hexDigits[6] = _digits[bb & 0xF];
+                _hex = new string(_hexDigits);
             }
-            return hex;
+            return _hex;
         }
     }
 

@@ -37,10 +37,10 @@ namespace RaceEngineerPlugin.Deque {
         public double Q1 { get => Stats.Q1; }
         public double Q3 { get => Stats.Q3; }
 
-        private double lowerBound = double.NegativeInfinity;
-        private double upperBound = double.PositiveInfinity;
-        private RemoveOutliers removeOutliers;
-        private DescriptiveStatistics s;
+        private double _lowerBound = double.NegativeInfinity;
+        private double _upperBound = double.PositiveInfinity;
+        private RemoveOutliers _removeOutliers;
+        private DescriptiveStatistics _stats;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.
@@ -49,14 +49,14 @@ namespace RaceEngineerPlugin.Deque {
         public FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
             Data = new Deque<double>(size);
             Stats = new Stats.Stats();
-            this.removeOutliers = removeOutliers;
+            this._removeOutliers = removeOutliers;
         }
 
         public void Clear() {
             Data.Clear();
             Stats.Reset();
-            lowerBound = double.NegativeInfinity;
-            upperBound = double.PositiveInfinity;
+            _lowerBound = double.NegativeInfinity;
+            _upperBound = double.PositiveInfinity;
         }
 
 
@@ -73,28 +73,28 @@ namespace RaceEngineerPlugin.Deque {
             }
             Data.AddToFront(value);
             SetBounds();
-            switch (removeOutliers) {
+            switch (_removeOutliers) {
                 case RemoveOutliers.Upper:
-                    s = new DescriptiveStatistics(Data.Where(x => x < upperBound && !double.IsNaN(x)));
+                    _stats = new DescriptiveStatistics(Data.Where(x => x < _upperBound && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.Lower:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && !double.IsNaN(x)));
+                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound < x && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.Both:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound < x && x < upperBound && !double.IsNaN(x)));
+                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound < x && x < _upperBound && !double.IsNaN(x)));
                     break;
                 case RemoveOutliers.QPlus1:
-                    s = new DescriptiveStatistics(Data.Where(x => lowerBound - 1 < x && x < upperBound + 1 && !double.IsNaN(x)));
+                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound - 1 < x && x < _upperBound + 1 && !double.IsNaN(x)));
                     break;
                 default:
-                    s = new DescriptiveStatistics(Data.Where(x => !double.IsNaN(x)));
+                    _stats = new DescriptiveStatistics(Data.Where(x => !double.IsNaN(x)));
                     break;
             }
 
-            Stats.Avg = s.Mean;
-            Stats.Std = s.StandardDeviation;
-            Stats.Min = s.Minimum;
-            Stats.Max = s.Maximum;
+            Stats.Avg = _stats.Mean;
+            Stats.Std = _stats.StandardDeviation;
+            Stats.Min = _stats.Minimum;
+            Stats.Max = _stats.Maximum;
 
             //var t = sw.Elapsed;
             //if (RaceEngineerPlugin.SETTINGS.Log) {
@@ -119,8 +119,8 @@ namespace RaceEngineerPlugin.Deque {
                 Stats.Q3 = s[3];
 
                 var iqr3 = 3*(Q3 - Q1);
-                lowerBound = Q1 - iqr3;
-                upperBound = Q3 + iqr3;
+                _lowerBound = Q1 - iqr3;
+                _upperBound = Q3 + iqr3;
             }  
         }
 

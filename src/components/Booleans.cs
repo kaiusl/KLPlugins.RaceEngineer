@@ -47,7 +47,7 @@ namespace RaceEngineerPlugin.Booleans {
         public bool EcuMapChangedThisLap { get; private set; }
         public bool RainIntensityChangedThisLap { get; private set; }
 
-        private bool isSessionLimitSet = false;
+        private bool _isSessionLimitSet = false;
 
         public BooleansBase() {
             Reset();
@@ -127,14 +127,14 @@ namespace RaceEngineerPlugin.Booleans {
 
 
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
-            IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsACC ? data.NewData.AirTemperature > 0.0 : true);
-            if (RaceEngineerPlugin.GAME.IsACC && IsInMenu) {
+            IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.GAME.IsAcc ? data.NewData.AirTemperature > 0.0 : true);
+            if (RaceEngineerPlugin.GAME.IsAcc && IsInMenu) {
                 IsSetupMenuVisible = v.RawData.NewData.Graphics.IsSetupMenuVisible == 1;
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;
             HasFinishedLap = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
-            if (!isSessionLimitSet) {
+            if (!_isSessionLimitSet) {
                 // Need to set once as at the end of the session SessionTimeLeft == 0 and this will confuse plugin
                 IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
                 IsLapLimitedSession = data.NewData.RemainingLaps != 0;
@@ -151,11 +151,11 @@ namespace RaceEngineerPlugin.Booleans {
             if (HasFinishedLap) {
                 SavePrevLap = lastLapTime > 0.0
                     && IsValidFuelLap
-                    && v.car.Fuel.RemainingAtLapStart != 0.0
-                    && v.car.Fuel.RemainingAtLapStart > data.NewData.Fuel
+                    && v.Car.Fuel.RemainingAtLapStart != 0.0
+                    && v.Car.Fuel.RemainingAtLapStart > data.NewData.Fuel
                     && !IsInLap
                     && !IsOutLap;
-                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {v.car.Fuel.RemainingAtLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
+                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {v.Car.Fuel.RemainingAtLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
             }
 
             if (!IsInLap && (EnteredPitLane || EnteredMenu)) {
@@ -221,7 +221,7 @@ namespace RaceEngineerPlugin.Booleans {
             EcuMapChangedThisLap = false;
             RainIntensityChangedThisLap = false;
 
-            isSessionLimitSet = false;
+            _isSessionLimitSet = false;
         }
 
         public void RaceStartStintAdded() {

@@ -12,14 +12,15 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
 {
     public class ACCUdpRemoteClient : IDisposable
     {
-        private UdpClient _client;
-        private Task _listenerTask;
         public BroadcastingNetworkProtocol MessageHandler { get; }
         public string IpPort { get; }
         public string DisplayName { get; }
         public string ConnectionPassword { get; }
         public string CommandPassword { get; }
         public int MsRealtimeUpdateInterval { get; }
+
+        private UdpClient _client;
+        private Task _listenerTask;
 
         /// <summary>
         /// To get the events delivered inside the UI thread, just create this object from the UI thread/synchronization context.

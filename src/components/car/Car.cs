@@ -100,7 +100,7 @@ namespace RaceEngineerPlugin.Car {
         public void OnRegularUpdate(GameData data, Values v) {
             CheckChange(data.NewData.CarModel);
            
-            if (!v.booleans.NewData.IsMoving && (Setup == null || (v.booleans.OldData.IsSetupMenuVisible && !v.booleans.NewData.IsSetupMenuVisible))) {
+            if (!v.Booleans.NewData.IsMoving && (Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
                 UpdateSetup(data.NewData.TrackId);
             }
             
@@ -135,7 +135,7 @@ namespace RaceEngineerPlugin.Car {
         private void ReadInfo() {
             string fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\{Name}.json";
             if (!File.Exists(fname)) {
-                if (RaceEngineerPlugin.GAME.IsACC) {
+                if (RaceEngineerPlugin.GAME.IsAcc) {
                     var carClass = Name.ToLower().Contains("gt4") ? "gt4" : "gt3";
                     fname = $@"{RaceEngineerPlugin.GAME_DATA_PATH}\cars\def_{carClass}.json";
                 } else {

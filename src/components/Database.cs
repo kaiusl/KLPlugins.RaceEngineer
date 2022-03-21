@@ -16,199 +16,199 @@ using RaceEngineerPlugin.Car;
 namespace RaceEngineerPlugin.Database
 {
 	public class Stint {
-		public long eventId = 0;
-		public string session_type = null;
-		public int stint_nr;
-		public string start_time;
-		public string tyre_compound;
-		public double[] tyre_pres_in = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public int brake_pad_front;
-		public int brake_pad_rear;
-		public int brake_pad_nr;
-		public int brake_duct_front;
-		public int brake_duct_rear;
-		public int tyre_set;
-		public int[] camber = new int[4] { 0, 0, 0, 0 };
-		public int[] toe = new int[4] { 0, 0, 0, 0 };
-		public int caster_lf;
-		public int caster_rf;
+		public long EventId = 0;
+		public string SessionType = null;
+		public int StintNr;
+		public string StartTime;
+		public string TyreCompound;
+		public double[] TyrePresIn = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public int BrakePadFront;
+		public int BrakePadReat;
+		public int BrakePadNr;
+		public int BrakeDuctFront;
+		public int BrakeDuctRear;
+		public int TyreSet;
+		public int[] Camber = new int[4] { 0, 0, 0, 0 };
+		public int[] Toe = new int[4] { 0, 0, 0, 0 };
+		public int CasterLf;
+		public int CasterRf;
 
 		public Stint() { }
 
-		public Stint(Values v, GameData data, long eventId) {
-			Update(v, data, eventId);
+		public Stint(GameData data, Values v, long eventId) {
+			Update(data, v, eventId);
 		}
 
-		public void Update(Values v, GameData data, long eventId) {
-			this.eventId = eventId;
+		public void Update(GameData data, Values v, long eventId) {
+			this.EventId = eventId;
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
 			string sessType = v.Session.RaceSessionType.ToString();
-			session_type = sessType;
-			stint_nr = v.laps.StintNr;
-			start_time = stime;
-			tyre_compound = v.car.Tyres.Name;
+			SessionType = sessType;
+			StintNr = v.Laps.StintNr;
+			StartTime = stime;
+			TyreCompound = v.Car.Tyres.Name;
 
 			for (var i = 0; i < 4; i++) {
-				tyre_pres_in[i] = v.car.Tyres.CurrentInputPres[i];
+				TyrePresIn[i] = v.Car.Tyres.CurrentInputPres[i];
 			}
 
-			if (RaceEngineerPlugin.GAME.IsACC) {
-				brake_pad_front = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
-				brake_pad_rear = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
-				tyre_set = v.car.Tyres.currentTyreSet;
+			if (RaceEngineerPlugin.GAME.IsAcc) {
+				BrakePadFront = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
+				BrakePadReat = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
+				TyreSet = v.Car.Tyres.CurrentTyreSet;
 			} else {
-				brake_pad_front = -1;
-				brake_pad_rear = -1;
-				tyre_set = -1;
+				BrakePadFront = -1;
+				BrakePadReat = -1;
+				TyreSet = -1;
 			}
 
-			brake_pad_nr = v.car.Brakes.SetNr;
+			BrakePadNr = v.Car.Brakes.SetNr;
 
-			if (v.car.Setup != null) {
-				brake_duct_front = v.car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
-				brake_duct_rear = v.car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
+			if (v.Car.Setup != null) {
+				BrakeDuctFront = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
+				BrakeDuctRear = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
 				for (var i = 0; i < 4; i++) {
-					camber[i] = v.car.Setup.basicSetup.alignment.camber[i];
-					toe[i] = v.car.Setup.basicSetup.alignment.toe[i];
+					Camber[i] = v.Car.Setup.basicSetup.alignment.camber[i];
+					Toe[i] = v.Car.Setup.basicSetup.alignment.toe[i];
 				}
 
-				caster_lf = v.car.Setup.basicSetup.alignment.casterLF;
-				caster_rf = v.car.Setup.basicSetup.alignment.casterRF;
+				CasterLf = v.Car.Setup.basicSetup.alignment.casterLF;
+				CasterRf = v.Car.Setup.basicSetup.alignment.casterRF;
 			} else {
-				brake_duct_front = -1;
-				brake_duct_rear = -1;
+				BrakeDuctFront = -1;
+				BrakeDuctRear = -1;
 				for (var i = 0; i < 4; i++) {
-					camber[i] = -1;
-					toe[i] = -1;
+					Camber[i] = -1;
+					Toe[i] = -1;
 				}
 
-				caster_lf = -1;
-				caster_rf = -1;
+				CasterLf = -1;
+				CasterRf = -1;
 			}
 
 		}
 	}
 
 	public class Lap {
-		public long stint_id;
-		public int session_lap_nr;
-		public int stint_lap_nr;
-		public int tyreset_lap_nr;
-		public int brake_lap_nr;
-		public double air_temp;
-		public double air_temp_delta;
-		public double track_temp;
-		public double track_temp_delta;
-		public double lap_time;
-		public double fuel_used;
-		public double fuel_left;
+		public long StintId;
+		public int SessionLapNr;
+		public int StintLapNr;
+		public int TyresetLapNr;
+		public int BrakesLapNr;
+		public double AirTemp;
+		public double AirTempDelta;
+		public double TrackTemp;
+		public double TrackTempDelta;
+		public double LapTime;
+		public double FuelUsed;
+		public double FuelLeft;
 
-		public double[] tyre_pres_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] tyre_pres_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] tyre_pres_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] tyre_pres_loss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public bool[] tyre_pres_loss_lap = new bool[4] { false, false, false, false };
+		public double[] TyrePresAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyrePresMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyrePresMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyrePresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public bool[] TyrePressLossLap = new bool[4] { false, false, false, false };
 
-		public double[] tyre_temp_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] tyre_temp_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] tyre_temp_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyreTempAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyreTempMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyreTempMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public double[] brake_temp_avg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] brake_temp_min = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] brake_temp_max = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] BrakeTempAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] BrakeTempMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] BrakeTempMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public double[] tyre_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyreLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public double[] pad_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public double[] disc_life_left = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] PadLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] DiscLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 
-		public int abs;
-		public int tc;
-		public int tc2;
-		public int ecu_map;
-		public bool ecu_map_changed;
-		public int track_grip_status;
-		public bool is_valid;
-		public bool is_valid_fuel_lap;
-		public bool is_outlap;
-		public bool is_inlap;
-		public int rain_intensity;
-		public bool rain_intensity_changed;
+		public int Abs;
+		public int Tc;
+		public int Tc2;
+		public int EcuMap;
+		public bool EcuMapChanged;
+		public int TrackGripStatus;
+		public bool IsValid;
+		public bool IsValidFuelLap;
+		public bool IsOutLap;
+		public bool IsInLap;
+		public int RainIntensity;
+		public bool RainIntensityChanged;
 
 		public Lap() { }
 
 
-		public Lap(Values v, GameData data, long stint_id) {
-			Update(v, data, stint_id);
+		public Lap(GameData data, Values v, long stint_id) {
+			Update(data, v, stint_id);
 		}
 
 
-		public void Update(Values v, GameData data, long stint_id) {
-			this.stint_id = stint_id;
-			session_lap_nr = data.NewData.CompletedLaps;
-			stint_lap_nr = v.laps.StintLaps;
-			if (RaceEngineerPlugin.GAME.IsACC) {
-				tyreset_lap_nr = v.car.Tyres.GetCurrentSetLaps();
+		public void Update(GameData data, Values v, long stint_id) {
+			this.StintId = stint_id;
+			SessionLapNr = data.NewData.CompletedLaps;
+			StintLapNr = v.Laps.StintLaps;
+			if (RaceEngineerPlugin.GAME.IsAcc) {
+				TyresetLapNr = v.Car.Tyres.GetCurrentSetLaps();
 			} else {
-				tyreset_lap_nr = 0;
+				TyresetLapNr = 0;
 			}
-			brake_lap_nr = v.car.Brakes.LapsNr;
-			air_temp = data.NewData.AirTemperature;
-			air_temp_delta = data.NewData.AirTemperature - v.weather.AirTempAtLapStart;
-			track_temp = data.NewData.RoadTemperature;
-			track_temp_delta = data.NewData.RoadTemperature - v.weather.TrackTempAtLapStart;
-			lap_time = v.laps.LastTime;
-			fuel_used = v.car.Fuel.LastUsedPerLap;
-			fuel_left = v.car.Fuel.Remaining;
+			BrakesLapNr = v.Car.Brakes.LapsNr;
+			AirTemp = data.NewData.AirTemperature;
+			AirTempDelta = data.NewData.AirTemperature - v.Weather.AirTempAtLapStart;
+			TrackTemp = data.NewData.RoadTemperature;
+			TrackTempDelta = data.NewData.RoadTemperature - v.Weather.TrackTempAtLapStart;
+			LapTime = v.Laps.LastTime;
+			FuelUsed = v.Car.Fuel.LastUsedPerLap;
+			FuelLeft = v.Car.Fuel.Remaining;
 
 			for (var i = 0; i < 4; i++) {
-				tyre_pres_avg[i] = v.car.Tyres.PresOverLap[i].Avg;
-				tyre_pres_min[i] = v.car.Tyres.PresOverLap[i].Min;
-				tyre_pres_max[i] = v.car.Tyres.PresOverLap[i].Max;
-				tyre_pres_loss[i] = v.car.Tyres.PresLoss[i];
-				tyre_pres_loss_lap[i] = v.car.Tyres.PresLossLap[i];
+				TyrePresAvg[i] = v.Car.Tyres.PresOverLap[i].Avg;
+				TyrePresMin[i] = v.Car.Tyres.PresOverLap[i].Min;
+				TyrePresMax[i] = v.Car.Tyres.PresOverLap[i].Max;
+				TyrePresLoss[i] = v.Car.Tyres.PresLoss[i];
+				TyrePressLossLap[i] = v.Car.Tyres.PresLossLap[i];
 
-				tyre_temp_avg[i] = v.car.Tyres.TempOverLap[i].Avg;
-				tyre_temp_min[i] = v.car.Tyres.TempOverLap[i].Min;
-				tyre_temp_max[i] = v.car.Tyres.TempOverLap[i].Max;
+				TyreTempAvg[i] = v.Car.Tyres.TempOverLap[i].Avg;
+				TyreTempMin[i] = v.Car.Tyres.TempOverLap[i].Min;
+				TyreTempMax[i] = v.Car.Tyres.TempOverLap[i].Max;
 
-				brake_temp_avg[i] = v.car.Brakes.TempOverLap[i].Avg;
-				brake_temp_min[i] = v.car.Brakes.TempOverLap[i].Min;
-				brake_temp_max[i] = v.car.Brakes.TempOverLap[i].Max;
+				BrakeTempAvg[i] = v.Car.Brakes.TempOverLap[i].Avg;
+				BrakeTempMin[i] = v.Car.Brakes.TempOverLap[i].Min;
+				BrakeTempMax[i] = v.Car.Brakes.TempOverLap[i].Max;
 			}
 
-			abs = data.NewData.ABSLevel;
-			tc = data.NewData.TCLevel;
-			ecu_map = data.NewData.EngineMap;
-			ecu_map_changed = v.booleans.OldData.EcuMapChangedThisLap;
+			Abs = data.NewData.ABSLevel;
+			Tc = data.NewData.TCLevel;
+			EcuMap = data.NewData.EngineMap;
+			EcuMapChanged = v.Booleans.OldData.EcuMapChangedThisLap;
 
-			if (RaceEngineerPlugin.GAME.IsACC) {
-				tc2 = v.RawData.NewData.Graphics.TCCut;
+			if (RaceEngineerPlugin.GAME.IsAcc) {
+				Tc2 = v.RawData.NewData.Graphics.TCCut;
 
 				for (var i = 0; i < 4; i++) {
-					pad_life_left[i] = (float)v.RawData.NewData.Physics.padLife[i];
-					disc_life_left[i] = (float)v.RawData.NewData.Physics.discLife[i];
+					PadLifeLeft[i] = (float)v.RawData.NewData.Physics.padLife[i];
+					DiscLifeLeft[i] = (float)v.RawData.NewData.Physics.discLife[i];
 				}
 
-				track_grip_status = (int)v.RawData.NewData.Graphics.trackGripStatus;
+				TrackGripStatus = (int)v.RawData.NewData.Graphics.trackGripStatus;
 			} else {
-				tc2 = -1;
+				Tc2 = -1;
 				for (var i = 0; i < 4; i++) {
-					pad_life_left[i] = -1;
+					PadLifeLeft[i] = -1;
 				}
 
-				track_grip_status = -1;
+				TrackGripStatus = -1;
 			}
 
-			is_valid = v.booleans.NewData.SavePrevLap;
+			IsValid = v.Booleans.NewData.SavePrevLap;
 			// Need to use booleans.OldData which is the last point on finished lap
-			is_valid_fuel_lap = v.booleans.OldData.IsValidFuelLap;
-			is_outlap = v.booleans.OldData.IsOutLap;
-			is_inlap = v.booleans.OldData.IsInLap;
+			IsValidFuelLap = v.Booleans.OldData.IsValidFuelLap;
+			IsOutLap = v.Booleans.OldData.IsOutLap;
+			IsInLap = v.Booleans.OldData.IsInLap;
 
-			rain_intensity = (int)v.RawData.NewData.Graphics.rainIntensity;
-			rain_intensity_changed = v.booleans.OldData.RainIntensityChangedThisLap;
+			RainIntensity = (int)v.RawData.NewData.Graphics.rainIntensity;
+			RainIntensityChanged = v.Booleans.OldData.RainIntensityChangedThisLap;
 		}
 	}
 
@@ -217,32 +217,31 @@ namespace RaceEngineerPlugin.Database
 	/// Handles data collection/storing for plugin.
 	/// </summary>
 	public class Database : IDisposable {
-		private SQLiteConnection conn;
+		private SQLiteConnection _conn;
 
-		private SQLiteCommand insertEventCmd;
-		private SQLiteCommand insertStintCmd;
-		private SQLiteCommand insertLapCmd;
+		private SQLiteCommand _insertEventCmd;
+		private SQLiteCommand _insertStintCmd;
+		private SQLiteCommand _insertLapCmd;
 
-		private long eventId;
-		private long stintId;
-		private int numCommands = 0;
-		private Mutex dbMutex = new Mutex();
+		private long _eventId;
+		private long _stintId;
+		private Mutex _dbMutex = new Mutex();
 
 		public Database() {
 			var location = $@"{RaceEngineerPlugin.SETTINGS.DataLocation}\{RaceEngineerPlugin.GAME.Name}\data.db";
 			if (!File.Exists(location)) {
 				Directory.CreateDirectory(Path.GetDirectoryName(location));
 			}
-			conn = new SQLiteConnection($"Data Source={location}");
+			_conn = new SQLiteConnection($"Data Source={location}");
 			try {
-				conn.Open();
-				eventsTable.CreateTable(conn);
-				stintsTable.CreateTableWForeignKey(conn, $"FOREIGN KEY({EVENT_ID}) REFERENCES {eventsTable.name}({EVENT_ID})");
-				lapsTable.CreateTableWForeignKey(conn, $"FOREIGN KEY({STINT_ID}) REFERENCES {stintsTable.name}({STINT_ID})");
+				_conn.Open();
+				eventsTable.CreateTable(_conn);
+				stintsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({EVENT_ID}) REFERENCES {eventsTable.name}({EVENT_ID})");
+				lapsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({STINT_ID}) REFERENCES {stintsTable.name}({STINT_ID})");
 			
-				insertEventCmd = eventsTable.CreateInsertCmdWReturning(conn, EVENT_ID);
-				insertStintCmd = stintsTable.CreateInsertCmdWReturning(conn, STINT_ID);
-				insertLapCmd = lapsTable.CreateInsertCmd(conn);
+				_insertEventCmd = eventsTable.CreateInsertCmdWReturning(_conn, EVENT_ID);
+				_insertStintCmd = stintsTable.CreateInsertCmdWReturning(_conn, STINT_ID);
+				_insertLapCmd = lapsTable.CreateInsertCmd(_conn);
 
 				RaceEngineerPlugin.LogInfo($"Opened database from '{location}'");
 			} catch (Exception ex) {
@@ -258,25 +257,25 @@ namespace RaceEngineerPlugin.Database
 		private bool isDisposed = false;
 		protected virtual void Dispose(bool disposing) {
 			if (!isDisposed) {
-				dbMutex.WaitOne();
+				_dbMutex.WaitOne();
 				
 				if (disposing) {
-					insertEventCmd.Dispose();
-					insertStintCmd.Dispose();
-					insertLapCmd.Dispose();
+					_insertEventCmd.Dispose();
+					_insertStintCmd.Dispose();
+					_insertLapCmd.Dispose();
 				}
 
-				if (conn != null) {
-					conn.Close();
-					conn.Dispose();
-					conn = null;
+				if (_conn != null) {
+					_conn.Close();
+					_conn.Dispose();
+					_conn = null;
 				}
 
 				RaceEngineerPlugin.LogInfo("Disposed.");
 				isDisposed = true;
-				dbMutex.ReleaseMutex();
-				dbMutex.Dispose();
-				dbMutex = null;
+				_dbMutex.ReleaseMutex();
+				_dbMutex.Dispose();
+				_dbMutex = null;
 			}
 		}
 
@@ -486,18 +485,18 @@ namespace RaceEngineerPlugin.Database
 		}
 
 		public void InsertEvent(string carName, string trackName) {
-			dbMutex.WaitOne();
+			_dbMutex.WaitOne();
 			
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
-			SetParam(insertEventCmd, CAR_ID, carName);
-			SetParam(insertEventCmd, TRACK_ID, trackName);
-			SetParam(insertEventCmd, START_TIME, stime);
+			SetParam(_insertEventCmd, CAR_ID, carName);
+			SetParam(_insertEventCmd, TRACK_ID, trackName);
+			SetParam(_insertEventCmd, START_TIME, stime);
 
-			eventId = (long)insertEventCmd.ExecuteScalar();
-			numCommands++;
+			_eventId = (long)_insertEventCmd.ExecuteScalar();
+			_numCommands++;
 
-            var debugCmd = new SQLiteCommand(conn) {
+            var debugCmd = new SQLiteCommand(_conn) {
                 CommandText = $"SELECT * FROM {eventsTable.name} ORDER BY rowid DESC LIMIT 1"
             };
             var rdr = debugCmd.ExecuteReader();
@@ -508,48 +507,48 @@ namespace RaceEngineerPlugin.Database
 				txt += $"\n\t{rdr.GetName(i)} = {rdr.GetValue(i)}";
 			}
 			rdr.Close();
-			dbMutex.ReleaseMutex();
+			_dbMutex.ReleaseMutex();
 
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertStint(GameData data, Values v) {
-			var stint = new Stint(v, data, eventId);
+			var stint = new Stint(data, v, _eventId);
 			_ = Task.Run(() => InsertStint(stint));
 		}
 
 		private void InsertStint(Stint s) {
-			dbMutex.WaitOne();
+			_dbMutex.WaitOne();
 
-			SetParam(insertStintCmd, EVENT_ID, s.eventId);
-			SetParam(insertStintCmd, SESSION_TYPE, s.session_type);
-			SetParam(insertStintCmd, STINT_NR, s.stint_nr);
-			SetParam(insertStintCmd, START_TIME, s.start_time);
-			SetParam(insertStintCmd, TYRE_COMPOUND, s.tyre_compound);
+			SetParam(_insertStintCmd, EVENT_ID, s.EventId);
+			SetParam(_insertStintCmd, SESSION_TYPE, s.SessionType);
+			SetParam(_insertStintCmd, STINT_NR, s.StintNr);
+			SetParam(_insertStintCmd, START_TIME, s.StartTime);
+			SetParam(_insertStintCmd, TYRE_COMPOUND, s.TyreCompound);
 
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", s.tyre_pres_in[i]);
+				SetParam(_insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", s.TyrePresIn[i]);
 			}
 
-			SetParam(insertStintCmd, BRAKE_PAD_FRONT, s.brake_pad_front);
-			SetParam(insertStintCmd, BRAKE_PAD_REAR, s.brake_pad_rear);
-			SetParam(insertStintCmd, TYRE_SET, s.tyre_set);
-			SetParam(insertStintCmd, BRAKE_PAD_NR, s.brake_pad_nr);
-			SetParam(insertStintCmd, BRAKE_DUCT_FRONT, s.brake_duct_front);
-			SetParam(insertStintCmd, BRAKE_DUCT_REAR, s.brake_duct_rear);
+			SetParam(_insertStintCmd, BRAKE_PAD_FRONT, s.BrakePadFront);
+			SetParam(_insertStintCmd, BRAKE_PAD_REAR, s.BrakePadReat);
+			SetParam(_insertStintCmd, TYRE_SET, s.TyreSet);
+			SetParam(_insertStintCmd, BRAKE_PAD_NR, s.BrakePadNr);
+			SetParam(_insertStintCmd, BRAKE_DUCT_FRONT, s.BrakeDuctFront);
+			SetParam(_insertStintCmd, BRAKE_DUCT_REAR, s.BrakeDuctRear);
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertStintCmd, CAMBER + $"_{TYRES[i]}", s.camber[i]);
-				SetParam(insertStintCmd, TOE + $"_{TYRES[i]}", s.toe[i]);
+				SetParam(_insertStintCmd, CAMBER + $"_{TYRES[i]}", s.Camber[i]);
+				SetParam(_insertStintCmd, TOE + $"_{TYRES[i]}", s.Toe[i]);
 			}
-			SetParam(insertStintCmd, CASTER + $"_{TYRES[0]}", s.caster_lf);
-			SetParam(insertStintCmd, CASTER + $"_{TYRES[1]}", s.caster_rf);
+			SetParam(_insertStintCmd, CASTER + $"_{TYRES[0]}", s.CasterLf);
+			SetParam(_insertStintCmd, CASTER + $"_{TYRES[1]}", s.CasterRf);
 
-			stintId = (long)insertStintCmd.ExecuteScalar();
+			_stintId = (long)_insertStintCmd.ExecuteScalar();
 			//insertStintCmd.Reset();
-			numCommands++;
+			_numCommands++;
 
 			// Debug
-			var debugCmd = new SQLiteCommand(conn);
+			var debugCmd = new SQLiteCommand(_conn);
 			debugCmd.CommandText = $"SELECT * FROM {stintsTable.name} ORDER BY rowid DESC LIMIT 1";
 			var rdr = debugCmd.ExecuteReader();
 			rdr.Read();
@@ -578,80 +577,80 @@ namespace RaceEngineerPlugin.Database
 				}
 			}
 			rdr.Close();
-			dbMutex.ReleaseMutex();
+			_dbMutex.ReleaseMutex();
 
 			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertLap(GameData data, Values v) {
-			var lap = new Lap(v, data, stintId);
+			var lap = new Lap(data, v, _stintId);
 			_ = Task.Run(() => InsertLap(lap));
 		}
 
 		private void InsertLap(Lap l) {
-			dbMutex.WaitOne();
+			_dbMutex.WaitOne();
 
-			SetParam(insertLapCmd, STINT_ID, l.stint_id);
-			SetParam(insertLapCmd, SESSION_LAP_NR, l.session_lap_nr);
-			SetParam(insertLapCmd, STINT_LAP_NR, l.stint_lap_nr);
-			SetParam(insertLapCmd, TYRESET_LAP_NR, l.tyreset_lap_nr);
-			SetParam(insertLapCmd, BRAKE_PAD_LAP_NR, l.brake_lap_nr);
-			SetParam(insertLapCmd, AIR_TEMP, l.air_temp);
-			SetParam(insertLapCmd, AIR_TEMP_DELTA, l.air_temp_delta);
-			SetParam(insertLapCmd, TRACK_TEMP, l.track_temp);
-			SetParam(insertLapCmd, TRACK_TEMP_DELTA, l.track_temp_delta);
-			SetParam(insertLapCmd, LAP_TIME, l.lap_time);
-			SetParam(insertLapCmd, FUEL_USED, l.fuel_used);
-			SetParam(insertLapCmd, FUEL_LEFT, l.fuel_left);
+			SetParam(_insertLapCmd, STINT_ID, l.StintId);
+			SetParam(_insertLapCmd, SESSION_LAP_NR, l.SessionLapNr);
+			SetParam(_insertLapCmd, STINT_LAP_NR, l.StintLapNr);
+			SetParam(_insertLapCmd, TYRESET_LAP_NR, l.TyresetLapNr);
+			SetParam(_insertLapCmd, BRAKE_PAD_LAP_NR, l.BrakesLapNr);
+			SetParam(_insertLapCmd, AIR_TEMP, l.AirTemp);
+			SetParam(_insertLapCmd, AIR_TEMP_DELTA, l.AirTempDelta);
+			SetParam(_insertLapCmd, TRACK_TEMP, l.TrackTemp);
+			SetParam(_insertLapCmd, TRACK_TEMP_DELTA, l.TrackTempDelta);
+			SetParam(_insertLapCmd, LAP_TIME, l.LapTime);
+			SetParam(_insertLapCmd, FUEL_USED, l.FuelUsed);
+			SetParam(_insertLapCmd, FUEL_LEFT, l.FuelLeft);
 
 			for (var i = 0; i < 4; i++) {
 				var tyre = $"_{TYRES[i]}";
-				SetParam(insertLapCmd, TYRE_PRES_AVG + tyre, l.tyre_pres_avg[i]);
-				SetParam(insertLapCmd, TYRE_PRES_MIN + tyre, l.tyre_pres_min[i]);
-				SetParam(insertLapCmd, TYRE_PRES_MAX + tyre, l.tyre_pres_max[i]);
-				SetParam(insertLapCmd, TYRE_PRES_LOSS + tyre, l.tyre_pres_loss[i]);
-				SetParam(insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.tyre_pres_loss_lap[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_AVG + tyre, l.TyrePresAvg[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_MIN + tyre, l.TyrePresMin[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_MAX + tyre, l.TyrePresMax[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_LOSS + tyre, l.TyrePresLoss[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.TyrePressLossLap[i]);
 
-				SetParam(insertLapCmd, TYRE_TEMP_AVG + tyre, l.tyre_temp_avg[i]);
-				SetParam(insertLapCmd, TYRE_TEMP_MIN + tyre, l.tyre_temp_min[i]);
-				SetParam(insertLapCmd, TYRE_TEMP_MAX + tyre, l.tyre_temp_max[i]);
+				SetParam(_insertLapCmd, TYRE_TEMP_AVG + tyre, l.TyreTempAvg[i]);
+				SetParam(_insertLapCmd, TYRE_TEMP_MIN + tyre, l.TyreTempMin[i]);
+				SetParam(_insertLapCmd, TYRE_TEMP_MAX + tyre, l.TyreTempMax[i]);
 
-				SetParam(insertLapCmd, BRAKE_TEMP_AVG + tyre, l.brake_temp_avg[i]);
-				SetParam(insertLapCmd, BRAKE_TEMP_MIN + tyre, l.brake_temp_min[i]);
-				SetParam(insertLapCmd, BRAKE_TEMP_MAX + tyre, l.brake_temp_max[i]);
+				SetParam(_insertLapCmd, BRAKE_TEMP_AVG + tyre, l.BrakeTempAvg[i]);
+				SetParam(_insertLapCmd, BRAKE_TEMP_MIN + tyre, l.BrakeTempMin[i]);
+				SetParam(_insertLapCmd, BRAKE_TEMP_MAX + tyre, l.BrakeTempMax[i]);
 
-				SetParam(insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
+				SetParam(_insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
 			}
 
-			SetParam(insertLapCmd, ABS, l.abs);
-			SetParam(insertLapCmd, TC, l.tc);
-			SetParam(insertLapCmd, ECU_MAP, l.ecu_map);
-			SetParam(insertLapCmd, ECU_MAP_CHANGED, l.ecu_map_changed);
+			SetParam(_insertLapCmd, ABS, l.Abs);
+			SetParam(_insertLapCmd, TC, l.Tc);
+			SetParam(_insertLapCmd, ECU_MAP, l.EcuMap);
+			SetParam(_insertLapCmd, ECU_MAP_CHANGED, l.EcuMapChanged);
 
-			SetParam(insertLapCmd, TC2, l.tc2);
-			SetParam(insertLapCmd, TRACK_GRIP_STATUS, l.track_grip_status);
+			SetParam(_insertLapCmd, TC2, l.Tc2);
+			SetParam(_insertLapCmd, TRACK_GRIP_STATUS, l.TrackGripStatus);
 
 			for (var i = 0; i < 4; i++) {
-				SetParam(insertLapCmd, PAD_LIFE_LEFT + $"_{TYRES[i]}", l.pad_life_left[i]);
-				SetParam(insertLapCmd, DISC_LIFE_LEFT + $"_{TYRES[i]}", l.disc_life_left[i]);
+				SetParam(_insertLapCmd, PAD_LIFE_LEFT + $"_{TYRES[i]}", l.PadLifeLeft[i]);
+				SetParam(_insertLapCmd, DISC_LIFE_LEFT + $"_{TYRES[i]}", l.DiscLifeLeft[i]);
 			}
 
-			SetParam(insertLapCmd, IS_VALID, l.is_valid);
+			SetParam(_insertLapCmd, IS_VALID, l.IsValid);
 			// Need to use booleans.OldData which is the last point on finished lap
-			SetParam(insertLapCmd, IS_VALID_FUEL_LAP, l.is_valid_fuel_lap);
-			SetParam(insertLapCmd, IS_OUTLAP, l.is_outlap);
-			SetParam(insertLapCmd, IS_INLAP, l.is_inlap);
+			SetParam(_insertLapCmd, IS_VALID_FUEL_LAP, l.IsValidFuelLap);
+			SetParam(_insertLapCmd, IS_OUTLAP, l.IsOutLap);
+			SetParam(_insertLapCmd, IS_INLAP, l.IsInLap);
 
-			SetParam(insertLapCmd, RAIN_INTENSITY, l.rain_intensity);
-			SetParam(insertLapCmd, RAIN_INTENSITY_CHANGED, l.rain_intensity_changed);
+			SetParam(_insertLapCmd, RAIN_INTENSITY, l.RainIntensity);
+			SetParam(_insertLapCmd, RAIN_INTENSITY_CHANGED, l.RainIntensityChanged);
 
 
-			insertLapCmd.ExecuteNonQuery();
-			numCommands++;
+			_insertLapCmd.ExecuteNonQuery();
+			_numCommands++;
 
 
             // Debug log inserted values
-            var debugCmd = new SQLiteCommand(conn);
+            var debugCmd = new SQLiteCommand(_conn);
             debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
             var rdr = debugCmd.ExecuteReader();
             rdr.Read();
@@ -677,7 +676,7 @@ namespace RaceEngineerPlugin.Database
                 }
             }
 			rdr.Close();
-			dbMutex.ReleaseMutex();
+			_dbMutex.ReleaseMutex();
 
 			RaceEngineerPlugin.LogInfo(txt);
 
@@ -696,15 +695,15 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.SETTINGS.NumPreviousValuesStored);
-			dbMutex.WaitOne();
+			_dbMutex.WaitOne();
 
-			var cmd = new SQLiteCommand(conn) {
+			var cmd = new SQLiteCommand(_conn) {
                 CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {lapsTable.name} AS l 
 					INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
 					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
 					WHERE 
-						e.{CAR_ID} == '{v.car.Name}' 
-						AND e.{TRACK_ID} == '{v.track.Name}' 
+						e.{CAR_ID} == '{v.Car.Name}' 
+						AND e.{TRACK_ID} == '{v.Track.Name}' 
 						{conds} 
 						AND l.{RAIN_INTENSITY} == {(int)v.RawData.NewData.Graphics.rainIntensity} 
 						AND l.{RAIN_INTENSITY_CHANGED} == 0
@@ -719,7 +718,7 @@ namespace RaceEngineerPlugin.Database
 				list.Add(new PrevData(rdr.GetDouble(0), rdr.GetDouble(1)));
 			}
 			rdr.Close();
-			dbMutex.ReleaseMutex();
+			_dbMutex.ReleaseMutex();
 			return list;
 		}
 
@@ -741,9 +740,9 @@ namespace RaceEngineerPlugin.Database
 			List<double> y = new List<double>();
 			List<double[]> x = new List<double[]>();
 
-			dbMutex.WaitOne();
+			_dbMutex.WaitOne();
 
-			var cmd = new SQLiteCommand(conn) {
+			var cmd = new SQLiteCommand(_conn) {
                 CommandText = $@"
 					SELECT s.{TYRE_PRES_IN}_{ty}, l.{TYRE_PRES_AVG}_{ty}, l.{TYRE_PRES_LOSS}_{ty}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {lapsTable.name} AS l
 					INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
@@ -778,7 +777,7 @@ namespace RaceEngineerPlugin.Database
 				x.Add(new double[] { 1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4) });
 			}
 			rdr.Close();
-			dbMutex.ReleaseMutex();
+			_dbMutex.ReleaseMutex();
 			RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with brake duct {brakeDuct} and compount ");
 
 			return Tuple.Create(x, y);

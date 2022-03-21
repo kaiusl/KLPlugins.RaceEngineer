@@ -31,19 +31,19 @@ namespace RaceEngineerPlugin {
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
 
-        public StatsFlags PrevLapsStatsFlags { get => prevLapsStats; }
-        public StatsFlags PrevFuelPerLapStatsFlags { get => prevFuelPerLapStats; }
-        public StatsFlags RemainingStatsFlags { get => remainingStats; }
-        public WheelFlags TyrePresFlags { get => tyrePresFlags; }
-        public WheelFlags TyreTempFlags { get => tyreTempFlags; }
-        public WheelFlags BrakeTempFlags { get => brakeTempFlags; }
+        public StatsFlags PrevLapsStatsFlags => _prevLapsStats;
+        public StatsFlags PrevFuelPerLapStatsFlags => _prevFuelPerLapStats;
+        public StatsFlags RemainingStatsFlags => _remainingStats;
+        public WheelFlags TyrePresFlags => _tyrePresFlags;
+        public WheelFlags TyreTempFlags => _tyreTempFlags;
+        public WheelFlags BrakeTempFlags => _brakeTempFlags;
 
-        private StatsFlags prevLapsStats;
-        private StatsFlags prevFuelPerLapStats;
-        private StatsFlags remainingStats;
-        private WheelFlags tyrePresFlags;
-        private WheelFlags tyreTempFlags;
-        private WheelFlags brakeTempFlags;
+        private StatsFlags _prevLapsStats;
+        private StatsFlags _prevFuelPerLapStats;
+        private StatsFlags _remainingStats;
+        private WheelFlags _tyrePresFlags;
+        private WheelFlags _tyreTempFlags;
+        private WheelFlags _brakeTempFlags;
 
         private const string SETTINGS_PATH = @"PluginsData\RaceEngineerPlugin\Settings.json";
         private static readonly string[] REMAINING_STATS_FLAGS = { "Min", "Max", "Avg" };
@@ -76,12 +76,12 @@ namespace RaceEngineerPlugin {
             ShowAllLaps = s.ShowAllLaps;
 
 
-            ParseLapFlags(s.PrevLapsInfo, ref prevLapsStats, "PrevLapsInfo");
-            ParseStatsFlags(s.PrevFuelPerLapInfo, ref prevFuelPerLapStats, "PrevFuelPerLapInfo");
-            ParseRemainingStatsFlags(s.RemainingInfo, ref remainingStats, "RemainingInfo");
-            ParseWheelFlags(s.TyrePresInfo, ref tyrePresFlags, "TyrePresInfo");
-            ParseWheelFlags(s.TyreTempInfo, ref tyreTempFlags, "TyreTempInfo");
-            ParseWheelFlags(s.BrakeTempInfo, ref brakeTempFlags, "BrakeTempInfo");
+            ParseLapFlags(s.PrevLapsInfo, ref _prevLapsStats, "PrevLapsInfo");
+            ParseStatsFlags(s.PrevFuelPerLapInfo, ref _prevFuelPerLapStats, "PrevFuelPerLapInfo");
+            ParseRemainingStatsFlags(s.RemainingInfo, ref _remainingStats, "RemainingInfo");
+            ParseWheelFlags(s.TyrePresInfo, ref _tyrePresFlags, "TyrePresInfo");
+            ParseWheelFlags(s.TyreTempInfo, ref _tyreTempFlags, "TyreTempInfo");
+            ParseWheelFlags(s.BrakeTempInfo, ref _brakeTempFlags, "BrakeTempInfo");
 
         }
 

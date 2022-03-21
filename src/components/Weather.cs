@@ -28,7 +28,7 @@ namespace RaceEngineerPlugin {
 
         public List<WeatherPoint> Forecast { get; }
 
-        public string weatherSummary = "";
+        public string WeatherSummary = "";
 
         // Keep track of weather changes, predict exact time for weather change
 
@@ -53,13 +53,13 @@ namespace RaceEngineerPlugin {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            if (v.booleans.NewData.EnteredMenu) {
+            if (v.Booleans.NewData.EnteredMenu) {
                 AirTempAtLapStart = double.NaN;
                 TrackTempAtLapStart = double.NaN;
                 RaceEngineerPlugin.LogInfo($"Reset temps at lap start to '{AirTempAtLapStart}' and '{TrackTempAtLapStart}'");
             }
 
-            if (v.booleans.NewData.IsMoving && double.IsNaN(AirTempAtLapStart)) {
+            if (v.Booleans.NewData.IsMoving && double.IsNaN(AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
                 switch (v.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName)) {
@@ -80,7 +80,7 @@ namespace RaceEngineerPlugin {
                 }
             }
 
-            if (RaceEngineerPlugin.GAME.IsACC && data.NewData.AirTemperature == 0.0) {
+            if (RaceEngineerPlugin.GAME.IsAcc && data.NewData.AirTemperature == 0.0) {
                 AirTemp = v.RawData.NewData.Realtime?.AmbientTemp ?? 0.0;
                 TrackTemp = v.RawData.NewData.Realtime?.TrackTemp ?? 0.0;
             } else {
@@ -89,7 +89,7 @@ namespace RaceEngineerPlugin {
             }
 
 
-            if (RaceEngineerPlugin.GAME.IsACC) {
+            if (RaceEngineerPlugin.GAME.IsAcc) {
                 var now = data.NewData.PacketTime;
                 var changed = false;
                 if (now < data.SessionStartDate.AddMinutes(20) && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {
@@ -106,9 +106,9 @@ namespace RaceEngineerPlugin {
                 var lenprev = Forecast.Count;
                 Forecast.RemoveAll((w) => w.Time < now);
                 if (changed || lenprev != Forecast.Count) {
-                    weatherSummary = "";
+                    WeatherSummary = "";
                     foreach (var a in Forecast) {
-                        weatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
+                        WeatherSummary += $"{a.Time.ToString("dd.MM.yyyy HH:mm.ss")} - {a.RainIntensity}; ";
                     }
                 }
             }

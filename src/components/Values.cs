@@ -15,36 +15,33 @@ namespace RaceEngineerPlugin {
     /// Storage and calculation of new properties
     /// </summary>
     public class Values : IDisposable {
-        public Booleans.Booleans booleans = new Booleans.Booleans();
-        public Car.Car car = new Car.Car();
-        public Track.Track track = new Track.Track();
-        public Laps.Laps laps = new Laps.Laps();
-        public Weather weather = new Weather();
+        public Booleans.Booleans Booleans = new Booleans.Booleans();
+        public Car.Car Car = new Car.Car();
+        public Track.Track Track = new Track.Track();
+        public Laps.Laps Laps = new Laps.Laps();
+        public Weather Weather = new Weather();
         public ACCRawData RawData = new ACCRawData();
         public Session Session = new Session();
+        public Remaining.RemainingInSession RemainingInSession = new Remaining.RemainingInSession();
+        public Remaining.RemainingOnFuel RemainingOnFuel = new Remaining.RemainingOnFuel();
+        public Database.Database Db = new Database.Database();
 
-        public ACCUdpRemoteClient broadcastClient;
-
-        public Remaining.RemainingInSession remainingInSession = new Remaining.RemainingInSession();
-        public Remaining.RemainingOnFuel remainingOnFuel = new Remaining.RemainingOnFuel();
-
-        public Database.Database db = new Database.Database();
-
+        private ACCUdpRemoteClient _broadcastClient;
 
         public Values() {}
 
         public void Reset() {
-            if (broadcastClient != null) {
+            if (_broadcastClient != null) {
                 DisposeBroadcastClient();
             }
 
-            booleans.Reset();
-            car.Reset();
-            track.Reset();
-            laps.Reset();
-            weather.Reset();
-            remainingInSession.Reset();
-            remainingOnFuel.Reset();
+            Booleans.Reset();
+            Car.Reset();
+            Track.Reset();
+            Laps.Reset();
+            Weather.Reset();
+            RemainingInSession.Reset();
+            RemainingOnFuel.Reset();
             RawData.Reset();
             Session.Reset();
         }
@@ -61,7 +58,7 @@ namespace RaceEngineerPlugin {
             if (!isDisposed) {
                 if (disposing) {
                     RaceEngineerPlugin.LogInfo("Disposed");
-                    db.Dispose();
+                    Db.Dispose();
                     DisposeBroadcastClient();
                 }
 
@@ -75,14 +72,14 @@ namespace RaceEngineerPlugin {
         #endregion
 
         private void OnNewStint(GameData data) {
-            laps.OnNewStint();
-            car.OnNewStint();
-            db.InsertStint(data, this);
+            Laps.OnNewStint();
+            Car.OnNewStint();
+            Db.InsertStint(data, this);
         }
 
         public void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
-                if (broadcastClient != null) {
+                if (_broadcastClient != null) {
                     RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
                     DisposeBroadcastClient();
                 }
@@ -96,11 +93,11 @@ namespace RaceEngineerPlugin {
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent. {data.NewData}");
             var sessType = RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
-            booleans.OnNewEvent(sessType);
-            track.OnNewEvent(data);
-            car.OnNewEvent(data, this);
-            laps.OnNewEvent(this);
-            db.InsertEvent(car.Name, track.Name);
+            Booleans.OnNewEvent(sessType);
+            Track.OnNewEvent(data);
+            Car.OnNewEvent(data, this);
+            Laps.OnNewEvent(this);
+            Db.InsertEvent(Car.Name, Track.Name);
         }
 
         /// <summary>
@@ -118,70 +115,70 @@ namespace RaceEngineerPlugin {
 
             RawData.UpdateSharedMem((SHACCRawData)data.NewData.GetRawDataObject());
 
-            if (booleans.NewData.IsNewEvent) {
+            if (Booleans.NewData.IsNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
                 OnNewEvent(data);
             }
 
-            booleans.OnRegularUpdate(data, this);
+            Booleans.OnRegularUpdate(data, this);
             Session.OnRegularUpdate(data, this);
-            track.OnRegularUpdate(data);
-            car.OnRegularUpdate(data, this);
-            weather.OnRegularUpdate(data, this);
+            Track.OnRegularUpdate(data);
+            Car.OnRegularUpdate(data, this);
+            Weather.OnRegularUpdate(data, this);
 
-            if (booleans.NewData.ExitedPitLane && !Session.IsRaceSessionChange) {
+            if (Booleans.NewData.ExitedPitLane && !Session.IsRaceSessionChange) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(data);
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!booleans.NewData.IsRaceStartStintAdded && booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) 
+            if (!Booleans.NewData.IsRaceStartStintAdded && Booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) 
             {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 OnNewStint(data);
-                booleans.RaceStartStintAdded();
+                Booleans.RaceStartStintAdded();
             }
 
-            remainingInSession.OnRegularUpdate(data, this);
-            remainingOnFuel.OnRegularUpdate(this);
+            RemainingInSession.OnRegularUpdate(data, this);
+            RemainingOnFuel.OnRegularUpdate(this);
 
-            if (booleans.NewData.HasFinishedLap) {
+            if (Booleans.NewData.HasFinishedLap) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
-                booleans.OnLapFinished(data);
-                car.OnLapFinished(data, this);
-                laps.OnLapFinished(data, this);
-                if (laps.LastTime != 0) {
-                    db.InsertLap(data, this);
+                Booleans.OnLapFinished(data);
+                Car.OnLapFinished(data, this);
+                Laps.OnLapFinished(data, this);
+                if (Laps.LastTime != 0) {
+                    Db.InsertLap(data, this);
                 }
 
-                weather.OnLapFinishedAfterInsert(data);
-                car.OnLapFinishedAfterInsert();
+                Weather.OnLapFinishedAfterInsert(data);
+                Car.OnLapFinishedAfterInsert();
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
             if (Session.IsRaceSessionChange) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
-                booleans.OnNewSession(this);
-                car.OnNewSession(this);
-                laps.OnNewSession(this);
+                Booleans.OnNewSession(this);
+                Car.OnNewSession(this);
+                Laps.OnNewSession(this);
             }
         }
 
         #region Broadcast client connection
         public void ConnectToBroadcastClient() {
-            broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
-            broadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
-            broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
+            _broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
+            _broadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
+            _broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
         }
 
         public void DisposeBroadcastClient() {
-            if (broadcastClient != null) {
-                broadcastClient.Shutdown();
-                broadcastClient.Dispose();
-                broadcastClient = null;
+            if (_broadcastClient != null) {
+                _broadcastClient.Shutdown();
+                _broadcastClient.Dispose();
+                _broadcastClient = null;
             }
         }
 

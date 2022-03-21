@@ -9,7 +9,7 @@ namespace RaceEngineerPlugin.Stats {
     /// Base class to build different statistics implementations
     /// </summary>
     public class Stats {
-        public static readonly string[] names = new string[SIZE] { "Min", "Max", "Avg", "Std", "Median", "Q1", "Q3" };
+        public static readonly string[] Names = new string[_size] { "Min", "Max", "Avg", "Std", "Median", "Q1", "Q3" };
         public double[] Data { get; }
         public double Min { get => Data[0]; set => Data[0] = value; }
         public double Max { get => Data[1]; set => Data[1] = value; }
@@ -19,10 +19,10 @@ namespace RaceEngineerPlugin.Stats {
         public double Q1 { get => Data[5]; set => Data[5] = value; }
         public double Q3 { get => Data[6]; set => Data[6] = value; }
 
-        private const int SIZE = 7;
+        private const int _size = 7;
 
         public Stats() {
-            Data = new double[SIZE] { double.NegativeInfinity, double.PositiveInfinity, double.NaN, 0.0, double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+            Data = new double[_size] { double.NegativeInfinity, double.PositiveInfinity, double.NaN, 0.0, double.NaN, double.NegativeInfinity, double.PositiveInfinity };
         }
 
         public Stats(Stats o) {
@@ -71,34 +71,33 @@ namespace RaceEngineerPlugin.Stats {
     /// Convenience class to simplyfy handling statistics of all four wheels.
     /// </summary>
     public class WheelsStats {
-        private const int SIZE = 4;
         public Stats[] Data { get; }
+        public Stats Fl { get => Data[0]; }
+        public Stats Fr { get => Data[1]; }
+        public Stats Rl { get => Data[2]; }
+        public Stats Rr { get => Data[3]; }
 
-        public Stats LF { get => Data[0]; }
-        public Stats RF { get => Data[1]; }
-        public Stats LR { get => Data[2]; }
-        public Stats RR { get => Data[3]; }
-
+        private const int _size = 4;
 
         public WheelsStats() {
             Data = new Stats[] { new Stats(), new Stats(), new Stats(), new Stats() };
         }
 
         public WheelsStats(WheelsRunningStats o) {
-            Data = new Stats[SIZE];
-            for (int i = 0; i < SIZE; i++) {
+            Data = new Stats[_size];
+            for (int i = 0; i < _size; i++) {
                 Data[i] = new Stats(o.Data[i]);
             }
         }
 
         public void Reset() {
-            for (int i = 0; i < SIZE; i++) {
+            for (int i = 0; i < _size; i++) {
                 Data[i].Reset();
             }
         }
 
         public void Update(WheelsRunningStats o) {
-            for (int i = 0; i < SIZE; i++) {
+            for (int i = 0; i < _size; i++) {
                 Data[i].Set(o.Data[i]);
             }
         }
@@ -113,13 +112,14 @@ namespace RaceEngineerPlugin.Stats {
     /// Convenience class to simplyfy handling running statistics of all four wheels.
     /// </summary>
     public class WheelsRunningStats {
-        private const int SIZE = 4;
         public RunningStatistics[] Data { get; }
+        public RunningStatistics Fl { get => Data[0]; }
+        public RunningStatistics Fr { get => Data[1]; }
+        public RunningStatistics Rl { get => Data[2]; }
+        public RunningStatistics Rr { get => Data[3]; }
 
-        public RunningStatistics LF { get => Data[0]; }
-        public RunningStatistics RF { get => Data[1]; }
-        public RunningStatistics LR { get => Data[2]; }
-        public RunningStatistics RR { get => Data[3]; }
+
+        private const int _size = 4;
 
 
         public WheelsRunningStats() {
@@ -127,13 +127,13 @@ namespace RaceEngineerPlugin.Stats {
         }
 
         public void Reset() {
-            for (int i = 0; i < SIZE; i++) {
+            for (int i = 0; i < _size; i++) {
                 Data[i] = new RunningStatistics();
             }
         }
 
         public void Update(double[] values) {
-            for (int i = 0; i < SIZE; i++) {
+            for (int i = 0; i < _size; i++) {
                 Data[i].Push(values[i]);
             }
         }

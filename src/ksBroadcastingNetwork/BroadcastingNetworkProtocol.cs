@@ -14,34 +14,34 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
 {
     public enum OutboundMessageTypes : byte
     {
-        REGISTER_COMMAND_APPLICATION = 1,
-        UNREGISTER_COMMAND_APPLICATION = 9,
+        RegisterCommandApplication = 1,
+        UnRegisterCommandApplication = 9,
 
-        REQUEST_ENTRY_LIST = 10,
-        REQUEST_TRACK_DATA = 11,
+        RequestEntryList = 10,
+        RequestTrackData = 11,
 
-        CHANGE_HUD_PAGE = 49,
-        CHANGE_FOCUS = 50,
-        INSTANT_REPLAY_REQUEST = 51,
+        ChangeHudPage = 49,
+        ChangeFocus = 50,
+        RequestInstantReply = 51,
 
-        PLAY_MANUAL_REPLAY_HIGHLIGHT = 52, // TODO, but planned
-        SAVE_MANUAL_REPLAY_HIGHLIGHT = 60  // TODO, but planned: saving manual replays gives distributed clients the possibility to see the play the same replay
+        PlayManualReplayHighlight = 52, // TODO, but planned
+        SaveManualReplayHighlight = 60  // TODO, but planned: saving manual replays gives distributed clients the possibility to see the play the same replay
     }
 
     public enum InboundMessageTypes : byte
     {
-        REGISTRATION_RESULT = 1,
-        REALTIME_UPDATE = 2,
-        REALTIME_CAR_UPDATE = 3,
-        ENTRY_LIST = 4,
-        ENTRY_LIST_CAR = 6,
-        TRACK_DATA = 5,
-        BROADCASTING_EVENT = 7
+        RegistrationResult = 1,
+        RealtimeUpdate = 2,
+        realtimeCarUpdate = 3,
+        EntryList = 4,
+        EntryListCar = 6,
+        TrackData = 5,
+        BroadcastingEvent = 7
     }
 
     public class BroadcastingNetworkProtocol
     {
-        public const int BROADCASTING_PROTOCOL_VERSION = 4;
+        public const int BroadcastingProtocolVersion = 4;
         private string ConnectionIdentifier { get; }
         private SendMessageDelegate Send { get; }
         public int ConnectionId { get; private set; }
@@ -106,7 +106,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             
             switch (messageType)
             {
-                case InboundMessageTypes.REGISTRATION_RESULT:
+                case InboundMessageTypes.RegistrationResult:
                     {
                         ConnectionId = br.ReadInt32();
                         var connectionSuccess = br.ReadByte() > 0;
@@ -120,7 +120,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         RequestTrackData();
                     }
                     break;
-                case InboundMessageTypes.ENTRY_LIST:
+                case InboundMessageTypes.EntryList:
                     {
                         //_entryListCars.Clear();
 
@@ -132,7 +132,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         //}
                     }
                     break;
-                case InboundMessageTypes.ENTRY_LIST_CAR:
+                case InboundMessageTypes.EntryListCar:
                     {
                         
                         //var carId = br.ReadUInt16();
@@ -171,7 +171,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         //OnEntrylistUpdate?.Invoke(ConnectionIdentifier, carInfo);
                     }
                     break;
-                case InboundMessageTypes.REALTIME_UPDATE:
+                case InboundMessageTypes.RealtimeUpdate:
                     {
                         RealtimeUpdate update = new RealtimeUpdate();
                         update.EventIndex = (int)br.ReadUInt16();
@@ -207,7 +207,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         OnRealtimeUpdate?.Invoke(ConnectionIdentifier, update);
                     }
                     break;
-                case InboundMessageTypes.REALTIME_CAR_UPDATE:
+                case InboundMessageTypes.realtimeCarUpdate:
                     {
                         //RealtimeCarUpdate carUpdate = new RealtimeCarUpdate();
 
@@ -248,7 +248,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         //}
                     }
                     break;
-                case InboundMessageTypes.TRACK_DATA:
+                case InboundMessageTypes.TrackData:
                     {
                         //var connectionId = br.ReadInt32();
                         //var trackData = new TrackData();
@@ -285,7 +285,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                         //OnTrackDataUpdate?.Invoke(ConnectionIdentifier, trackData);
                     }
                     break;
-                case InboundMessageTypes.BROADCASTING_EVENT:
+                case InboundMessageTypes.BroadcastingEvent:
                     {
                         //BroadcastingEvent evt = new BroadcastingEvent()
                         //{
@@ -376,8 +376,8 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var br = new BinaryWriter(ms))
             {
-                br.Write((byte)OutboundMessageTypes.REGISTER_COMMAND_APPLICATION); // First byte is always the command type
-                br.Write((byte)BROADCASTING_PROTOCOL_VERSION);
+                br.Write((byte)OutboundMessageTypes.RegisterCommandApplication); // First byte is always the command type
+                br.Write((byte)BroadcastingProtocolVersion);
 
                 WriteString(br, displayName);
                 WriteString(br, connectionPassword);
@@ -394,7 +394,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var br = new BinaryWriter(ms))
             {
-                br.Write((byte)OutboundMessageTypes.UNREGISTER_COMMAND_APPLICATION); // First byte is always the command type
+                br.Write((byte)OutboundMessageTypes.UnRegisterCommandApplication); // First byte is always the command type
                 Send(ms.ToArray());
             }
         }
@@ -410,7 +410,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var br = new BinaryWriter(ms))
             {
-                br.Write((byte)OutboundMessageTypes.REQUEST_ENTRY_LIST); // First byte is always the command type
+                br.Write((byte)OutboundMessageTypes.RequestEntryList); // First byte is always the command type
                 br.Write((int)ConnectionId);
 
                 Send(ms.ToArray());
@@ -422,7 +422,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var br = new BinaryWriter(ms))
             {
-                br.Write((byte)OutboundMessageTypes.REQUEST_TRACK_DATA); // First byte is always the command type
+                br.Write((byte)OutboundMessageTypes.RequestTrackData); // First byte is always the command type
                 br.Write((int)ConnectionId);
 
                 Send(ms.ToArray());
@@ -457,7 +457,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms))
             {
-                bw.Write((byte)OutboundMessageTypes.CHANGE_FOCUS); // First byte is always the command type
+                bw.Write((byte)OutboundMessageTypes.ChangeFocus); // First byte is always the command type
                 bw.Write((int)ConnectionId);
 
                 if (!carIndex.HasValue)
@@ -490,7 +490,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms))
             {
-                bw.Write((byte)OutboundMessageTypes.INSTANT_REPLAY_REQUEST); // First byte is always the command type
+                bw.Write((byte)OutboundMessageTypes.RequestInstantReply); // First byte is always the command type
                 bw.Write((int)ConnectionId);
 
                 bw.Write((float)startSessionTime);
@@ -509,7 +509,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms))
             {
-                bw.Write((byte)OutboundMessageTypes.CHANGE_HUD_PAGE); // First byte is always the command type
+                bw.Write((byte)OutboundMessageTypes.ChangeHudPage); // First byte is always the command type
                 bw.Write((int)ConnectionId);
 
                 WriteString(bw, hudPage);

@@ -29,13 +29,13 @@ namespace RaceEngineerPlugin {
         public static readonly Settings SETTINGS = new Settings();
         public static Game.Game GAME; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GAME_DATA_PATH; // Same as above
-        private static FileStream f;
-        private static StreamWriter sw;
-        private static bool flushed = false;
+        public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
 
-        public static string pluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
+        private static FileStream _logFile;
+        private static StreamWriter _logSw;
+        private static bool _logFlushed = false;
 
-        private Values values;
+        private Values _values;
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data, 
@@ -47,12 +47,12 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         /// <param name="data"></param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
-            if (!GAME.IsACC) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
+            if (!GAME.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
             if (data.GameRunning && data.OldData != null && data.NewData != null) {
                 //var swatch = Stopwatch.StartNew();
 
-                values.OnDataUpdate(data);
+                _values.OnDataUpdate(data);
 
                 //swatch.Stop();
                 //TimeSpan ts = swatch.Elapsed;
@@ -71,9 +71,9 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
             this.SaveCommonSettings("GeneralSettings", Settings);
-            values.Dispose();
-            sw.Dispose();
-            f.Dispose();
+            _values.Dispose();
+            _logSw.Dispose();
+            _logFile.Dispose();
             LogInfo("Disposed.");
         }
 
@@ -93,13 +93,13 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
             var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
-            if (gameName != Game.Game.ACC_NAME) return;
+            if (gameName != Game.Game.AccName) return;
 
             if (SETTINGS.Log) {
-                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{pluginStartTime}.txt";
+                var fpath = $"{SETTINGS.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
                 Directory.CreateDirectory(Path.GetDirectoryName(fpath));
-                f = File.Create(fpath);
-                sw = new StreamWriter(f);
+                _logFile = File.Create(fpath);
+                _logSw = new StreamWriter(_logFile);
             }
             PreJit();
 
@@ -110,21 +110,21 @@ namespace RaceEngineerPlugin {
             
             GAME = new Game.Game(gameName);
             GAME_DATA_PATH = $@"{SETTINGS.DataLocation}\{gameName}";
-            values = new Values();
+            _values = new Values();
 
-            pluginManager.GameStateChanged += values.OnGameStateChanged;
+            pluginManager.GameStateChanged += _values.OnGameStateChanged;
             pluginManager.GameStateChanged += OnGameStateChanged;
 
             #region ADD DELEGATES
 
-            this.AttachDelegate("DBG_currentTyreSet", () => values.car.Tyres.currentTyreSet);
-            this.AttachDelegate("DBG_weatherReport", () => values.weather.weatherSummary);
+            this.AttachDelegate("DBG_currentTyreSet", () => _values.Car.Tyres.CurrentTyreSet);
+            this.AttachDelegate("DBG_weatherReport", () => _values.Weather.WeatherSummary);
 
-            this.AttachDelegate("IsInMenu", () => values.booleans.NewData.IsInMenu ? 1 : 0);
+            this.AttachDelegate("IsInMenu", () => _values.Booleans.NewData.IsInMenu ? 1 : 0);
 
-            this.AttachDelegate("FuelLeft", () => values.car.Fuel.Remaining);
-            this.AttachDelegate("IsOnTrack", () => values.booleans.NewData.IsOnTrack ? 1 : 0);
-            this.AttachDelegate("IsValidFuelLap", () => values.booleans.NewData.IsValidFuelLap ? 1 : 0);
+            this.AttachDelegate("FuelLeft", () => _values.Car.Fuel.Remaining);
+            this.AttachDelegate("IsOnTrack", () => _values.Booleans.NewData.IsOnTrack ? 1 : 0);
+            this.AttachDelegate("IsValidFuelLap", () => _values.Booleans.NewData.IsValidFuelLap ? 1 : 0);
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
                 if ((StatsFlags.Min & settings) != 0) {
@@ -150,13 +150,13 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addStats("LapTime", values.laps.PrevTimes.Stats, SETTINGS.PrevLapsStatsFlags);
-            addStats("FuelPerLap", values.car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStatsFlags);
-            addStats("LapsRemainingOnFuel", values.remainingOnFuel.laps, SETTINGS.RemainingStatsFlags);
-            addStats("TimeRemainingOnFuel", values.remainingOnFuel.time, SETTINGS.RemainingStatsFlags);
-            addStats("LapsRemainingInSession", values.remainingInSession.laps, SETTINGS.RemainingStatsFlags);
-            addStats("TimeRemainingInSession", values.remainingInSession.time, SETTINGS.RemainingStatsFlags);
-            addStats("FuelNeededInSession", values.remainingInSession.fuelNeeded, SETTINGS.RemainingStatsFlags);
+            addStats("LapTime", _values.Laps.PrevTimes.Stats, SETTINGS.PrevLapsStatsFlags);
+            addStats("FuelPerLap", _values.Car.Fuel.PrevUsedPerLap.Stats, SETTINGS.PrevFuelPerLapStatsFlags);
+            addStats("LapsRemainingOnFuel", _values.RemainingOnFuel.Laps, SETTINGS.RemainingStatsFlags);
+            addStats("TimeRemainingOnFuel", _values.RemainingOnFuel.Time, SETTINGS.RemainingStatsFlags);
+            addStats("LapsRemainingInSession", _values.RemainingInSession.Laps, SETTINGS.RemainingStatsFlags);
+            addStats("TimeRemainingInSession", _values.RemainingInSession.Time, SETTINGS.RemainingStatsFlags);
+            addStats("FuelNeededInSession", _values.RemainingInSession.FuelNeeded, SETTINGS.RemainingStatsFlags);
 
 
             Action<string, double[]> addTyres = (name, values) => {
@@ -166,12 +166,12 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
             };
 
-            addTyres("IdealInputTyrePres", values.car.Tyres.IdealInputPres);
-            addTyres("PredictedIdealInputTyrePresDry", values.car.Tyres.PredictedIdealInputPresDry);
-            addTyres("PredictedIdealInputTyrePresWet", values.car.Tyres.PredictedIdealInputPresNowWet);
-            addTyres("PredictedIdealInputTyrePresIn30MinWet", values.car.Tyres.PredictedIdealInputPresFutureWet);
-            addTyres("CurrentInputTyrePres", values.car.Tyres.CurrentInputPres);
-            addTyres("TyrePresLoss", values.car.Tyres.PresLoss);
+            addTyres("IdealInputTyrePres", _values.Car.Tyres.IdealInputPres);
+            addTyres("PredictedIdealInputTyrePresDry", _values.Car.Tyres.PredictedIdealInputPresDry);
+            addTyres("PredictedIdealInputTyrePresWet", _values.Car.Tyres.PredictedIdealInputPresNowWet);
+            addTyres("PredictedIdealInputTyrePresIn30MinWet", _values.Car.Tyres.PredictedIdealInputPresFutureWet);
+            addTyres("CurrentInputTyrePres", _values.Car.Tyres.CurrentInputPres);
+            addTyres("TyrePresLoss", _values.Car.Tyres.PresLoss);
 
             Action<string, string[], WheelFlags> addTyresColor = (name, values, flag) => {
                 if ((WheelFlags.Color & flag) != 0) {
@@ -182,9 +182,9 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addTyresColor("TyrePres", values.car.Tyres.PresColor, SETTINGS.TyrePresFlags);
-            addTyresColor("TyreTemp", values.car.Tyres.TempColor, SETTINGS.TyreTempFlags);
-            addTyresColor("BrakeTemp", values.car.Brakes.TempColor, SETTINGS.BrakeTempFlags);
+            addTyresColor("TyrePres", _values.Car.Tyres.PresColor, SETTINGS.TyrePresFlags);
+            addTyresColor("TyreTemp", _values.Car.Tyres.TempColor, SETTINGS.TyreTempFlags);
+            addTyresColor("BrakeTemp", _values.Car.Brakes.TempColor, SETTINGS.BrakeTempFlags);
 
             Action<string, Stats.Stats, Color.ColorCalculator, WheelFlags> addStatsWColor = (name, v, cc, flags) => {
                 if ((WheelFlags.Min & flags) != 0) {
@@ -218,9 +218,9 @@ namespace RaceEngineerPlugin {
                 addStatsWColor(name + Car.Tyres.Names[3], values[3], ccr, flags);
             };
 
-            addTyresStats("TyrePresOverLap", values.car.Tyres.PresOverLap, values.car.Tyres.PresColorF, values.car.Tyres.PresColorR, SETTINGS.TyrePresFlags);
-            addTyresStats("TyreTempOverLap", values.car.Tyres.TempOverLap, values.car.Tyres.TempColorF, values.car.Tyres.TempColorR, SETTINGS.TyreTempFlags);
-            addTyresStats("BrakeTempOverLap", values.car.Brakes.TempOverLap, values.car.Brakes.tempColor, values.car.Brakes.tempColor, SETTINGS.BrakeTempFlags);
+            addTyresStats("TyrePresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, SETTINGS.TyrePresFlags);
+            addTyresStats("TyreTempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, SETTINGS.TyreTempFlags);
+            addTyresStats("BrakeTempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, SETTINGS.BrakeTempFlags);
 
 
 
@@ -258,8 +258,8 @@ namespace RaceEngineerPlugin {
                 if (SETTINGS.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
             };
 
-            addPrevData("PrevLapTime", values.laps.PrevTimes);
-            addPrevData("PrevFuelPerLap", values.car.Fuel.PrevUsedPerLap);
+            addPrevData("PrevLapTime", _values.Laps.PrevTimes);
+            addPrevData("PrevFuelPerLap", _values.Car.Fuel.PrevUsedPerLap);
 
             #endregion
 
@@ -268,17 +268,17 @@ namespace RaceEngineerPlugin {
         public void OnGameStateChanged(bool running, PluginManager manager) {
             LogInfo($"GameStateChanged to {running}");
             if (!running) {
-                if (sw != null && !flushed) {
-                    sw.Flush();
-                    flushed = true;
+                if (_logSw != null && !_logFlushed) {
+                    _logSw.Flush();
+                    _logFlushed = true;
                 }
             }
         }
 
         public static void LogToFile(string msq) {
-            if (f != null) { 
-                sw.WriteLine(msq);
-                flushed = false;
+            if (_logFile != null) { 
+                _logSw.WriteLine(msq);
+                _logFlushed = false;
             }
         }
 
