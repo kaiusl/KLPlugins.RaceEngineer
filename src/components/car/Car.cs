@@ -157,6 +157,7 @@ namespace RaceEngineerPlugin.Car {
             try {
                 Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
+                Tyres.OnSetupChange();
             } catch (IOException e) {
                 RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 Setup = null;
