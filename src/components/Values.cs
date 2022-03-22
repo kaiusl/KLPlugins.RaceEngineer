@@ -126,7 +126,7 @@ namespace RaceEngineerPlugin {
             Car.OnRegularUpdate(data, this);
             Weather.OnRegularUpdate(data, this);
 
-            if (Booleans.NewData.ExitedPitLane && !Session.IsNewSession) {
+            if (Booleans.NewData.ExitedPitLane && !Booleans.NewData.IsInMenu) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(data);
