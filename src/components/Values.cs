@@ -126,7 +126,7 @@ namespace RaceEngineerPlugin {
             Car.OnRegularUpdate(data, this);
             Weather.OnRegularUpdate(data, this);
 
-            if (Booleans.NewData.ExitedPitLane && !Session.IsRaceSessionChange) {
+            if (Booleans.NewData.ExitedPitLane && !Session.IsNewSession) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
                 OnNewStint(data);
@@ -144,7 +144,7 @@ namespace RaceEngineerPlugin {
             RemainingInSession.OnRegularUpdate(data, this);
             RemainingOnFuel.OnRegularUpdate(this);
 
-            if (Booleans.NewData.HasFinishedLap) {
+            if (Booleans.NewData.IsLapFinished) {
                 RaceEngineerPlugin.LogInfo("Lap finished.");
                 Booleans.OnLapFinished(data);
                 Car.OnLapFinished(data, this);
@@ -158,16 +158,18 @@ namespace RaceEngineerPlugin {
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
-            if (Session.IsRaceSessionChange) {
+            if (Session.IsNewSession) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 Booleans.OnNewSession(this);
+                Session.OnNewSession();
                 Car.OnNewSession(this);
                 Laps.OnNewSession(this);
             }
         }
 
         #region Broadcast client connection
+
         public void ConnectToBroadcastClient() {
             _broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
             _broadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;

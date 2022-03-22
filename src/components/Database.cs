@@ -494,7 +494,6 @@ namespace RaceEngineerPlugin.Database
 			SetParam(_insertEventCmd, START_TIME, stime);
 
 			_eventId = (long)_insertEventCmd.ExecuteScalar();
-			_numCommands++;
 
             var debugCmd = new SQLiteCommand(_conn) {
                 CommandText = $"SELECT * FROM {eventsTable.name} ORDER BY rowid DESC LIMIT 1"
@@ -544,8 +543,6 @@ namespace RaceEngineerPlugin.Database
 			SetParam(_insertStintCmd, CASTER + $"_{TYRES[1]}", s.CasterRf);
 
 			_stintId = (long)_insertStintCmd.ExecuteScalar();
-			//insertStintCmd.Reset();
-			_numCommands++;
 
 			// Debug
 			var debugCmd = new SQLiteCommand(_conn);
@@ -646,7 +643,6 @@ namespace RaceEngineerPlugin.Database
 
 
 			_insertLapCmd.ExecuteNonQuery();
-			_numCommands++;
 
 
             // Debug log inserted values

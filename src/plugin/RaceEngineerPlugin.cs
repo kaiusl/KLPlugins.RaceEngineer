@@ -125,8 +125,12 @@ namespace RaceEngineerPlugin {
 
             #region ADD DELEGATES
 
+            this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(_values.RawData.NewData.Graphics.clock));
+            this.AttachDelegate("TimeMultiplier", () => _values.Session.TimeMultiplier);
+
             this.AttachDelegate("DBG_currentTyreSet", () => _values.Car.Tyres.CurrentTyreSet);
             this.AttachDelegate("DBG_weatherReport", () => _values.Weather.WeatherSummary);
+            this.AttachDelegate("AirTemp", () => _values.Weather.AirTemp);
 
             this.AttachDelegate("IsInMenu", () => _values.Booleans.NewData.IsInMenu ? 1 : 0);
 

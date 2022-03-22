@@ -25,7 +25,7 @@ namespace RaceEngineerPlugin.Booleans {
 
         public bool IsOnTrack { get; private set; }
         public bool IsMoving { get; private set; }
-        public bool HasFinishedLap { get; private set; }
+        public bool IsLapFinished { get; private set; }
 
         public bool IsSetupMenuVisible { get; private set; }
         public bool IsFuelWarning { get; private set; }
@@ -68,7 +68,7 @@ namespace RaceEngineerPlugin.Booleans {
 
             IsOnTrack = o.IsOnTrack;
             IsMoving = o.IsMoving;
-            HasFinishedLap = o.HasFinishedLap;
+            IsLapFinished = o.IsLapFinished;
 
             IsSetupMenuVisible = o.IsSetupMenuVisible;
             IsFuelWarning = o.IsFuelWarning;
@@ -133,7 +133,7 @@ namespace RaceEngineerPlugin.Booleans {
             }
 
             IsMoving = data.NewData.SpeedKmh > 1;
-            HasFinishedLap = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
+            IsLapFinished = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
             if (!_isSessionLimitSet) {
                 // Need to set once as at the end of the session SessionTimeLeft == 0 and this will confuse plugin
                 IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
@@ -148,7 +148,7 @@ namespace RaceEngineerPlugin.Booleans {
 
             double lastLapTime = data.NewData.LastLapTime.TotalSeconds;
 
-            if (HasFinishedLap) {
+            if (IsLapFinished) {
                 SavePrevLap = lastLapTime > 0.0
                     && IsValidFuelLap
                     && v.Car.Fuel.RemainingAtLapStart != 0.0
@@ -199,7 +199,7 @@ namespace RaceEngineerPlugin.Booleans {
 
             IsOnTrack = false;
             IsMoving = false;
-            HasFinishedLap = false;
+            IsLapFinished = false;
 
             IsSetupMenuVisible = false;
             IsFuelWarning = false;
