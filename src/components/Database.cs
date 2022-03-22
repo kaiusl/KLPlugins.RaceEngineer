@@ -15,51 +15,74 @@ using RaceEngineerPlugin.Car;
 
 namespace RaceEngineerPlugin.Database
 {
-	public class Stint {
-		public long EventId = 0;
-		public string SessionType = null;
+	public struct Event {
+		public string CarId;
+		public string TrackId;
+		public string StartTime;
+
+		public Event(string carName, string trackName) {
+			CarId = carName;
+			TrackId = trackName;
+			StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
+		}
+
+        public override string ToString() {
+			return $"CarId = {CarId}, TrackId = {TrackId}, StartTime = {StartTime}";
+        }
+    }
+
+	public struct Session {
+		public long EventId;
+		public string SessionType;
+		public int TimeMultiplier;
+		public string StartTime;
+
+		public Session(Values v, long eventId) {
+			EventId = eventId;
+			SessionType = v.Session.RaceSessionType.ToString();
+			TimeMultiplier = v.Session.TimeMultiplier;
+			StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
+		}
+
+		public override string ToString() {
+			return $"EventId = {EventId}, SessionType = {SessionType}, TimeMultiplier = {TimeMultiplier}, StartTime = {StartTime}";
+		}
+	}
+
+	public struct Stint {
+		public long SessionId;
 		public int StintNr;
 		public string StartTime;
 		public string TyreCompound;
-		public double[] TyrePresIn = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+		public double[] TyrePresIn;
 		public int BrakePadFront;
-		public int BrakePadReat;
+		public int BrakePadRear;
 		public int BrakePadNr;
 		public int BrakeDuctFront;
 		public int BrakeDuctRear;
 		public int TyreSet;
-		public int[] Camber = new int[4] { 0, 0, 0, 0 };
-		public int[] Toe = new int[4] { 0, 0, 0, 0 };
+		public int[] Camber;
+		public int[] Toe;
 		public int CasterLf;
 		public int CasterRf;
 
-		public Stint() { }
-
-		public Stint(GameData data, Values v, long eventId) {
-			Update(data, v, eventId);
-		}
-
-		public void Update(GameData data, Values v, long eventId) {
-			this.EventId = eventId;
+		public Stint(GameData data, Values v, long sessionId) {
+			this.SessionId = sessionId;
 			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
-			string sessType = v.Session.RaceSessionType.ToString();
-			SessionType = sessType;
 			StintNr = v.Laps.StintNr;
 			StartTime = stime;
 			TyreCompound = v.Car.Tyres.Name;
 
-			for (var i = 0; i < 4; i++) {
-				TyrePresIn[i] = v.Car.Tyres.CurrentInputPres[i];
-			}
+			TyrePresIn = v.Car.Tyres.CurrentInputPres;
 
 			if (RaceEngineerPlugin.Game.IsAcc) {
 				BrakePadFront = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
-				BrakePadReat = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
+				BrakePadRear = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
 				TyreSet = v.Car.Tyres.CurrentTyreSet;
 			} else {
 				BrakePadFront = -1;
-				BrakePadReat = -1;
+				BrakePadRear = -1;
 				TyreSet = -1;
 			}
 
@@ -68,16 +91,16 @@ namespace RaceEngineerPlugin.Database
 			if (v.Car.Setup != null) {
 				BrakeDuctFront = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
 				BrakeDuctRear = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
-				for (var i = 0; i < 4; i++) {
-					Camber[i] = v.Car.Setup.basicSetup.alignment.camber[i];
-					Toe[i] = v.Car.Setup.basicSetup.alignment.toe[i];
-				}
-
+				Camber = v.Car.Setup.basicSetup.alignment.camber;
+				Toe = v.Car.Setup.basicSetup.alignment.toe;
 				CasterLf = v.Car.Setup.basicSetup.alignment.casterLF;
 				CasterRf = v.Car.Setup.basicSetup.alignment.casterRF;
 			} else {
 				BrakeDuctFront = -1;
 				BrakeDuctRear = -1;
+				Camber = new int[4];
+				Toe = new int[4];
+
 				for (var i = 0; i < 4; i++) {
 					Camber[i] = -1;
 					Toe[i] = -1;
@@ -86,7 +109,17 @@ namespace RaceEngineerPlugin.Database
 				CasterLf = -1;
 				CasterRf = -1;
 			}
+		}
 
+		public override string ToString() {
+			return $@"SessionId = {SessionId}; StartTime = {StartTime}; StintNr = {StintNr};
+	TyreCompount = {TyreCompound}; TyrePresIn = {ArrayToString(TyrePresIn)}; TyreSet = {TyreSet};
+	BrakePad = [F: {BrakePadFront}, R: {BrakePadRear}]; BrakePadNr = {BrakePadNr}; BrakeDuct = [F: {BrakeDuctFront}, R: {BrakeDuctRear}],
+	Camber = {ArrayToString(Camber)}; Toe = {ArrayToString(Toe)}, Caster = [{CasterLf}, {CasterRf}]";
+		}
+
+		private string ArrayToString<T>(T[] a) {
+			return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
 		}
 	}
 
@@ -108,7 +141,7 @@ namespace RaceEngineerPlugin.Database
 		public double[] TyrePresMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 		public double[] TyrePresMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 		public double[] TyrePresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-		public bool[] TyrePressLossLap = new bool[4] { false, false, false, false };
+		public bool[] TyrePresLossLap = new bool[4] { false, false, false, false };
 
 		public double[] TyreTempAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
 		public double[] TyreTempMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
@@ -155,9 +188,9 @@ namespace RaceEngineerPlugin.Database
 			}
 			BrakesLapNr = v.Car.Brakes.LapsNr;
 			AirTemp = data.NewData.AirTemperature;
-			AirTempDelta = data.NewData.AirTemperature - v.Weather.AirTempAtLapStart;
+			AirTempDelta = Math.Round(data.NewData.AirTemperature - v.Weather.AirTempAtLapStart, 2);
 			TrackTemp = data.NewData.RoadTemperature;
-			TrackTempDelta = data.NewData.RoadTemperature - v.Weather.TrackTempAtLapStart;
+			TrackTempDelta = Math.Round(data.NewData.RoadTemperature - v.Weather.TrackTempAtLapStart, 2);
 			LapTime = v.Laps.LastTime;
 			FuelUsed = v.Car.Fuel.LastUsedPerLap;
 			FuelLeft = v.Car.Fuel.Remaining;
@@ -166,8 +199,8 @@ namespace RaceEngineerPlugin.Database
 				TyrePresAvg[i] = v.Car.Tyres.PresOverLap[i].Avg;
 				TyrePresMin[i] = v.Car.Tyres.PresOverLap[i].Min;
 				TyrePresMax[i] = v.Car.Tyres.PresOverLap[i].Max;
-				TyrePresLoss[i] = v.Car.Tyres.PresLoss[i];
-				TyrePressLossLap[i] = v.Car.Tyres.PresLossLap[i];
+				TyrePresLoss[i] = Math.Round(v.Car.Tyres.PresLoss[i], 2);
+				TyrePresLossLap[i] = v.Car.Tyres.PresLossLap[i];
 
 				TyreTempAvg[i] = v.Car.Tyres.TempOverLap[i].Avg;
 				TyreTempMin[i] = v.Car.Tyres.TempOverLap[i].Min;
@@ -210,6 +243,25 @@ namespace RaceEngineerPlugin.Database
 			RainIntensity = (int)v.RawData.NewData.Graphics.rainIntensity;
 			RainIntensityChanged = v.Booleans.OldData.RainIntensityChangedThisLap;
 		}
+
+		public override string ToString() {
+			return $@"StintId = {StintId}; SessionLapNr = {SessionLapNr}; StintLapNr = {StintLapNr}; TyresetLapNr = {TyresetLapNr}; BrakesLapNr = {BrakesLapNr};
+	AirTemp = {AirTemp}; AirTempDelta = {AirTempDelta}; TrackTemp = {TrackTemp}; TrackTempDelta = {TrackTempDelta};
+	LapTime = {LapTime}; FuelUsed = {FuelUsed}; FuelLeft = {FuelLeft};
+	TyrePresAvg = {ArrayToString(TyrePresAvg)}; TyrePresMin = { ArrayToString(TyrePresMin) }; TyrePresMax = { ArrayToString(TyrePresMax) };
+	TyrePresLoss = { ArrayToString(TyrePresLoss) }; TyrePressLossLap = { ArrayToString(TyrePresLossLap) };
+	TyreTempAvg = { ArrayToString(TyreTempAvg) }; TyreTempMin = { ArrayToString(TyreTempMin) }; TyreTempMax = { ArrayToString(TyreTempMax) };
+	BrakeTempAvg = { ArrayToString(BrakeTempAvg) }; BrakeTempMin = { ArrayToString(BrakeTempMin) }; BrakeTempMax = { ArrayToString(BrakeTempMax) };
+	TyreLifeLeft = { ArrayToString(TyreLifeLeft) }; PadLifeLeft = { ArrayToString(PadLifeLeft) }; DiscLifeLeft = { ArrayToString(DiscLifeLeft) };
+	Abs = {Abs}; Tc = {Tc}; Tc2 = {Tc2}; EcuMap = {EcuMap}; EcuMapChanged = {EcuMapChanged};
+	TrackGripStatus = {TrackGripStatus}; RainIntensity = {RainIntensity}; RainIntensityChanged = {RainIntensityChanged};
+	IsValid = {IsValid}; IsValidFuelLap = {IsValidFuelLap}; IsOutLap = {IsOutLap}; IsInLap = {IsInLap};";
+		}
+
+		private string ArrayToString<T>(T[] a) {
+			return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
+		}
+
 	}
 
 
@@ -220,10 +272,12 @@ namespace RaceEngineerPlugin.Database
 		private SQLiteConnection _conn;
 
 		private SQLiteCommand _insertEventCmd;
+		private SQLiteCommand _insertSessionCmd;
 		private SQLiteCommand _insertStintCmd;
 		private SQLiteCommand _insertLapCmd;
 
 		private long _eventId;
+		private long _sessionId;
 		private long _stintId;
 		private Mutex _dbMutex = new Mutex();
 
@@ -236,10 +290,12 @@ namespace RaceEngineerPlugin.Database
 			try {
 				_conn.Open();
 				eventsTable.CreateTable(_conn);
-				stintsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({EVENT_ID}) REFERENCES {eventsTable.name}({EVENT_ID})");
+				sessionsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({EVENT_ID}) REFERENCES {eventsTable.name}({EVENT_ID})");
+				stintsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({SESSION_ID}) REFERENCES {sessionsTable.name}({SESSION_ID})");
 				lapsTable.CreateTableWForeignKey(_conn, $"FOREIGN KEY({STINT_ID}) REFERENCES {stintsTable.name}({STINT_ID})");
 			
 				_insertEventCmd = eventsTable.CreateInsertCmdWReturning(_conn, EVENT_ID);
+				_insertSessionCmd = sessionsTable.CreateInsertCmdWReturning(_conn, SESSION_ID);
 				_insertStintCmd = stintsTable.CreateInsertCmdWReturning(_conn, STINT_ID);
 				_insertLapCmd = lapsTable.CreateInsertCmd(_conn);
 
@@ -261,6 +317,7 @@ namespace RaceEngineerPlugin.Database
 				
 				if (disposing) {
 					_insertEventCmd.Dispose();
+					_insertSessionCmd.Dispose();
 					_insertStintCmd.Dispose();
 					_insertLapCmd.Dispose();
 				}
@@ -299,9 +356,20 @@ namespace RaceEngineerPlugin.Database
 			new DBField(START_TIME, "TEXT")
 		});
 
+		private const string SESSION_ID = "session_id";
+		private const string SESSION_TYPE = "session_type";
+		private const string TIME_MULTIPLIER = "time_multiplier";
+
+		private DBTable sessionsTable = new DBTable("sessions", new DBField[] {
+			new DBField(SESSION_ID, "INTEGER PRIMARY KEY"),
+			new DBField(EVENT_ID, "INTEGER"),
+			new DBField(SESSION_TYPE, "TEXT"),
+			new DBField(START_TIME, "TEXT"),
+			new DBField(TIME_MULTIPLIER, "INTEGER")
+		});
+
 		private static string[] TYRES = new string[] { Tyres.Names[0].ToLower(), Tyres.Names[1].ToLower(), Tyres.Names[2].ToLower(), Tyres.Names[3].ToLower() };
 		private const string STINT_ID = "stint_id";
-		private const string SESSION_TYPE = "session_type";
 		private const string STINT_NR = "stint_nr";
 		private const string TYRE_COMPOUND = "tyre_compound";
 		private const string TYRE_PRES_IN = "tyre_pres_in";
@@ -317,8 +385,7 @@ namespace RaceEngineerPlugin.Database
 
 		private DBTable stintsTable = new DBTable("stints", new DBField[] {
 			new DBField(STINT_ID, "INTEGER PRIMARY KEY"),
-			new DBField(EVENT_ID, "INTEGER"),
-			new DBField(SESSION_TYPE, "TEXT"),
+			new DBField(SESSION_ID, "INTEGER"),
 			new DBField(STINT_NR, "INTEGER"),
 			new DBField(START_TIME, "TEXT"),
 			new DBField(TYRE_COMPOUND, "TEXT"),
@@ -484,43 +551,66 @@ namespace RaceEngineerPlugin.Database
 			SetParam(cmd, name, value ? 1 : 0);
 		}
 
-		public void InsertEvent(string carName, string trackName) {
+		public void InsertEvent(GameData data, Values v) {
+			var e = new Event(v.Car.Name, v.Track.Name);
+			RaceEngineerPlugin.LogInfo(e.ToString());
+			_ = Task.Run(() => InsertEvent(e));
+		}
+
+		public void InsertEvent(Event e) {
 			_dbMutex.WaitOne();
-			
-			string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
-			SetParam(_insertEventCmd, CAR_ID, carName);
-			SetParam(_insertEventCmd, TRACK_ID, trackName);
-			SetParam(_insertEventCmd, START_TIME, stime);
-
+			SetParam(_insertEventCmd, CAR_ID, e.CarId);
+			SetParam(_insertEventCmd, TRACK_ID, e.TrackId);
+			SetParam(_insertEventCmd, START_TIME, e.StartTime);
 			_eventId = (long)_insertEventCmd.ExecuteScalar();
 
-            var debugCmd = new SQLiteCommand(_conn) {
-                CommandText = $"SELECT * FROM {eventsTable.name} ORDER BY rowid DESC LIMIT 1"
-            };
-            var rdr = debugCmd.ExecuteReader();
-			rdr.Read();
-
-			var txt = $"Inserted event @ {stime}";
-			for (var i = 0; i < rdr.FieldCount; i++) {
-				txt += $"\n\t{rdr.GetName(i)} = {rdr.GetValue(i)}";
-			}
-			rdr.Close();
 			_dbMutex.ReleaseMutex();
+		}
 
-			RaceEngineerPlugin.LogInfo(txt);
+		public void InsertSession(GameData data, Values v) {
+			var s = new Session(v, _eventId);
+			RaceEngineerPlugin.LogInfo(s.ToString());
+			_ = Task.Run(() => InsertSession(s));
+		}
+
+		public void InsertSession(Session s) {
+			_dbMutex.WaitOne();
+
+			SetParam(_insertSessionCmd, EVENT_ID, s.EventId);
+			SetParam(_insertSessionCmd, SESSION_TYPE, s.SessionType);
+			SetParam(_insertSessionCmd, TIME_MULTIPLIER, s.TimeMultiplier);
+			SetParam(_insertSessionCmd, START_TIME, s.StartTime);
+			_sessionId = (long)_insertSessionCmd.ExecuteScalar();
+
+			_dbMutex.ReleaseMutex();
+		}
+
+		public void UpdateSessionTimeMultiplier(int mult) {
+			var sessId = _sessionId;
+			_ = Task.Run(() => {
+				_dbMutex.WaitOne();
+				var cmd = new SQLiteCommand(_conn) {
+					CommandText = $@"UPDATE {sessionsTable.name}
+						SET {TIME_MULTIPLIER} = {mult}
+						WHERE {SESSION_ID} == {sessId}"
+				};
+
+				cmd.ExecuteNonQuery();
+				_dbMutex.ReleaseMutex();
+			});
 		}
 
 		public void InsertStint(GameData data, Values v) {
-			var stint = new Stint(data, v, _eventId);
+			var stint = new Stint(data, v, _sessionId);
+			RaceEngineerPlugin.LogInfo(stint.ToString());
 			_ = Task.Run(() => InsertStint(stint));
 		}
 
 		private void InsertStint(Stint s) {
 			_dbMutex.WaitOne();
 
-			SetParam(_insertStintCmd, EVENT_ID, s.EventId);
-			SetParam(_insertStintCmd, SESSION_TYPE, s.SessionType);
+			SetParam(_insertStintCmd, SESSION_ID, s.SessionId);
 			SetParam(_insertStintCmd, STINT_NR, s.StintNr);
 			SetParam(_insertStintCmd, START_TIME, s.StartTime);
 			SetParam(_insertStintCmd, TYRE_COMPOUND, s.TyreCompound);
@@ -530,7 +620,7 @@ namespace RaceEngineerPlugin.Database
 			}
 
 			SetParam(_insertStintCmd, BRAKE_PAD_FRONT, s.BrakePadFront);
-			SetParam(_insertStintCmd, BRAKE_PAD_REAR, s.BrakePadReat);
+			SetParam(_insertStintCmd, BRAKE_PAD_REAR, s.BrakePadRear);
 			SetParam(_insertStintCmd, TYRE_SET, s.TyreSet);
 			SetParam(_insertStintCmd, BRAKE_PAD_NR, s.BrakePadNr);
 			SetParam(_insertStintCmd, BRAKE_DUCT_FRONT, s.BrakeDuctFront);
@@ -543,44 +633,12 @@ namespace RaceEngineerPlugin.Database
 			SetParam(_insertStintCmd, CASTER + $"_{TYRES[1]}", s.CasterRf);
 
 			_stintId = (long)_insertStintCmd.ExecuteScalar();
-
-			// Debug
-			var debugCmd = new SQLiteCommand(_conn);
-			debugCmd.CommandText = $"SELECT * FROM {stintsTable.name} ORDER BY rowid DESC LIMIT 1";
-			var rdr = debugCmd.ExecuteReader();
-			rdr.Read();
-
-			Func<int, string> fmt = i => { 
-				var type = rdr.GetDataTypeName(i);
-				var value = rdr.GetValue(i);
-				if (type == "REAL") {
-					return $"{value:0.000}";
-				} else {
-					return $"{value}";
-				}
-			};
-
-			var txt = $"Inserted stint @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
-			for (var i = 0; i < rdr.FieldCount; i++) {
-				var cname = rdr.GetName(i);
-				if (cname.EndsWith(TYRES[0]) && !cname.StartsWith("caster")) {
-					txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
-					i += 3;
-				} else if (cname == CASTER + $"_{TYRES[0]}" || cname == BRAKE_PAD_FRONT || cname == BRAKE_DUCT_FRONT) {
-					txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}]";
-					i += 1;
-				} else {
-					txt += $"\n\t{cname} = {fmt(i)}";
-				}
-			}
-			rdr.Close();
 			_dbMutex.ReleaseMutex();
-
-			RaceEngineerPlugin.LogInfo(txt);
 		}
 
 		public void InsertLap(GameData data, Values v) {
 			var lap = new Lap(data, v, _stintId);
+			RaceEngineerPlugin.LogInfo(lap.ToString());
 			_ = Task.Run(() => InsertLap(lap));
 		}
 
@@ -606,7 +664,7 @@ namespace RaceEngineerPlugin.Database
 				SetParam(_insertLapCmd, TYRE_PRES_MIN + tyre, l.TyrePresMin[i]);
 				SetParam(_insertLapCmd, TYRE_PRES_MAX + tyre, l.TyrePresMax[i]);
 				SetParam(_insertLapCmd, TYRE_PRES_LOSS + tyre, l.TyrePresLoss[i]);
-				SetParam(_insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.TyrePressLossLap[i]);
+				SetParam(_insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.TyrePresLossLap[i]);
 
 				SetParam(_insertLapCmd, TYRE_TEMP_AVG + tyre, l.TyreTempAvg[i]);
 				SetParam(_insertLapCmd, TYRE_TEMP_MIN + tyre, l.TyreTempMin[i]);
@@ -641,41 +699,8 @@ namespace RaceEngineerPlugin.Database
 			SetParam(_insertLapCmd, RAIN_INTENSITY, l.RainIntensity);
 			SetParam(_insertLapCmd, RAIN_INTENSITY_CHANGED, l.RainIntensityChanged);
 
-
 			_insertLapCmd.ExecuteNonQuery();
-
-
-            // Debug log inserted values
-            var debugCmd = new SQLiteCommand(_conn);
-            debugCmd.CommandText = $"SELECT * FROM {lapsTable.name} ORDER BY rowid DESC LIMIT 1";
-            var rdr = debugCmd.ExecuteReader();
-            rdr.Read();
-
-            Func<int, string> fmt = i => {
-                var type = rdr.GetDataTypeName(i);
-                var value = rdr.GetValue(i);
-                if (type == "REAL") {
-                    return $"{value:0.000}";
-                } else {
-                    return $"{value}";
-                }
-            };
-
-            var txt = $"Inserted lap @ {DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")}";
-            for (var i = 0; i < rdr.FieldCount; i++) {
-                var cname = rdr.GetName(i);
-                if (cname.EndsWith(TYRES[0])) {
-                    txt += $"\n\t{cname} = [{fmt(i)}, {fmt(i + 1)}, {fmt(i + 2)}, {fmt(i + 3)}]";
-                    i += 3;
-                } else {
-                    txt += $"\n\t{cname} = {fmt(i)}";
-                }
-            }
-			rdr.Close();
 			_dbMutex.ReleaseMutex();
-
-			RaceEngineerPlugin.LogInfo(txt);
-
         }
 		#endregion
 
@@ -685,9 +710,9 @@ namespace RaceEngineerPlugin.Database
 			var trackGrip = (int)v.RawData.NewData.Graphics.trackGripStatus;
 			string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
 			if (0 < trackGrip && trackGrip < 3) {
-				conds += "('Green', 'Fast', 'Optimum')";
+				conds += "(0, 1, 2)";
 			} else {
-				conds += $"('{trackGrip}')";
+				conds += $"({trackGrip})";
 			}
 
 			List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.Settings.NumPreviousValuesStored);
@@ -696,7 +721,8 @@ namespace RaceEngineerPlugin.Database
 			var cmd = new SQLiteCommand(_conn) {
                 CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {lapsTable.name} AS l 
 					INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
-					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
+					INNER JOIN {sessionsTable.name} AS sess ON s.{SESSION_ID} == sess.{SESSION_ID} 
+					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == sess.{EVENT_ID} 
 					WHERE 
 						e.{CAR_ID} == '{v.Car.Name}' 
 						AND e.{TRACK_ID} == '{v.Track.Name}' 
@@ -742,7 +768,8 @@ namespace RaceEngineerPlugin.Database
                 CommandText = $@"
 					SELECT s.{TYRE_PRES_IN}_{ty}, l.{TYRE_PRES_AVG}_{ty}, l.{TYRE_PRES_LOSS}_{ty}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {lapsTable.name} AS l
 					INNER JOIN {stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
-					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == s.{EVENT_ID} 
+					INNER JOIN {sessionsTable.name} AS sess ON s.{SESSION_ID} == sess.{SESSION_ID} 
+					INNER JOIN {eventsTable.name} AS e ON e.{EVENT_ID} == sess.{EVENT_ID} 
 					WHERE e.car_id == '{car}' 
 						AND e.track_id == '{track}' 
 						AND l.stint_lap_nr > {LAP_NR_LOW_THRESHOLD} 
@@ -762,7 +789,6 @@ namespace RaceEngineerPlugin.Database
 				cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in {trackGrip}";
 			}
 
-
 			SQLiteDataReader rdr = cmd.ExecuteReader();
 
 			while (rdr.Read()) {
@@ -774,7 +800,8 @@ namespace RaceEngineerPlugin.Database
 			}
 			rdr.Close();
 			_dbMutex.ReleaseMutex();
-			RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with brake duct {brakeDuct} and compount ");
+
+			RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with");
 
 			return Tuple.Create(x, y);
 		}
