@@ -11,7 +11,7 @@ namespace RaceEngineerPlugin {
     public class Session {
         public RaceSessionType? RaceSessionType { get; private set; }
         public bool IsNewSession { get; private set; }
-        public double TimeMultiplier { get; private set; }
+        public int TimeMultiplier { get; private set; }
 
         private double _startClock = double.NaN;
         private double _startISplit = double.NaN;
@@ -25,7 +25,7 @@ namespace RaceEngineerPlugin {
         public void Reset() {
             RaceSessionType = null;
             IsNewSession = false;
-            TimeMultiplier = double.NaN;
+            TimeMultiplier = -1;
             _startClock = double.NaN;
             _startISplit = double.NaN;
             _firstClock = double.NaN;
@@ -33,7 +33,7 @@ namespace RaceEngineerPlugin {
         }
 
         public void OnNewSession() {
-            TimeMultiplier = double.NaN;
+            TimeMultiplier = -1;
             _startClock = double.NaN;
             _startISplit = double.NaN;
             _firstClock = double.NaN;
@@ -61,12 +61,11 @@ namespace RaceEngineerPlugin {
                 }
 
                 var diffMs = v.RawData.NewData.Graphics.iSplit - _startISplit;
-                if (500 < diffMs) {
-                    TimeMultiplier = (v.RawData.NewData.Graphics.clock - _startClock) / (v.RawData.NewData.Graphics.iSplit - _startISplit) * 1000.0;
-                }
                 if (diffMs > 5000) {
+                    TimeMultiplier = (int)Math.Round((v.RawData.NewData.Graphics.clock - _startClock) / (diffMs) * 1000.0);
                     _isTimeMultiplierCalculated = true;
-                    RaceEngineerPlugin.LogInfo("Ended timer");
+                    v.Db.UpdateSessionTimeMultiplier(TimeMultiplier);
+                    RaceEngineerPlugin.LogInfo($"Ended timer. TimeMultiplier = {TimeMultiplier}");
                 }
             }
 
