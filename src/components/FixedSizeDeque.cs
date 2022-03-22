@@ -65,30 +65,35 @@ namespace RaceEngineerPlugin.Deque {
         /// </summary>
         /// <param name="value">The value.</param>
         public void AddToFront(double value) {
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             if (Count == Capacity) {
                 double oldData = Data.RemoveFromBack();
             }
             Data.AddToFront(value);
-            SetBounds();
-            switch (_removeOutliers) {
-                case RemoveOutliers.Upper:
-                    _stats = new DescriptiveStatistics(Data.Where(x => x < _upperBound && !double.IsNaN(x)));
-                    break;
-                case RemoveOutliers.Lower:
-                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound < x && !double.IsNaN(x)));
-                    break;
-                case RemoveOutliers.Both:
-                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound < x && x < _upperBound && !double.IsNaN(x)));
-                    break;
-                case RemoveOutliers.QPlus1:
-                    _stats = new DescriptiveStatistics(Data.Where(x => _lowerBound - 1 < x && x < _upperBound + 1 && !double.IsNaN(x)));
-                    break;
-                default:
-                    _stats = new DescriptiveStatistics(Data.Where(x => !double.IsNaN(x)));
-                    break;
+            var data = Data.Where(x => !double.IsNaN(x));
+            SetBounds(data);
+            if (data.Count() > 1) {
+                switch (_removeOutliers) {
+                    case RemoveOutliers.Upper:
+                        _stats = new DescriptiveStatistics(data.Where(x => x < _upperBound));
+                        break;
+                    case RemoveOutliers.Lower:
+                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound < x));
+                        break;
+                    case RemoveOutliers.Both:
+                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound < x && x < _upperBound));
+                        break;
+                    case RemoveOutliers.QPlus1:
+                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound - 1 < x && x < _upperBound + 1));
+                        break;
+                    default:
+                        _stats = new DescriptiveStatistics(data);
+                        break;
+                }
+            } else {
+                _stats = new DescriptiveStatistics(data);
             }
 
             Stats.Avg = _stats.Mean;
@@ -96,23 +101,23 @@ namespace RaceEngineerPlugin.Deque {
             Stats.Min = _stats.Minimum;
             Stats.Max = _stats.Maximum;
 
-            //var t = sw.Elapsed;
-            //if (RaceEngineerPlugin.SETTINGS.Log) {
-            //    string txt = "Data = [";
-            //    foreach (var a in Data) {
-            //        txt += $"{a:0.000}, ";
-            //    }
-    //            RaceEngineerPlugin.LogInfo($@"{txt}],
-    //(Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
-    //(Avg, Std) = ({Avg}, {Std}),
-    //(lowerBound, upperBound) = ({lowerBound}, {upperBound}),
-    //Finished in {t.TotalMilliseconds}ms");
-            
+            var t = sw.Elapsed;
+            if (RaceEngineerPlugin.Settings.Log) {
+                string txt = "Data = [";
+                foreach (var a in Data) {
+                    txt += $"{a:0.000}, ";
+                }
+                RaceEngineerPlugin.LogInfo($@"{txt}],
+    (Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
+    (Avg, Std) = ({Avg}, {Std}),
+    (lowerBound, upperBound) = ({_lowerBound}, {_upperBound}),
+    Finished in {t.TotalMilliseconds}ms");
+            }
         }
 
-        private void SetBounds() {
-            if (Data.Count > 2) {
-                var s = Statistics.FiveNumberSummary(Data);
+        private void SetBounds(IEnumerable<double> data) {
+            if (data.Count() > 1) {
+                var s = Statistics.FiveNumberSummary(data);
 
                 Stats.Q1 = s[1];
                 Stats.Median = s[2];
