@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>RaceEngineerPlugin</name>
+    </assembly>
+    <members>
+        <member name="T:RaceEngineerPlugin.Booleans.BooleansBase">
+            <summary>
+            Hold single set of boolean values
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Booleans.Booleans">
+            <summary>
+            Hold current and previous boolean values 
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:RaceEngineerPlugin.Car.CarInfo" -->
+        <member name="T:RaceEngineerPlugin.Car.Car">
+            <summary>
+            Store and update car related values
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.Car.Car.CheckChange(System.String)">
+            <summary>
+            Check if car has changed and update accordingly
+            </summary>
+            <param name="newName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RaceEngineerPlugin.WeatherPoint.StartTime(System.Int32)">
+            <summary>
+            Time when the given weather starts. 
+            
+            If timeMultiplier is not set yet (is -1), we will assume that it's 1.
+            If timeMultiplier is proper we store result as timeMultiplier cannot change in session.
+            </summary>
+            <param name="timeMultiplier"></param>
+            <returns></returns>
+        </member>
+        <member name="T:RaceEngineerPlugin.Color.HSV">
+            <summary>
+            Stores HSV color 
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Color.LinearInterpolator">
+            <summary>
+            Linear interpolator between to points
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Color.LinearColorInterpolator">
+            <summary>
+            Linear interpolator between two colors in HSV color space.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Color.ColorCalculator">
+            <summary>
+            Color interpolator between any number of colors.
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.Color.ColorCalculator.#ctor(System.String[],System.Double[])">
+            <summary>
+            
+            </summary>
+            <param name="colors">Colors in HEX.</param>
+            <param name="values">Numerical values each color corresponds to.</param>
+            <exception cref="T:System.Exception"></exception>
+        </member>
+        <member name="T:RaceEngineerPlugin.Database.Database">
+            <summary>
+            Handles data collection/storing for plugin.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Database.DBTable">
+            <summary>
+            Definition of database table and methods to create some methods
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Deque.FixedSizeDequeStats">
+            <summary>
+            Deque that never grows larger than given size with some added statistics.
+            
+            In our case we need some data structure to store previous lap values (lap times, fuel) 
+            in which we need to push to the front (so that newest values are first) and remove from the back (eg remove oldest values).
+            We also only want to store certain number of values, hence the fixed size bit.
+            
+            In addition we would want some statistics on data.
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.Deque.FixedSizeDequeStats.#ctor(System.Int32,RaceEngineerPlugin.Deque.RemoveOutliers)">
+            <summary>
+            Initializes a new instance of the <see cref="T:RaceEngineerPlugin.Deque.FixedSizeDequeStats"/> class.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:RaceEngineerPlugin.Deque.FixedSizeDequeStats.AddToFront(System.Double)">
+            <summary>
+            Add value, remove last if over size
+            </summary>
+            <param name="value">The value.</param>
+        </member>
+        <member name="T:RaceEngineerPlugin.Game.Game">
+            <summary>
+            Booleans to tell which game we have. Since different games have different available data then we need to do alot of check like gameName == "...".
+            The gameName is constant in each plugin reload and thus we can set it once and simplyfy game checks alot.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Remaining.RemainingInSession">
+            <summary>
+            Class to store and calculate current laps/time left in session and fuel needed.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Remaining.RemainingOnFuel">
+            <summary>
+            Class to store and calculate time/laps left on current amount of fuel.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Stats.Stats">
+            <summary>
+            Base class to build different statistics implementations
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Stats.WheelsStats">
+            <summary>
+            Convenience class to simplyfy handling statistics of all four wheels.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Stats.WheelsRunningStats">
+            <summary>
+            Convenience class to simplyfy handling running statistics of all four wheels.
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.ACCUdpRemoteClient.#ctor(System.String,System.Int32,System.String,System.String,System.String,System.Int32)">
+            <summary>
+            To get the events delivered inside the UI thread, just create this object from the UI thread/synchronization context.
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.BroadcastingNetworkProtocol.ReadLap(System.IO.BinaryReader)">
+            <summary>
+            Laps are always sent in a common way, it makes sense to have a shared function to parse them
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.BroadcastingNetworkProtocol.RequestConnection(System.String,System.String,System.Int32,System.String)">
+            <summary>
+            Will try to register this client in the targeted ACC instance.
+            Needs to be called once, before anything else can happen.
+            </summary>
+            <param name="connectionPassword"></param>
+            <param name="msRealtimeUpdateInterval"></param>
+            <param name="commandPassword"></param>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.BroadcastingNetworkProtocol.RequestEntryList">
+            <summary>
+            Will ask the ACC client for an updated entry list, containing all car and driver data.
+            The client will send this automatically when something changes; however if you detect a carIndex or driverIndex, this may cure the 
+            problem for future updates
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.BroadcastingNetworkProtocol.SetCamera(System.String,System.String)">
+            <summary>
+            Always put both cam + cam set; even if it doesn't make sense
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.ksBroadcastingNetwork.BroadcastingNetworkProtocol.SetFocusInternal(System.Nullable{System.UInt16},System.String,System.String)">
+            <summary>
+            Sends the request to change the focused car and/or the camera used.
+            The idea is that this often wants to be triggered together, so this is a all-in-one function.
+            This way we can make sure the switch happens in the same frame, even in more complex scenarios
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.ML.RidgeRegression">
+            <summary>
+            Ridge regression algorithm
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.RaceEngineerPlugin.DataUpdate(SimHub.Plugins.PluginManager,GameReaderCommon.GameData@)">
+            <summary>
+            Called one time per game data update, contains all normalized game data, 
+            raw data are intentionnally "hidden" under a generic object type (A plugin SHOULD NOT USE IT)
+            
+            This method is on the critical path, it must execute as fast as possible and avoid throwing any error
+            
+            </summary>
+            <param name="pluginManager"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:RaceEngineerPlugin.RaceEngineerPlugin.End(SimHub.Plugins.PluginManager)">
+            <summary>
+            Called at plugin manager stop, close/dispose anything needed here !
+            Plugins are rebuilt at game change
+            </summary>
+            <param name="pluginManager"></param>
+        </member>
+        <member name="M:RaceEngineerPlugin.RaceEngineerPlugin.GetWPFSettingsControl(SimHub.Plugins.PluginManager)">
+            <summary>
+            Returns the settings control, return null if no settings control is required
+            </summary>
+            <param name="pluginManager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RaceEngineerPlugin.RaceEngineerPlugin.Init(SimHub.Plugins.PluginManager)">
+            <summary>
+            Called once after plugins startup
+            Plugins are rebuilt at game change
+            </summary>
+            <param name="pluginManager"></param>
+        </member>
+        <member name="T:RaceEngineerPlugin.RaceEngineerPluginSettings">
+            <summary>
+            Settings class, make sure it can be correctly serialized using JSON.net
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:RaceEngineerPlugin.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:RaceEngineerPlugin.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:RaceEngineerPlugin.Properties.Resources.sdkmenuicon">
+            <summary>
+              Looks up a localized resource of type System.Drawing.Bitmap.
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.SettingsControlDemo">
+            <summary>
+            Logique d'interaction pour SettingsControlDemo.xaml
+            </summary>
+            <summary>
+            SettingsControlDemo
+            </summary>
+        </member>
+        <member name="M:RaceEngineerPlugin.SettingsControlDemo.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:RaceEngineerPlugin.Values">
+            <summary>
+            Storage and calculation of new properties
+            </summary>
+        </member>
+        <member name="F:RaceEngineerPlugin.Values.lastWeather">
+            <summary>
+            Update all values. Run once per update cycle.
+            
+            We have multiple defined update points:
+                OnRegularUpdate - updated always
+                OnLapFinished - after the lap has finished, eg on the first point of new lap
+                OnNewStint - at the start of new stint, usually when we exit the pit lane
+                OnNewSession - at the start of new session, eg going from qualy to race
+                OnNewEvent - at the start of event, eg at the start of first session
+            
+            </summary>
+        </member>
+    </members>
+</doc>
