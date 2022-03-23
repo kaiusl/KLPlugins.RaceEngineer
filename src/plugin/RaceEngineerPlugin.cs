@@ -124,19 +124,43 @@ namespace RaceEngineerPlugin {
             };
 
             #region ADD DELEGATES
-
+            
             this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(_values.RawData.NewData.Graphics.clock));
-            this.AttachDelegate("TimeMultiplier", () => _values.Session.TimeMultiplier);
+            this.AttachDelegate("Session.TimeMultiplier", () => _values.Session.TimeMultiplier);
+            this.AttachDelegate("Session.Type", () => _values.Session.RaceSessionType);
 
-            this.AttachDelegate("DBG_currentTyreSet", () => _values.Car.Tyres.CurrentTyreSet);
-            this.AttachDelegate("DBG_weatherReport", () => _values.Weather.WeatherSummary);
-            this.AttachDelegate("AirTemp", () => _values.Weather.AirTemp);
+            this.AttachDelegate("Tyres.CurrentSet", () => _values.Car.Tyres.CurrentTyreSet);
+            this.AttachDelegate("Tyres.CurrentSetLaps", () => _values.Car.Tyres.GetCurrentSetLaps());
 
-            this.AttachDelegate("IsInMenu", () => _values.Booleans.NewData.IsInMenu ? 1 : 0);
+            this.AttachDelegate("Weather.Report", () => _values.Weather.WeatherSummary);
+            this.AttachDelegate("Weather.AirTemp", () => _values.Weather.AirTemp);
+            this.AttachDelegate("Weather.TrackTemp", () => _values.Weather.TrackTemp);
+            this.AttachDelegate("Weather.AirTempAtLapStart", () => _values.Weather.AirTempAtLapStart);
+            this.AttachDelegate("Weather.TrackTempAtLapStart", () => _values.Weather.TrackTempAtLapStart);
 
-            this.AttachDelegate("FuelLeft", () => _values.Car.Fuel.Remaining);
-            this.AttachDelegate("IsOnTrack", () => _values.Booleans.NewData.IsOnTrack ? 1 : 0);
-            this.AttachDelegate("IsValidFuelLap", () => _values.Booleans.NewData.IsValidFuelLap ? 1 : 0);
+            this.AttachDelegate("Stint.Nr", () => _values.Laps.StintNr);
+            this.AttachDelegate("Stint.Laps", () => _values.Laps.StintLaps);
+
+            this.AttachDelegate("Brakes.CurrentSetLaps", () => _values.Car.Brakes.LapsNr);
+            this.AttachDelegate("Brakes.CurrentSet", () => _values.Car.Brakes.SetNr);
+
+            this.AttachDelegate("Brakes.DuctFront", () => _values.Car?.Setup?.advancedSetup.aeroBalance.brakeDuct[0]);
+            this.AttachDelegate("Brakes.DuctRear", () => _values.Car?.Setup?.advancedSetup.aeroBalance.brakeDuct[1]);
+
+            this.AttachDelegate("Booleans.IsInMenu", () => _values.Booleans.NewData.IsInMenu ? 1 : 0);
+            this.AttachDelegate("Booleans.IsOnTrack", () => _values.Booleans.NewData.IsOnTrack ? 1 : 0);
+            this.AttachDelegate("Booleans.IsMoving", () => _values.Booleans.NewData.IsMoving ? 1 : 0);
+            this.AttachDelegate("Booleans.IsValidFuelLap", () => _values.Booleans.NewData.IsValidFuelLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsSetupMenuVisible", () => _values.Booleans.NewData.IsSetupMenuVisible ? 1 : 0);
+            this.AttachDelegate("Booleans.IsTimeLimitedSession", () => _values.Booleans.NewData.IsTimeLimitedSession ? 1 : 0);
+            this.AttachDelegate("Booleans.IsLapLimitedSession", () => _values.Booleans.NewData.IsLapLimitedSession ? 1 : 0);
+            this.AttachDelegate("Booleans.IsOutLap", () => _values.Booleans.NewData.IsOutLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsInLap", () => _values.Booleans.NewData.IsInLap ? 1 : 0);
+            this.AttachDelegate("Booleans.EcuMapChangedThisLap", () => _values.Booleans.NewData.EcuMapChangedThisLap ? 1 : 0);
+            this.AttachDelegate("Booleans.RainIntensityChangedThisLap", () => _values.Booleans.NewData.RainIntensityChangedThisLap ? 1 : 0);
+
+            this.AttachDelegate("Fuel.Remaining", () => _values.Car.Fuel.Remaining);
+            this.AttachDelegate("Fuel.RemainingAtLapStart", () => _values.Car.Fuel.RemainingAtLapStart);
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
                 if ((StatsFlags.Min & settings) != 0) {
@@ -162,13 +186,13 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addStats("LapTime", _values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
-            addStats("FuelPerLap", _values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
-            addStats("LapsRemainingOnFuel", _values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
-            addStats("TimeRemainingOnFuel", _values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
-            addStats("LapsRemainingInSession", _values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
-            addStats("TimeRemainingInSession", _values.RemainingInSession.Time, Settings.RemainingStatsFlags);
-            addStats("FuelNeededInSession", _values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
+            addStats("Laps.Time", _values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Fuel.UsedPerLap", _values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
+            addStats("Fuel.LapsRemaining", _values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
+            addStats("Fuel.TimeRemaining", _values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
+            addStats("Session.LapsRemaining", _values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
+            addStats("Session.TimeRemaining", _values.RemainingInSession.Time, Settings.RemainingStatsFlags);
+            addStats("Fuel.NeededInSession", _values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
             Action<string, double[]> addTyres = (name, values) => {
@@ -178,12 +202,12 @@ namespace RaceEngineerPlugin {
                 this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
             };
 
-            addTyres("IdealInputTyrePres", _values.Car.Tyres.IdealInputPres);
-            addTyres("PredictedIdealInputTyrePresDry", _values.Car.Tyres.PredictedIdealInputPresDry);
-            addTyres("PredictedIdealInputTyrePresWet", _values.Car.Tyres.PredictedIdealInputPresNowWet);
-            addTyres("PredictedIdealInputTyrePresIn30MinWet", _values.Car.Tyres.PredictedIdealInputPresFutureWet);
-            addTyres("CurrentInputTyrePres", _values.Car.Tyres.CurrentInputPres);
-            addTyres("TyrePresLoss", _values.Car.Tyres.PresLoss);
+            addTyres("Tyres.IdealInputPres", _values.Car.Tyres.IdealInputPres);
+            addTyres("Tyres.PredictedIdealInputPresDry", _values.Car.Tyres.PredictedIdealInputPresDry);
+            addTyres("Tyres.PredictedIdealInputPresWet", _values.Car.Tyres.PredictedIdealInputPresNowWet);
+            addTyres("Tyres.PredictedIdealInputPresIn30MinWet", _values.Car.Tyres.PredictedIdealInputPresFutureWet);
+            addTyres("Tyres.CurrentInputPres", _values.Car.Tyres.CurrentInputPres);
+            addTyres("Tyres.PresLoss", _values.Car.Tyres.PresLoss);
 
             Action<string, string[], WheelFlags> addTyresColor = (name, values, flag) => {
                 if ((WheelFlags.Color & flag) != 0) {
@@ -194,9 +218,9 @@ namespace RaceEngineerPlugin {
                 }
             };
 
-            addTyresColor("TyrePres", _values.Car.Tyres.PresColor, Settings.TyrePresFlags);
-            addTyresColor("TyreTemp", _values.Car.Tyres.TempColor, Settings.TyreTempFlags);
-            addTyresColor("BrakeTemp", _values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
+            addTyresColor("Tyres.Pres", _values.Car.Tyres.PresColor, Settings.TyrePresFlags);
+            addTyresColor("Tyres.Temp", _values.Car.Tyres.TempColor, Settings.TyreTempFlags);
+            addTyresColor("Brakes.Temp", _values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
 
             Action<string, Stats.Stats, Color.ColorCalculator, WheelFlags> addStatsWColor = (name, v, cc, flags) => {
                 if ((WheelFlags.Min & flags) != 0) {
@@ -230,9 +254,9 @@ namespace RaceEngineerPlugin {
                 addStatsWColor(name + Car.Tyres.Names[3], values[3], ccr, flags);
             };
 
-            addTyresStats("TyrePresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, Settings.TyrePresFlags);
-            addTyresStats("TyreTempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, Settings.TyreTempFlags);
-            addTyresStats("BrakeTempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, Settings.BrakeTempFlags);
+            addTyresStats("Tyres.PresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, Settings.TyrePresFlags);
+            addTyresStats("Tyres.TempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, Settings.TyreTempFlags);
+            addTyresStats("Brakes.TempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, Settings.BrakeTempFlags);
 
 
 
@@ -270,8 +294,8 @@ namespace RaceEngineerPlugin {
                 if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
             };
 
-            addPrevData("PrevLapTime", _values.Laps.PrevTimes);
-            addPrevData("PrevFuelPerLap", _values.Car.Fuel.PrevUsedPerLap);
+            addPrevData("Laps.PrevTime", _values.Laps.PrevTimes);
+            addPrevData("Fuel.PrevUsedPerLap", _values.Car.Fuel.PrevUsedPerLap);
 
             #endregion
 

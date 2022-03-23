@@ -8,6 +8,7 @@ using RaceEngineerPlugin.RawData;
 using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 using ksBroadcastingNetwork;
 using ACCUdpRemoteClient = RaceEngineerPlugin.ksBroadcastingNetwork.ACCUdpRemoteClient;
+using System.Collections.Concurrent;
 
 namespace RaceEngineerPlugin {
 
@@ -91,13 +92,13 @@ namespace RaceEngineerPlugin {
         }
 
         public void OnNewEvent(GameData data) {
-            RaceEngineerPlugin.LogInfo($"OnNewEvent. {data.NewData}");
+            RaceEngineerPlugin.LogInfo($"OnNewEvent.");
             var sessType = RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
             Booleans.OnNewEvent(sessType);
             Track.OnNewEvent(data);
             Car.OnNewEvent(data, this);
             Laps.OnNewEvent(this);
-            Db.InsertEvent(Car.Name, Track.Name);
+            Db.InsertEvent(data, this);
         }
 
         /// <summary>
@@ -111,8 +112,8 @@ namespace RaceEngineerPlugin {
         ///     OnNewEvent - at the start of event, eg at the start of first session
         /// 
         /// </summary>
+        private DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
-
             RawData.UpdateSharedMem((SHACCRawData)data.NewData.GetRawDataObject());
 
             if (Booleans.NewData.IsNewEvent) {
@@ -133,8 +134,7 @@ namespace RaceEngineerPlugin {
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!Booleans.NewData.IsRaceStartStintAdded && Booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) 
-            {
+            if (!Booleans.NewData.IsRaceStartStintAdded && Booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 OnNewStint(data);
@@ -165,7 +165,9 @@ namespace RaceEngineerPlugin {
                 Session.OnNewSession();
                 Car.OnNewSession(this);
                 Laps.OnNewSession(this);
+                Db.InsertSession(data, this);
             }
+
         }
 
         #region Broadcast client connection
