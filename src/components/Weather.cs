@@ -7,6 +7,7 @@ using ACSharedMemory.ACC.MMFModels;
 using RaceEngineerPlugin.RawData;
 using ksBroadcastingNetwork;
 
+
 namespace RaceEngineerPlugin {
     public class Weather {
         public double AirTemp { get; private set; }
@@ -18,6 +19,10 @@ namespace RaceEngineerPlugin {
 
         public string WeatherSummary = "";
 
+        private bool _isInitialForecastAdded = false;
+        private double? _initalForecastTime = null;
+        public int _daysSinceStart = 0;
+        public bool _add10MinChange = true;
         // Keep track of weather changes, predict exact time for weather change
 
         public Weather() {
@@ -31,6 +36,10 @@ namespace RaceEngineerPlugin {
             AirTempAtLapStart = double.NaN;
             TrackTempAtLapStart = double.NaN;
             Forecast.Clear();
+            _isInitialForecastAdded = false;
+            _initalForecastTime = null;
+            _daysSinceStart = 0;
+            WeatherSummary = "";
         }
 
         #region On... METHODS
@@ -88,31 +97,81 @@ namespace RaceEngineerPlugin {
             }
         }
 
+        private const double secInDay = 24 * 3600;
         public void UpdateForecast(GameData data, Values v) {
             if (RaceEngineerPlugin.Game.IsAcc) {
-                var now = data.NewData.PacketTime;
-                var changed = false;
-                if (now < data.SessionStartDate.AddMinutes(20) && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {
-                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn10min, now, 10));
-                    changed = true;
+                var nowTime = v.RawData.NewData.Graphics.clock + secInDay*_daysSinceStart;
+                if (v.Session.TimeMultiplier < 1) return;
+                if (!_isInitialForecastAdded) {
+                    var now = v.RawData.NewData.Graphics.rainIntensity;
+                    var in10 = v.RawData.NewData.Graphics.rainIntensityIn10min;
+                    var in30 = v.RawData.NewData.Graphics.rainIntensityIn30min;
+
+                    if (in10 != now) {
+                        Forecast.Add(new WeatherPoint(in10, nowTime + 10*60));
+                    }
+                    if (in30 != in10) {
+                        Forecast.Add(new WeatherPoint(in30, nowTime + 30*60));
+                    }
+                    _isInitialForecastAdded = true;
+                    _initalForecastTime = nowTime;
+                    return;
                 }
-                if (v.RawData.OldData.Graphics.rainIntensityIn30min != v.RawData.NewData.Graphics.rainIntensityIn30min) {
-                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn30min, now, 30));
+
+                if (v.RawData.NewData.Graphics.clock < v.RawData.OldData.Graphics.clock && v.RawData.NewData.Graphics.globalRed == 0) {
+                    // Graphics.clock can jump back and forth is session is not running, that could add false days. Check that we are in session.
+                    _daysSinceStart += 1;
+                }
+
+                // We only need to add changes from rainIntensityIn10Min for the first 20/TimeMultiplier minutes. After that rainIntensityIn10min repeats rainIntensityIn30min with 20/TimeMultiplier minute delay.
+                if (_add10MinChange && _initalForecastTime != null && nowTime > _initalForecastTime + 20*60) {
+                    _add10MinChange = false;
+                }
+
+                var changed = false;
+                if (_add10MinChange && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {
+                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn10min, nowTime + 10*60));
                     changed = true;
                 }
 
+                if (v.RawData.OldData.Graphics.rainIntensityIn30min != v.RawData.NewData.Graphics.rainIntensityIn30min) {
+                    Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn30min, nowTime + 30*60));
+                    changed = true;
+                }
+
+                // Remove points which are past
                 var lenprev = Forecast.Count;
-                Forecast.RemoveAll((w) => w.StartTime(v.Session.TimeMultiplier) < now);
+                Forecast.RemoveAll((w) => w.StartTime < nowTime);
                 if (changed || lenprev != Forecast.Count) {
-                    Forecast.Sort((a, b) => a.StartTime(v.Session.TimeMultiplier).CompareTo(b.StartTime(v.Session.TimeMultiplier)));
-                    WeatherSummary = "";
-                    foreach (var weatherPoint in Forecast) {
-                        if (v.Session.TimeMultiplier != 0) {
-                            var deltaFromNow = weatherPoint.StartTime(v.Session.TimeMultiplier) - DateTime.Now;
-                            WeatherSummary += $"{deltaFromNow.TotalMinutes:0.0}min - {weatherPoint.RainIntensity.ToString().Replace("ACC", "")}";
-                        }
+                    Forecast.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+                }
+
+                WeatherSummary = "";
+                foreach (var weatherPoint in Forecast) {
+                    if (v.Session.TimeMultiplier != 0) { // Weather won't change if timemult == 0, no reason to update weatherSummary
+                        var deltaFromNow = (weatherPoint.StartTime - nowTime)/60.0/v.Session.TimeMultiplier;
+                        WeatherSummary += $"{deltaFromNow:0.0}min: {ToPrettyString(weatherPoint.RainIntensity)}, ";
                     }
                 }
+            }
+        }
+
+        private static string ToPrettyString(ACC_RAIN_INTENSITY rainIntensity) {
+            switch (rainIntensity) {
+                case ACC_RAIN_INTENSITY.ACC_NO_RAIN:
+                    return "No rain";
+                case ACC_RAIN_INTENSITY.ACC_DRIZZLE:
+                    return "Drizzle";
+                case ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN:
+                    return "Light rain";
+                case ACC_RAIN_INTENSITY.ACC_MEDIUM_RAIN:
+                    return "Medium rain";
+                case ACC_RAIN_INTENSITY.ACC_HEAVY_RAIN:
+                    return "Heavy rain";
+                case ACC_RAIN_INTENSITY.ACC_THUNDERSTORM:
+                    return "Storm";
+                default:
+                    return "Unknown";
             }
         }
 
@@ -122,14 +181,11 @@ namespace RaceEngineerPlugin {
 
     public class WeatherPoint {
         public ACC_RAIN_INTENSITY RainIntensity { get; }
-        private DateTime _addTime;
-        private double _timeDeltaMin;
-        private DateTime? _startTime = null;
+        public double StartTime { get; }
 
-        public WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, DateTime time, double timeDelta) {
+        public WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, double startTime) {
             RainIntensity = rainIntensity;
-            _addTime = time;
-            _timeDeltaMin = timeDelta;
+            StartTime = startTime;
         }
 
         /// <summary>
@@ -140,18 +196,18 @@ namespace RaceEngineerPlugin {
         /// </summary>
         /// <param name="timeMultiplier"></param>
         /// <returns></returns>
-        public DateTime StartTime(int timeMultiplier) {
-            if (_startTime != null) return (DateTime)_startTime;
+        //public DateTime StartTime(int timeMultiplier) {
+        //    if (_startTime != null) return (DateTime)_startTime;
 
-            if (timeMultiplier == -1) {
-                return _addTime.AddMinutes(_timeDeltaMin);
-            } else if (timeMultiplier == 0) {
-                _startTime = DateTime.MaxValue;
-            } else {
-                _startTime = _addTime.AddMinutes(_timeDeltaMin / timeMultiplier);
-            }
-            return (DateTime)_startTime;
-        }
+        //    if (timeMultiplier == -1) {
+        //        return _addTime.AddMinutes(_timeDeltaMin);
+        //    } else if (timeMultiplier == 0) {
+        //        _startTime = DateTime.MaxValue;
+        //    } else {
+        //        _startTime = _addTime.AddMinutes(_timeDeltaMin / timeMultiplier);
+        //    }
+        //    return (DateTime)_startTime;
+        //}
     }
 
 
