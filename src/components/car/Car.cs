@@ -136,8 +136,11 @@ namespace RaceEngineerPlugin.Car {
             string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{Name}.json";
             if (!File.Exists(fname)) {
                 if (RaceEngineerPlugin.Game.IsAcc) {
-                    var carClass = Name.ToLower().Contains("gt4") ? "gt4" : "gt3";
-                    fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def_{carClass}.json";
+                    var carClass = Helpers.GetAccCarClass(Name);
+                    fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carClass}.json";
+                    if (!File.Exists(fname)) { 
+                        fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
+                    }
                 } else {
                     fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
                 }
@@ -147,7 +150,7 @@ namespace RaceEngineerPlugin.Car {
                 Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
             } catch (IOException e) {
-                RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
+                //RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
                 Info = null;
             }
         }
@@ -159,7 +162,7 @@ namespace RaceEngineerPlugin.Car {
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
                 Tyres.OnSetupChange();
             } catch (IOException e) {
-                RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
+               // RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 Setup = null;
             }
         }

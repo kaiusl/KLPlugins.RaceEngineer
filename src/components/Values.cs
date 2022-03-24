@@ -168,6 +168,12 @@ namespace RaceEngineerPlugin {
                 Db.InsertSession(data, this);
             }
 
+            //if ((data.NewData.PacketTime - lastWeather).TotalSeconds > 5) {
+            //    File.AppendAllText($"{RaceEngineerPlugin.Settings.DataLocation}\\weather.txt", $"{data.NewData.PacketTime.Ticks}; {RawData.NewData.Graphics.clock}; {data.NewData.AirTemperature}; {data.NewData.RoadTemperature}; {RawData.NewData.Graphics.rainIntensity}; {RawData.NewData.Graphics.rainIntensityIn10min}; {RawData.NewData.Graphics.rainIntensityIn30min}; {RawData.NewData.Graphics.trackGripStatus}; {RawData.NewData.Graphics.CarCount}; {RawData.NewData.Graphics.WindSpeed}\n");
+            //    lastWeather = data.NewData.PacketTime;
+            //}
+
+
         }
 
         #region Broadcast client connection

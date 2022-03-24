@@ -21,7 +21,7 @@ namespace RaceEngineerPlugin.Car {
             LapsNr = 0;
             TempOverLap = new WheelsStats();
             tempColor = new ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
-            TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
+            TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
         }
 
         public void Reset() {
@@ -29,7 +29,7 @@ namespace RaceEngineerPlugin.Car {
             LapsNr = 0;
             TempOverLap.Reset();
             for (int i = 0; i < 4; i++) {
-                TempColor[i] = "#000000";
+                TempColor[i] = RaceEngineerPlugin.DefColor;
             }
             tempColor.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             _tempRunning.Reset();

@@ -54,6 +54,8 @@ namespace RaceEngineerPlugin.Color {
         private double[] _values;
         private LinearColorInterpolator[] _interpolators;
 
+        private static HSV DefColor;
+
 
         /// <summary>
         /// 
@@ -75,6 +77,8 @@ namespace RaceEngineerPlugin.Color {
             }
             _interpolators = new LinearColorInterpolator[NumColor];
             UpdateInterpolators();
+
+            DefColor = new HSV(RaceEngineerPlugin.DefColor);
         }
 
         public void UpdateInterpolation(double[] values) {
@@ -116,6 +120,8 @@ namespace RaceEngineerPlugin.Color {
         }
 
         public HSV GetColor(double value) {
+            if (double.IsNaN(value)) return DefColor;
+
             if (value <= _values[0]) {
                 return _colors[0];
             }

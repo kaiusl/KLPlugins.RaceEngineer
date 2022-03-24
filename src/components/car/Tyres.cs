@@ -65,8 +65,8 @@ namespace RaceEngineerPlugin.Car {
             PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
             PresLossLap = new bool[4] { false, false, false, false };
             SetLaps = new Dictionary<string, Dictionary<int, int>>();
-            PresColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
-            TempColor = new string[4] { "#000000", "#000000", "#000000", "#000000" };
+            PresColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
             Reset();
         }
 
@@ -81,8 +81,8 @@ namespace RaceEngineerPlugin.Car {
                 CurrentInputPres[i] = double.NaN;
                 PresLoss[i] = 0.0;
                 PresLossLap[i] = false;
-                PresColor[i] = "#000000";
-                TempColor[i] = "#000000";
+                PresColor[i] = RaceEngineerPlugin.DefColor;
+                TempColor[i] = RaceEngineerPlugin.DefColor;
             }
 
             PresOverLap.Reset();
@@ -109,8 +109,8 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public int GetCurrentSetLaps() {
-            if (!RaceEngineerPlugin.Game.IsAcc) return -1;
-            return SetLaps[Name][CurrentTyreSet];
+            if (!RaceEngineerPlugin.Game.IsAcc || Name == null) return -1;
+            return SetLaps?[Name]?[CurrentTyreSet] ?? -1;
         }
 
         #region On... METHODS
@@ -331,16 +331,21 @@ namespace RaceEngineerPlugin.Car {
                     var preds = InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, _tyreInfo.IdealPres.F, _tyreInfo.IdealPres.R);
                     preds.CopyTo(PredictedIdealInputPresDry, 0);
                 } else {
-                    InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
-                    for (int i = 0; i < 4; i++) {
-                        PredictedIdealInputPresDry[i] = double.NaN;
+                    if (v.Car.Setup != null) {
+                        InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
+                        for (int i = 0; i < 4; i++) {
+                            PredictedIdealInputPresDry[i] = double.NaN;
+                        }
                     }
+                    
                 }
             }
 
             if (!_updatingPresPredictorNowWet && v.RawData.NewData.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
                 if (v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity || InputTyrePresPredictorNowWet == null) {
-                    InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                    if (v.Car.Setup != null) {
+                        InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                    }
                     for (int i = 0; i < 4; i++) {
                         PredictedIdealInputPresNowWet[i] = double.NaN;
                     }
@@ -352,7 +357,9 @@ namespace RaceEngineerPlugin.Car {
 
             if (!_updatingPresPredictorFutureWet && (v.RawData.NewData.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || v.RawData.NewData.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
                 if (v.RawData.NewData.Graphics.rainIntensityIn30min != v.RawData.OldData.Graphics.rainIntensityIn30min || InputTyrePresPredictorFutureWet == null) {
-                    InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                    if (v.Car.Setup != null) {
+                        InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                    }
                     for (int i = 0; i < 4; i++) {
                         PredictedIdealInputPresFutureWet[i] = double.NaN;
                     }
