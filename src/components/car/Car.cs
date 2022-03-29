@@ -5,7 +5,7 @@ using GameReaderCommon;
 using Newtonsoft.Json;
 using SimHub.Plugins;
 
-namespace RaceEngineerPlugin.Car {
+namespace KLPlugins.RaceEngineer.Car {
     public class FrontRear {
         public double F { get; set; }
         public double R { get; set; }

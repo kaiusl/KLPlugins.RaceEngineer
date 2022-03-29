@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace RaceEngineerPlugin.ML {
+namespace KLPlugins.RaceEngineer.ML {
 
     /// <summary>
     /// Ridge regression algorithm

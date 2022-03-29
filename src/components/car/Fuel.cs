@@ -1,12 +1,12 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using RaceEngineerPlugin.Deque;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.Deque;
+using KLPlugins.RaceEngineer.RawData;
 using ACSharedMemory.ACC.MMFModels;
 using ksBroadcastingNetwork;
 
-namespace RaceEngineerPlugin.Car {
+namespace KLPlugins.RaceEngineer.Car {
 
     public class Fuel {
         public double Remaining { get; private set; }

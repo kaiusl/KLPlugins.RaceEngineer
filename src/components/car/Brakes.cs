@@ -1,11 +1,11 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using RaceEngineerPlugin.Stats;
-using RaceEngineerPlugin.Color;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.Stats;
+using KLPlugins.RaceEngineer.Color;
+using KLPlugins.RaceEngineer.RawData;
 
-namespace RaceEngineerPlugin.Car {
+namespace KLPlugins.RaceEngineer.Car {
     public class Brakes {
         public int LapsNr { get; private set; }
         public int SetNr { get; private set; }

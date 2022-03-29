@@ -1,7 +1,7 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 
-namespace RaceEngineerPlugin.Track {
+namespace KLPlugins.RaceEngineer.Track {
 
     public class Track {
         public string Name { get; private set; }

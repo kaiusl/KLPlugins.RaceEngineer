@@ -1,9 +1,9 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using RaceEngineerPlugin.Deque;
+using KLPlugins.RaceEngineer.Deque;
 
-namespace RaceEngineerPlugin.Laps {
+namespace KLPlugins.RaceEngineer.Laps {
 
     public class Laps {
         public double LastTime { get; private set; }

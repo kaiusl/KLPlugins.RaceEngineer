@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RaceEngineerPlugin.Color {
+namespace KLPlugins.RaceEngineer.Color {
     /// <summary>
     /// Linear interpolator between to points
     /// </summary>

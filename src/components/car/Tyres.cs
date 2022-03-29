@@ -1,16 +1,16 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using RaceEngineerPlugin.Stats;
+using KLPlugins.RaceEngineer.Stats;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.RawData;
 using ACSharedMemory.ACC.MMFModels;
 
-namespace RaceEngineerPlugin.Car {
+namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
         public static string[] Names = new string[4] { "FL", "FR", "RL", "RR" };

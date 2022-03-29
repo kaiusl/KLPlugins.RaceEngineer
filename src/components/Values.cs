@@ -4,12 +4,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.RawData;
 using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 using ksBroadcastingNetwork;
 using System.Collections.Concurrent;
 
-namespace RaceEngineerPlugin {
+namespace KLPlugins.RaceEngineer {
 
     /// <summary>
     /// Storage and calculation of new properties

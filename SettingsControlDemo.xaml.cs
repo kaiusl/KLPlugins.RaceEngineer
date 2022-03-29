@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace RaceEngineerPlugin
+namespace KLPlugins.RaceEngineer
 {
     /// <summary>
     /// Logique d'interaction pour SettingsControlDemo.xaml

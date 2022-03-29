@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace RaceEngineerPlugin.Color {
+namespace KLPlugins.RaceEngineer.Color {
     /// <summary>
     /// Stores HSV color 
     /// </summary>

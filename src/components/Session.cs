@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RaceEngineerPlugin {
+namespace KLPlugins.RaceEngineer {
     public class Session {
         public RaceSessionType? RaceSessionType { get; private set; }
         public bool IsNewSession { get; private set; }

@@ -10,11 +10,11 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Reflection;
 using ACSharedMemory.ACC.Reader;
-using RaceEngineerPlugin.Deque;
+using KLPlugins.RaceEngineer.Deque;
 using GameReaderCommon.Enums;
 using ksBroadcastingNetwork;
 
-namespace RaceEngineerPlugin {
+namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
     [PluginAuthor("Kaius Loos")]
     [PluginName("RaceEngineerPlugin")]
@@ -27,7 +27,7 @@ namespace RaceEngineerPlugin {
         public string LeftMenuTitle => "Race Engineer Plugin";
 
         public static readonly Settings Settings = new Settings();
-        public static Game.Game Game; // Const during the lifetime of this plugin, plugin is rebuilt at game change
+        public static Game Game; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GameDataPath; // Same as above
         public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
         public static string DefColor = "#555555";
@@ -95,7 +95,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
             var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
-            if (gameName != global::RaceEngineerPlugin.Game.Game.AccName) return;
+            if (gameName != Game.AccName) return;
 
             if (Settings.Log) {
                 var fpath = $"{Settings.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
@@ -110,7 +110,7 @@ namespace RaceEngineerPlugin {
 
             // DataCorePlugin should be built before, thus this property should be available.
 
-            Game = new Game.Game(gameName);
+            Game = new Game(gameName);
             GameDataPath = $@"{Settings.DataLocation}\{gameName}";
             _values = new Values();
 

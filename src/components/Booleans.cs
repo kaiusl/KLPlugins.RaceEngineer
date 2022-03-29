@@ -2,10 +2,10 @@ using GameReaderCommon;
 using SimHub.Plugins;
 using System.Diagnostics;
 using System.IO;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.RawData;
 using ksBroadcastingNetwork;
 
-namespace RaceEngineerPlugin.Booleans {
+namespace KLPlugins.RaceEngineer.Booleans {
 
     /// <summary>
     /// Hold single set of boolean values

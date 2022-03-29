@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace RaceEngineerPlugin {
+namespace KLPlugins.RaceEngineer {
     /// <summary>
     /// Settings class, make sure it can be correctly serialized using JSON.net
     /// </summary>
@@ -45,7 +45,7 @@ namespace RaceEngineerPlugin {
         private WheelFlags _tyreTempFlags;
         private WheelFlags _brakeTempFlags;
 
-        private const string SETTINGS_PATH = @"PluginsData\RaceEngineerPlugin\Settings.json";
+        private const string SETTINGS_PATH = @"PluginsData\KLPlugins\RaceEngineer\Settings.json";
         private static readonly string[] REMAINING_STATS_FLAGS = { "Min", "Max", "Avg" };
 
         public Settings() {
@@ -186,7 +186,7 @@ namespace RaceEngineerPlugin {
 
         public SettingsInternal() {
             NumPreviousValuesStored = 10;
-            DataLocation = "PluginsData\\RaceEngineerPlugin";
+            DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
             AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
             TempColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
             TyreTempColorDefValues = new double[] { 70.0, 80.0, 90.0, 100.0 };

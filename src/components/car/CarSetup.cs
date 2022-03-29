@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RaceEngineerPlugin.Car
+namespace KLPlugins.RaceEngineer.Car
 {
     public class CarSetup
     {

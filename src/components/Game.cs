@@ -1,4 +1,4 @@
-﻿namespace RaceEngineerPlugin.Game {
+﻿namespace KLPlugins.RaceEngineer {
 
 
     /// <summary>

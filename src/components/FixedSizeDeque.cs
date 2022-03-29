@@ -5,7 +5,7 @@ using Nito.Collections;
 using MathNet.Numerics.Statistics;
 using System.Diagnostics;
 
-namespace RaceEngineerPlugin.Deque {
+namespace KLPlugins.RaceEngineer.Deque {
 
     public enum RemoveOutliers {
         None,

@@ -1,7 +1,7 @@
 ﻿using ksBroadcastingNetwork.Structs;
 using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 
-namespace RaceEngineerPlugin.RawData {
+namespace KLPlugins.RaceEngineer.RawData {
     public class ACCRawData {
         public SHACCRawData OldData { get; private set; }
         public SHACCRawData NewData { get; private set; }

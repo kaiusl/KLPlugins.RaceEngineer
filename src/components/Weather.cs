@@ -1,14 +1,13 @@
 using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using RaceEngineerPlugin.Deque;
+using KLPlugins.RaceEngineer.Deque;
 using System.Collections.Generic;
 using ACSharedMemory.ACC.MMFModels;
-using RaceEngineerPlugin.RawData;
+using KLPlugins.RaceEngineer.RawData;
 using ksBroadcastingNetwork;
 
-
-namespace RaceEngineerPlugin {
+namespace KLPlugins.RaceEngineer {
     public class Weather {
         public double AirTemp { get; private set; }
         public double TrackTemp { get; private set; }

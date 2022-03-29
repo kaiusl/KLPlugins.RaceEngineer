@@ -1,6 +1,6 @@
 ﻿using GameReaderCommon;
 
-namespace RaceEngineerPlugin.Remaining {
+namespace KLPlugins.RaceEngineer.Remaining {
 
     /// <summary>
     /// Class to store and calculate current laps/time left in session and fuel needed.

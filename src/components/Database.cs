@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using ACSharedMemory.ACC.MMFModels;
 using GameReaderCommon;
 using SimHub.Plugins;
-using RaceEngineerPlugin.Car;
+using KLPlugins.RaceEngineer.Car;
 
-namespace RaceEngineerPlugin.Database
+namespace KLPlugins.RaceEngineer.Database
 {
 	public struct Event {
 		public string CarId;

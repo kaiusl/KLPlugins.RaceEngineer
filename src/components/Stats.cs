@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace RaceEngineerPlugin.Stats {
+namespace KLPlugins.RaceEngineer.Stats {
     /// <summary>
     /// Base class to build different statistics implementations
     /// </summary>
