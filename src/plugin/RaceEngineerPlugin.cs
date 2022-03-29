@@ -160,7 +160,7 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("Booleans.IsInLap", () => _values.Booleans.NewData.IsInLap ? 1 : 0);
             this.AttachDelegate("Booleans.EcuMapChangedThisLap", () => _values.Booleans.NewData.EcuMapChangedThisLap ? 1 : 0);
             this.AttachDelegate("Booleans.RainIntensityChangedThisLap", () => _values.Booleans.NewData.RainIntensityChangedThisLap ? 1 : 0);
-            this.AttachDelegate("Booleans.IsBroadcastClientConnected", () => _values.BroadcastClient?.IsConnected ?? false ? 1 : 0);
+            //this.AttachDelegate("Booleans.IsBroadcastClientConnected", () => _values.RawData.BroadcastClient?.IsConnected ?? false ? 1 : 0);
 
             this.AttachDelegate("Fuel.Remaining", () => _values.Car.Fuel.Remaining);
             this.AttachDelegate("Fuel.RemainingAtLapStart", () => _values.Car.Fuel.RemainingAtLapStart);

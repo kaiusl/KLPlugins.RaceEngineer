@@ -11,28 +11,31 @@ namespace RaceEngineerPlugin.RawData {
             NewData = new SHACCRawData();
         }
 
-        public void UpdateSharedMem(SHACCRawData newData) {
-            if (newData == null) return;
+        public void Update(SHACCRawData newData) {
+            OldData = NewData;
+            NewData = newData;
+
+            //if (newData == null) return;
  
-            OldData.Physics = NewData.Physics;
-            OldData.Graphics = NewData.Graphics;
-            OldData.StaticInfo = NewData.StaticInfo;
-            //OldData.Cars = NewData.Cars;
+            //OldData.Physics = NewData.Physics;
+            //OldData.Graphics = NewData.Graphics;
+            //OldData.StaticInfo = NewData.StaticInfo;
+            ////OldData.Cars = NewData.Cars;
 
-            NewData.Physics = newData.Physics;
-            NewData.Graphics = newData.Graphics;
-            NewData.StaticInfo = newData.StaticInfo;
+            //NewData.Physics = newData.Physics;
+            //NewData.Graphics = newData.Graphics;
+            //NewData.StaticInfo = newData.StaticInfo;
         }
 
-        public void OnBroadcastRealtimeUpdate(string sender, RealtimeUpdate update) {
-            if (NewData.Realtime == null) {
-                OldData.Realtime = update;
-                NewData.Realtime = update;
-            } else {
-                OldData.Realtime = NewData.Realtime;
-                NewData.Realtime = update;
-            }
-        }
+        //public void OnBroadcastRealtimeUpdate(string sender, RealtimeUpdate update) {
+        //    if (NewData.Realtime == null) {
+        //        OldData.Realtime = update;
+        //        NewData.Realtime = update;
+        //    } else {
+        //        OldData.Realtime = NewData.Realtime;
+        //        NewData.Realtime = update;
+        //    }
+        //}
 
         public void Reset() {
             OldData = new SHACCRawData();

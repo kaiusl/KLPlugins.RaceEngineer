@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using RaceEngineerPlugin.RawData;
 using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 using ksBroadcastingNetwork;
-using ACCUdpRemoteClient = RaceEngineerPlugin.ksBroadcastingNetwork.ACCUdpRemoteClient;
 using System.Collections.Concurrent;
 
 namespace RaceEngineerPlugin {
@@ -27,14 +26,14 @@ namespace RaceEngineerPlugin {
         public Remaining.RemainingOnFuel RemainingOnFuel = new Remaining.RemainingOnFuel();
         public Database.Database Db = new Database.Database();
 
-        public ACCUdpRemoteClient BroadcastClient = null;
+        //public ACCUdpRemoteClient BroadcastClient = null;
 
         public Values() {}
 
         public void Reset() {
-            if (BroadcastClient != null) {
-                DisposeBroadcastClient();
-            }
+            //if (BroadcastClient != null) {
+            //    DisposeBroadcastClient();
+            //}
 
             Booleans.Reset();
             Car.Reset();
@@ -60,7 +59,7 @@ namespace RaceEngineerPlugin {
                 if (disposing) {
                     RaceEngineerPlugin.LogInfo("Disposed");
                     Db.Dispose();
-                    DisposeBroadcastClient();
+                    //DisposeBroadcastClient();
                 }
 
                 isDisposed = true;
@@ -80,11 +79,11 @@ namespace RaceEngineerPlugin {
 
         public void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
-                if (BroadcastClient != null) {
-                    RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
-                    DisposeBroadcastClient();
-                }
-                ConnectToBroadcastClient();
+                //if (BroadcastClient != null) {
+                //    RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
+                //    DisposeBroadcastClient();
+                //}
+                //ConnectToBroadcastClient();
             } else {
                 Reset();
             }
@@ -114,7 +113,7 @@ namespace RaceEngineerPlugin {
         /// </summary>
         private DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
-            RawData.UpdateSharedMem((SHACCRawData)data.NewData.GetRawDataObject());
+            RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
             if (Booleans.NewData.IsNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
@@ -182,27 +181,28 @@ namespace RaceEngineerPlugin {
 
         #region Broadcast client connection
 
-        public void ConnectToBroadcastClient() {
-            BroadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
-            BroadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
-            BroadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
-        }
+        //public void ConnectToBroadcastClient() {
+        //    BroadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
+        //    BroadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
+        //    BroadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
+        //}
 
-        public void DisposeBroadcastClient() {
-            if (BroadcastClient != null) {
-                BroadcastClient.Shutdown();
-                BroadcastClient.Dispose();
-                BroadcastClient = null;
-            }
-        }
+        //public void DisposeBroadcastClient() {
+        //    if (BroadcastClient != null) {
+        //        BroadcastClient.Shutdown();
+        //        BroadcastClient.Dispose();
+        //        BroadcastClient = null;
+        //    }
+        //}
 
-        private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
-            if (connectionSuccess) {
-                RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
-            } else {
-                RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
-            }
-        }
+        //private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
+        //    if (connectionSuccess) {
+        //        RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
+        //    } else {
+        //        RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
+        //    }
+        //}
+
         #endregion
 
     }
