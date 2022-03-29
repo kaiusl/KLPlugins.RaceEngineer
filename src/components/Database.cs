@@ -19,15 +19,17 @@ namespace RaceEngineerPlugin.Database
 		public string CarId;
 		public string TrackId;
 		public string StartTime;
+		public string GameVersion;
 
-		public Event(string carName, string trackName) {
-			CarId = carName;
-			TrackId = trackName;
+		public Event(Values v) {
+			CarId = v.Car.Name;
+			TrackId = v.Track.Name;
 			StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
+			GameVersion = $"{v.RawData.NewData.StaticInfo.ACVersion}/{v.RawData.NewData.StaticInfo.SMVersion}";
 		}
 
         public override string ToString() {
-			return $"CarId = {CarId}, TrackId = {TrackId}, StartTime = {StartTime}";
+			return $"CarId = {CarId}, TrackId = {TrackId}, StartTime = {StartTime}, GameVersion = {GameVersion}";
         }
     }
 
@@ -348,12 +350,14 @@ namespace RaceEngineerPlugin.Database
 		private const string CAR_ID = "car_id";
 		private const string TRACK_ID = "track_id";
 		private const string START_TIME = "start_time";
+		private const string GAME_VERSION = "game_version";
 
 		private DBTable eventsTable = new DBTable("events", new DBField[] {
 			new DBField(EVENT_ID, "INTEGER PRIMARY KEY"),
 			new DBField(CAR_ID, "TEXT"),
 			new DBField(TRACK_ID, "TEXT"),
-			new DBField(START_TIME, "TEXT")
+			new DBField(START_TIME, "TEXT"),
+			new DBField(GAME_VERSION, "TEXT")
 		});
 
 		private const string SESSION_ID = "session_id";
@@ -552,7 +556,7 @@ namespace RaceEngineerPlugin.Database
 		}
 
 		public void InsertEvent(GameData data, Values v) {
-			var e = new Event(v.Car.Name, v.Track.Name);
+			var e = new Event(v);
 			RaceEngineerPlugin.LogInfo(e.ToString());
 			_ = Task.Run(() => InsertEvent(e));
 		}
@@ -563,6 +567,7 @@ namespace RaceEngineerPlugin.Database
 			SetParam(_insertEventCmd, CAR_ID, e.CarId);
 			SetParam(_insertEventCmd, TRACK_ID, e.TrackId);
 			SetParam(_insertEventCmd, START_TIME, e.StartTime);
+			SetParam(_insertEventCmd, GAME_VERSION, e.GameVersion);
 			_eventId = (long)_insertEventCmd.ExecuteScalar();
 
 			_dbMutex.ReleaseMutex();

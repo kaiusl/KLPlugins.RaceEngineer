@@ -75,7 +75,8 @@ namespace RaceEngineerPlugin {
             _values.Dispose();
             _logWriter.Dispose();
             _logFile.Dispose();
-            LogInfo("Disposed.");
+            _logWriter = null;
+            _logFile = null;
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace RaceEngineerPlugin {
         /// <param name="pluginManager"></param>
         /// <returns></returns>
         public System.Windows.Controls.Control GetWPFSettingsControl(PluginManager pluginManager) {
-            return new SettingsControlDemo(this);
+            return null;//new SettingsControlDemo(this);
         }
 
         /// <summary>
@@ -145,8 +146,8 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("Brakes.CurrentSetLaps", () => _values.Car.Brakes.LapsNr);
             this.AttachDelegate("Brakes.CurrentSet", () => _values.Car.Brakes.SetNr);
 
-            this.AttachDelegate("Brakes.DuctFront", () => _values.Car?.Setup.advancedSetup.aeroBalance.brakeDuct[0]);
-            this.AttachDelegate("Brakes.DuctRear", () => _values.Car?.Setup.advancedSetup.aeroBalance.brakeDuct[1]);
+            this.AttachDelegate("Brakes.DuctFront", () => _values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[0]);
+            this.AttachDelegate("Brakes.DuctRear", () => _values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[1]);
 
             this.AttachDelegate("Booleans.IsInMenu", () => _values.Booleans.NewData.IsInMenu ? 1 : 0);
             this.AttachDelegate("Booleans.IsOnTrack", () => _values.Booleans.NewData.IsOnTrack ? 1 : 0);
@@ -159,31 +160,32 @@ namespace RaceEngineerPlugin {
             this.AttachDelegate("Booleans.IsInLap", () => _values.Booleans.NewData.IsInLap ? 1 : 0);
             this.AttachDelegate("Booleans.EcuMapChangedThisLap", () => _values.Booleans.NewData.EcuMapChangedThisLap ? 1 : 0);
             this.AttachDelegate("Booleans.RainIntensityChangedThisLap", () => _values.Booleans.NewData.RainIntensityChangedThisLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsBroadcastClientConnected", () => _values.BroadcastClient?.IsConnected ?? false ? 1 : 0);
 
-            this.AttachDelegate("Fuel.Remaining", () => FiniteOrNaN(_values.Car.Fuel.Remaining));
-            this.AttachDelegate("Fuel.RemainingAtLapStart", () => FiniteOrNaN(_values.Car.Fuel.RemainingAtLapStart));
+            this.AttachDelegate("Fuel.Remaining", () => _values.Car.Fuel.Remaining);
+            this.AttachDelegate("Fuel.RemainingAtLapStart", () => _values.Car.Fuel.RemainingAtLapStart);
 
             Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
                 if ((StatsFlags.Min & settings) != 0) {
-                    this.AttachDelegate(name + "Min", () => FiniteOrNaN(values.Min));
+                    this.AttachDelegate(name + "Min", () => values.Min);
                 }
                 if ((StatsFlags.Max & settings) != 0) {
-                    this.AttachDelegate(name + "Max", () => FiniteOrNaN(values.Max));
+                    this.AttachDelegate(name + "Max", () => values.Max);
                 }
                 if ((StatsFlags.Avg & settings) != 0) {
-                    this.AttachDelegate(name + "Avg", () => FiniteOrNaN(values.Avg));
+                    this.AttachDelegate(name + "Avg", () => values.Avg);
                 }
                 if ((StatsFlags.Std & settings) != 0) {
-                    this.AttachDelegate(name + "Std", () => FiniteOrNaN(values.Std));
+                    this.AttachDelegate(name + "Std", () => values.Std);
                 }
                 if ((StatsFlags.Median & settings) != 0) {
-                    this.AttachDelegate(name + "Median", () => FiniteOrNaN(values.Median));
+                    this.AttachDelegate(name + "Median", () => values.Median);
                 }
                 if ((StatsFlags.Q1 & settings) != 0) {
-                    this.AttachDelegate(name + "Q1", () => FiniteOrNaN(values.Q1));
+                    this.AttachDelegate(name + "Q1", () => values.Q1);
                 }
                 if ((StatsFlags.Q3 & settings) != 0) {
-                    this.AttachDelegate(name + "Q3", () => FiniteOrNaN(values.Q3));
+                    this.AttachDelegate(name + "Q3", () => values.Q3);
                 }
             };
 
@@ -223,76 +225,85 @@ namespace RaceEngineerPlugin {
             addTyresColor("Tyres.Temp", _values.Car.Tyres.TempColor, Settings.TyreTempFlags);
             addTyresColor("Brakes.Temp", _values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
 
-            Action<string, Stats.Stats, Color.ColorCalculator, WheelFlags> addStatsWColor = (name, v, cc, flags) => {
-                if ((WheelFlags.Min & flags) != 0) {
-                    this.AttachDelegate(name + "Min", () => FiniteOrNaN(v.Min));
-                }
-                if ((WheelFlags.Max & flags) != 0) {
-                    this.AttachDelegate(name + "Max", () => FiniteOrNaN(v.Max));
-                }
-                if ((WheelFlags.Avg & flags) != 0) {
-                    this.AttachDelegate(name + "Avg", () => FiniteOrNaN(v.Avg));
-                }
-                if ((WheelFlags.Std & flags) != 0) {
-                    this.AttachDelegate(name + "Std", () => FiniteOrNaN(v.Std));
-                }
-
-                if ((WheelFlags.MinColor & flags) != 0) {
-                    this.AttachDelegate(name + "MinColor", () => cc.GetColor(v.Min).ToHEX());
-                }
-                if ((WheelFlags.MaxColor & flags) != 0) {
-                    this.AttachDelegate(name + "MaxColor", () => cc.GetColor(v.Max).ToHEX());
-                }
-                if ((WheelFlags.AvgColor & flags) != 0) {
-                    this.AttachDelegate(name + "AvgColor", () => cc.GetColor(v.Avg).ToHEX());
-                }
+            Action<string, string[], string> addTyreStatsColors = (name, values, statname) => {
+                this.AttachDelegate(name + Car.Tyres.Names[0] + statname + "Color", () => values[0]);
+                this.AttachDelegate(name + Car.Tyres.Names[1] + statname + "Color", () => values[1]);
+                this.AttachDelegate(name + Car.Tyres.Names[2] + statname + "Color", () => values[2]);
+                this.AttachDelegate(name + Car.Tyres.Names[3] + statname + "Color", () => values[3]);
             };
 
-            Action<string, Stats.WheelsStats, Color.ColorCalculator, Color.ColorCalculator, WheelFlags> addTyresStats = (name, values, ccf, ccr, flags) => {
-                addStatsWColor(name + Car.Tyres.Names[0], values[0], ccf, flags);
-                addStatsWColor(name + Car.Tyres.Names[1], values[1], ccf, flags);
-                addStatsWColor(name + Car.Tyres.Names[2], values[2], ccr, flags);
-                addStatsWColor(name + Car.Tyres.Names[3], values[3], ccr, flags);
+            Action<string, Stats.WheelsStats, string[], string[], string[], WheelFlags> addTyresStats = (name, values, minC, maxC, avgC, flags) => {
+                void _addStats(string n, Stats.Stats v) {
+                    if ((WheelFlags.Min & flags) != 0) {
+                        this.AttachDelegate(n + "Min", () => v.Min);
+                    }
+                    if ((WheelFlags.Max & flags) != 0) {
+                        this.AttachDelegate(n + "Max", () => v.Max);
+                    }
+                    if ((WheelFlags.Avg & flags) != 0) {
+                        this.AttachDelegate(n + "Avg", () => v.Avg);
+                    }
+                    if ((WheelFlags.Std & flags) != 0) {
+                        this.AttachDelegate(n + "Std", () => v.Std);
+                    }
+                }
+                _addStats(name + Car.Tyres.Names[0], values[0]);
+                _addStats(name + Car.Tyres.Names[1], values[1]);
+                _addStats(name + Car.Tyres.Names[2], values[2]);
+                _addStats(name + Car.Tyres.Names[3], values[3]);
+
+                if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsColors(name, minC, "Min");
+                }
+
+                if ((WheelFlags.MaxColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsColors(name, maxC, "Max");
+                }
+
+                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsColors(name, avgC, "Avg");
+                }
+
             };
 
-            addTyresStats("Tyres.PresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorF, _values.Car.Tyres.PresColorR, Settings.TyrePresFlags);
-            addTyresStats("Tyres.TempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorF, _values.Car.Tyres.TempColorR, Settings.TyreTempFlags);
-            addTyresStats("Brakes.TempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.tempColor, _values.Car.Brakes.tempColor, Settings.BrakeTempFlags);
+            addTyresStats("Tyres.PresOverLap", _values.Car.Tyres.PresOverLap, _values.Car.Tyres.PresColorMin, _values.Car.Tyres.PresColorMax, _values.Car.Tyres.PresColorAvg, Settings.TyrePresFlags);
+            addTyresStats("Tyres.TempOverLap", _values.Car.Tyres.TempOverLap, _values.Car.Tyres.TempColorMin, _values.Car.Tyres.TempColorMax, _values.Car.Tyres.TempColorAvg, Settings.TyreTempFlags);
+            addTyresStats("Brakes.TempOverLap", _values.Car.Brakes.TempOverLap, _values.Car.Brakes.TempColorMin, _values.Car.Brakes.TempColorMax, _values.Car.Brakes.TempColorAvg, Settings.BrakeTempFlags);
 
 
 
             Action<string, FixedSizeDequeStats> addPrevData = (name, values) => {
-                if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => FiniteOrNaN(values[0]));
-                if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => FiniteOrNaN(values[1]));
-                if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => FiniteOrNaN(values[2]));
-                if (Settings.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => FiniteOrNaN(values[3]));
-                if (Settings.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => FiniteOrNaN(values[4]));
-                if (Settings.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => FiniteOrNaN(values[5]));
-                if (Settings.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => FiniteOrNaN(values[6]));
-                if (Settings.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => FiniteOrNaN(values[7]));
-                if (Settings.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => FiniteOrNaN(values[8]));
-                if (Settings.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => FiniteOrNaN(values[9]));
-                if (Settings.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => FiniteOrNaN(values[10]));
-                if (Settings.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => FiniteOrNaN(values[11]));
-                if (Settings.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => FiniteOrNaN(values[12]));
-                if (Settings.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => FiniteOrNaN(values[13]));
-                if (Settings.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => FiniteOrNaN(values[14]));
-                if (Settings.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => FiniteOrNaN(values[15]));
-                if (Settings.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => FiniteOrNaN(values[16]));
-                if (Settings.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => FiniteOrNaN(values[17]));
-                if (Settings.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => FiniteOrNaN(values[18]));
-                if (Settings.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => FiniteOrNaN(values[19]));
-                if (Settings.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => FiniteOrNaN(values[20]));
-                if (Settings.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => FiniteOrNaN(values[21]));
-                if (Settings.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => FiniteOrNaN(values[22]));
-                if (Settings.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => FiniteOrNaN(values[23]));
-                if (Settings.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => FiniteOrNaN(values[24]));
-                if (Settings.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => FiniteOrNaN(values[25]));
-                if (Settings.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => FiniteOrNaN(values[26]));
-                if (Settings.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => FiniteOrNaN(values[27]));
-                if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => FiniteOrNaN(values[28]));
-                if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => FiniteOrNaN(values[29]));
-                if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => FiniteOrNaN(values[30]));
+                if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
+                if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
+                if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
+                if (Settings.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => values[3]);
+                if (Settings.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => values[4]);
+                if (Settings.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => values[5]);
+                if (Settings.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => values[6]);
+                if (Settings.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => values[7]);
+                if (Settings.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => values[8]);
+                if (Settings.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => values[9]);
+                if (Settings.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => values[10]);
+                if (Settings.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => values[11]);
+                if (Settings.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => values[12]);
+                if (Settings.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => values[13]);
+                if (Settings.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => values[14]);
+                if (Settings.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => values[15]);
+                if (Settings.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => values[16]);
+                if (Settings.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => values[17]);
+                if (Settings.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => values[18]);
+                if (Settings.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => values[19]);
+                if (Settings.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => values[20]);
+                if (Settings.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => values[21]);
+                if (Settings.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => values[22]);
+                if (Settings.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => values[23]);
+                if (Settings.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => values[24]);
+                if (Settings.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => values[25]);
+                if (Settings.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => values[26]);
+                if (Settings.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => values[27]);
+                if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
+                if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
+                if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
             };
 
             addPrevData("Laps.PrevTime", _values.Laps.PrevTimes);
@@ -302,13 +313,8 @@ namespace RaceEngineerPlugin {
 
         }
 
-        private double FiniteOrNaN(double v) {
-            if (double.IsInfinity(v)) return double.NaN;
-            return v;
-        }
-
         public static void LogToFile(string msq) {
-            if (_logFile != null) { 
+            if (_logWriter != null) { 
                 _logWriter.WriteLine(msq);
                 _isLogFlushed = false;
             }

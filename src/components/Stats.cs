@@ -22,7 +22,7 @@ namespace RaceEngineerPlugin.Stats {
         private const int _size = 7;
 
         public Stats() {
-            Data = new double[_size] { double.NegativeInfinity, double.PositiveInfinity, double.NaN, 0.0, double.NaN, double.NegativeInfinity, double.PositiveInfinity };
+            Data = new double[_size] { double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN };
         }
 
         public Stats(Stats o) {
@@ -34,13 +34,13 @@ namespace RaceEngineerPlugin.Stats {
         }
 
         public void Reset() {
-            Data[0] = double.NegativeInfinity;
-            Data[1] = double.PositiveInfinity;
+            Data[0] = double.NaN;
+            Data[1] = double.NaN;
             Data[2] = double.NaN;
-            Data[3] = 0.0;
+            Data[3] = double.NaN;
             Data[4] = double.NaN;
-            Data[5] = double.NegativeInfinity;
-            Data[6] = double.PositiveInfinity;
+            Data[5] = double.NaN;
+            Data[6] = double.NaN;
         }
 
         public void Set(double value) {
@@ -49,8 +49,8 @@ namespace RaceEngineerPlugin.Stats {
             Avg = value;
             Std = 0.0;
             Median = value;
-            Q1 = double.NegativeInfinity;
-            Q3 = double.PositiveInfinity;
+            Q1 = double.NaN;
+            Q3 = double.NaN;
         }
 
         public void Set(RunningStatistics o) {
@@ -118,9 +118,7 @@ namespace RaceEngineerPlugin.Stats {
         public RunningStatistics Rl { get => Data[2]; }
         public RunningStatistics Rr { get => Data[3]; }
 
-
         private const int _size = 4;
-
 
         public WheelsRunningStats() {
             Data = new RunningStatistics[] { new RunningStatistics(), new RunningStatistics(), new RunningStatistics(), new RunningStatistics() };

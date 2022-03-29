@@ -65,9 +65,6 @@ namespace RaceEngineerPlugin.Deque {
         /// </summary>
         /// <param name="value">The value.</param>
         public void AddToFront(double value) {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
             if (Count == Capacity) {
                 double oldData = Data.RemoveFromBack();
             }
@@ -101,7 +98,6 @@ namespace RaceEngineerPlugin.Deque {
             Stats.Min = _stats.Minimum;
             Stats.Max = _stats.Maximum;
 
-            var t = sw.Elapsed;
             if (RaceEngineerPlugin.Settings.Log) {
                 string txt = "Data = [";
                 foreach (var a in Data) {
@@ -110,8 +106,7 @@ namespace RaceEngineerPlugin.Deque {
                 RaceEngineerPlugin.LogInfo($@"{txt}],
     (Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
     (Avg, Std) = ({Avg}, {Std}),
-    (lowerBound, upperBound) = ({_lowerBound}, {_upperBound}),
-    Finished in {t.TotalMilliseconds}ms");
+    (lowerBound, upperBound) = ({_lowerBound}, {_upperBound})");
             }
         }
 

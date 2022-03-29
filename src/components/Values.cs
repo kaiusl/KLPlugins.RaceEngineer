@@ -27,12 +27,12 @@ namespace RaceEngineerPlugin {
         public Remaining.RemainingOnFuel RemainingOnFuel = new Remaining.RemainingOnFuel();
         public Database.Database Db = new Database.Database();
 
-        private ACCUdpRemoteClient _broadcastClient;
+        public ACCUdpRemoteClient BroadcastClient = null;
 
         public Values() {}
 
         public void Reset() {
-            if (_broadcastClient != null) {
+            if (BroadcastClient != null) {
                 DisposeBroadcastClient();
             }
 
@@ -80,7 +80,7 @@ namespace RaceEngineerPlugin {
 
         public void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
-                if (_broadcastClient != null) {
+                if (BroadcastClient != null) {
                     RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
                     DisposeBroadcastClient();
                 }
@@ -93,7 +93,7 @@ namespace RaceEngineerPlugin {
 
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent.");
-            var sessType = RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+            var sessType = RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
             Booleans.OnNewEvent(sessType);
             Track.OnNewEvent(data);
             Car.OnNewEvent(data, this);
@@ -145,7 +145,8 @@ namespace RaceEngineerPlugin {
             RemainingOnFuel.OnRegularUpdate(this);
 
             if (Booleans.NewData.IsLapFinished) {
-                RaceEngineerPlugin.LogInfo("Lap finished.");
+                Stopwatch sw = Stopwatch.StartNew();
+
                 Booleans.OnLapFinished(data);
                 Car.OnLapFinished(data, this);
                 Laps.OnLapFinished(data, this);
@@ -155,6 +156,9 @@ namespace RaceEngineerPlugin {
 
                 Weather.OnLapFinishedAfterInsert(data);
                 Car.OnLapFinishedAfterInsert();
+
+                var t = sw.Elapsed;
+                RaceEngineerPlugin.LogInfo($"Lap finished. Update took {t.TotalMilliseconds}ms.");
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
@@ -179,16 +183,16 @@ namespace RaceEngineerPlugin {
         #region Broadcast client connection
 
         public void ConnectToBroadcastClient() {
-            _broadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
-            _broadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
-            _broadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
+            BroadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
+            BroadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
+            BroadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
         }
 
         public void DisposeBroadcastClient() {
-            if (_broadcastClient != null) {
-                _broadcastClient.Shutdown();
-                _broadcastClient.Dispose();
-                _broadcastClient = null;
+            if (BroadcastClient != null) {
+                BroadcastClient.Shutdown();
+                BroadcastClient.Dispose();
+                BroadcastClient = null;
             }
         }
 

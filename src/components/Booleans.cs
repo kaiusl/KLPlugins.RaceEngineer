@@ -47,6 +47,7 @@ namespace RaceEngineerPlugin.Booleans {
         public bool EcuMapChangedThisLap { get; private set; }
         public bool RainIntensityChangedThisLap { get; private set; }
 
+
         private bool _isSessionLimitSet = false;
 
         public BooleansBase() {

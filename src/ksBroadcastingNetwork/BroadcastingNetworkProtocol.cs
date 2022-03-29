@@ -395,6 +395,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             using (var br = new BinaryWriter(ms))
             {
                 br.Write((byte)OutboundMessageTypes.UnRegisterCommandApplication); // First byte is always the command type
+                br.Write(ConnectionId);
                 Send(ms.ToArray());
             }
         }

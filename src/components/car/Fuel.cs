@@ -74,10 +74,10 @@ namespace RaceEngineerPlugin.Car {
             if (v.Booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
                 bool set_lap_start_fuel = false;
 
-                var sessType = v.RawData?.NewData?.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+                var sessType = v.Session.RaceSessionType;
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
                 if (RaceEngineerPlugin.Game.IsAcc && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
-                    var sessPhase = v.RawData?.NewData?.Realtime?.Phase;
+                    var sessPhase = v.RawData.NewData.Realtime?.Phase;
                     if ((sessPhase != null && sessPhase == SessionPhase.Session && sessPhase == SessionPhase.PreSession) || (data.NewData.SessionTimeLeft != data.OldData.SessionTimeLeft)) {
                         set_lap_start_fuel = true;
                     }

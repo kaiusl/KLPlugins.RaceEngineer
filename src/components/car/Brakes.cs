@@ -12,6 +12,9 @@ namespace RaceEngineerPlugin.Car {
         public WheelsStats TempOverLap { get; }
         public ColorCalculator tempColor { get; private set; }
         public string[] TempColor { get; private set; }
+        public string[] TempColorMin { get; private set; }
+        public string[] TempColorMax { get; private set; }
+        public string[] TempColorAvg { get; private set; }
 
         private WheelsRunningStats _tempRunning = new WheelsRunningStats();
         private DateTime _lastSampleTimeSec = DateTime.Now;
@@ -22,6 +25,10 @@ namespace RaceEngineerPlugin.Car {
             TempOverLap = new WheelsStats();
             tempColor = new ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
         }
 
         public void Reset() {
@@ -30,6 +37,9 @@ namespace RaceEngineerPlugin.Car {
             TempOverLap.Reset();
             for (int i = 0; i < 4; i++) {
                 TempColor[i] = RaceEngineerPlugin.DefColor;
+                TempColorMin[i] = RaceEngineerPlugin.DefColor;
+                TempColorMax[i] = RaceEngineerPlugin.DefColor;
+                TempColorAvg[i] = RaceEngineerPlugin.DefColor;
             }
             tempColor.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             _tempRunning.Reset();
@@ -37,10 +47,11 @@ namespace RaceEngineerPlugin.Car {
 
         #region On... METHODS
 
-        public void OnLapFinished() {
+        public void OnLapFinished(Values v) {
             LapsNr += 1;
             TempOverLap.Update(_tempRunning);
             _tempRunning.Reset();
+            UpdateOverLapColors(v);
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
@@ -93,6 +104,28 @@ namespace RaceEngineerPlugin.Car {
                 TempColor[2] = tempColor.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
                 TempColor[3] = tempColor.GetColor(data.NewData.BrakeTemperatureRearRight).ToHEX();
             }
+        }
+
+        private void UpdateOverLapColors(Values v) {
+            if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+                TempColorMin[0] = tempColor.GetColor(TempOverLap[0].Min).ToHEX();
+                TempColorMin[1] = tempColor.GetColor(TempOverLap[1].Min).ToHEX();
+                TempColorMin[2] = tempColor.GetColor(TempOverLap[2].Min).ToHEX();
+                TempColorMin[3] = tempColor.GetColor(TempOverLap[3].Min).ToHEX();
+            }
+            if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+                TempColorMax[0] = tempColor.GetColor(TempOverLap[0].Max).ToHEX();
+                TempColorMax[1] = tempColor.GetColor(TempOverLap[1].Max).ToHEX();
+                TempColorMax[2] = tempColor.GetColor(TempOverLap[2].Max).ToHEX();
+                TempColorMax[3] = tempColor.GetColor(TempOverLap[3].Max).ToHEX();
+            }
+            if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+                TempColorAvg[0] = tempColor.GetColor(TempOverLap[0].Avg).ToHEX();
+                TempColorAvg[1] = tempColor.GetColor(TempOverLap[1].Avg).ToHEX();
+                TempColorAvg[2] = tempColor.GetColor(TempOverLap[2].Avg).ToHEX();
+                TempColorAvg[3] = tempColor.GetColor(TempOverLap[3].Avg).ToHEX();
+            }
+
         }
 
         #endregion

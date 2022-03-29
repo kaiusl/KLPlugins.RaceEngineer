@@ -24,10 +24,18 @@ namespace RaceEngineerPlugin.Car {
         public double[] CurrentInputPres { get; }
         public double[] PresLoss { get; }
         public bool[] PresLossLap { get; }
-        public string[] PresColor { get; private set; }
-        public string[] TempColor { get; private set; }
-        public int CurrentTyreSet { get; private set; }
 
+        public string[] PresColor { get; private set; }
+        public string[] PresColorMin { get; private set; }
+        public string[] PresColorMax { get; private set; }
+        public string[] PresColorAvg { get; private set; }
+
+        public string[] TempColor { get; private set; }
+        public string[] TempColorMin { get; private set; }
+        public string[] TempColorMax { get; private set; }
+        public string[] TempColorAvg { get; private set; }
+
+        public int CurrentTyreSet { get; private set; }
 
         public WheelsStats PresOverLap { get; }
         public WheelsStats TempOverLap { get; }
@@ -66,7 +74,13 @@ namespace RaceEngineerPlugin.Car {
             PresLossLap = new bool[4] { false, false, false, false };
             SetLaps = new Dictionary<string, Dictionary<int, int>>();
             PresColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            PresColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            PresColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            PresColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
             TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            TempColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
             Reset();
         }
 
@@ -82,7 +96,13 @@ namespace RaceEngineerPlugin.Car {
                 PresLoss[i] = 0.0;
                 PresLossLap[i] = false;
                 PresColor[i] = RaceEngineerPlugin.DefColor;
+                PresColorMin[i] = RaceEngineerPlugin.DefColor;
+                PresColorMax[i] = RaceEngineerPlugin.DefColor;
+                PresColorAvg[i] = RaceEngineerPlugin.DefColor;
                 TempColor[i] = RaceEngineerPlugin.DefColor;
+                TempColorMin[i] = RaceEngineerPlugin.DefColor;
+                TempColorMax[i] = RaceEngineerPlugin.DefColor;
+                TempColorAvg[i] = RaceEngineerPlugin.DefColor;
             }
 
             PresOverLap.Reset();
@@ -110,7 +130,10 @@ namespace RaceEngineerPlugin.Car {
 
         public int GetCurrentSetLaps() {
             if (!RaceEngineerPlugin.Game.IsAcc || Name == null) return -1;
-            return SetLaps?[Name]?[CurrentTyreSet] ?? -1;
+            if (SetLaps.ContainsKey(Name) && SetLaps[Name].ContainsKey(CurrentTyreSet)) {
+                return SetLaps[Name][CurrentTyreSet];
+            }
+            return -1;
         }
 
         #region On... METHODS
@@ -132,14 +155,15 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
-        public void OnLapFinished(double airtemp, double tracktemp) {
+        public void OnLapFinished(Values v) {
             if (RaceEngineerPlugin.Game.IsAcc) {
                 SetLaps[Name][CurrentTyreSet] += 1;
             }
 
             PresOverLap.Update(_presRunning);
             TempOverLap.Update(_tempRunning);
-            UpdateIdealInputPressures(airtemp, tracktemp);
+            UpdateIdealInputPressures(v.Weather.AirTemp, v.Weather.TrackTemp);
+            UpdateOverLapColors(v);
             _presRunning.Reset();
             _tempRunning.Reset();
         }
@@ -182,6 +206,47 @@ namespace RaceEngineerPlugin.Car {
             }
         }
 
+        private void UpdateOverLapColors(Values v) {
+            if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
+                PresColorMin[0] = PresColorF.GetColor(PresOverLap[0].Min).ToHEX();
+                PresColorMin[1] = PresColorF.GetColor(PresOverLap[1].Min).ToHEX();
+                PresColorMin[2] = PresColorF.GetColor(PresOverLap[2].Min).ToHEX();
+                PresColorMin[3] = PresColorF.GetColor(PresOverLap[3].Min).ToHEX();
+            }
+            if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
+                PresColorMax[0] = PresColorF.GetColor(PresOverLap[0].Max).ToHEX();
+                PresColorMax[1] = PresColorF.GetColor(PresOverLap[1].Max).ToHEX();
+                PresColorMax[2] = PresColorF.GetColor(PresOverLap[2].Max).ToHEX();
+                PresColorMax[3] = PresColorF.GetColor(PresOverLap[3].Max).ToHEX();
+            }
+            if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
+                PresColorAvg[0] = PresColorF.GetColor(PresOverLap[0].Avg).ToHEX();
+                PresColorAvg[1] = PresColorF.GetColor(PresOverLap[1].Avg).ToHEX();
+                PresColorAvg[2] = PresColorF.GetColor(PresOverLap[2].Avg).ToHEX();
+                PresColorAvg[3] = PresColorF.GetColor(PresOverLap[3].Avg).ToHEX();
+            }
+
+            if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
+                TempColorMin[0] = TempColorF.GetColor(TempOverLap[0].Min).ToHEX();
+                TempColorMin[1] = TempColorF.GetColor(TempOverLap[1].Min).ToHEX();
+                TempColorMin[2] = TempColorF.GetColor(TempOverLap[2].Min).ToHEX();
+                TempColorMin[3] = TempColorF.GetColor(TempOverLap[3].Min).ToHEX();
+            }
+            if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
+                TempColorMax[0] = TempColorF.GetColor(TempOverLap[0].Max).ToHEX();
+                TempColorMax[1] = TempColorF.GetColor(TempOverLap[1].Max).ToHEX();
+                TempColorMax[2] = TempColorF.GetColor(TempOverLap[2].Max).ToHEX();
+                TempColorMax[3] = TempColorF.GetColor(TempOverLap[3].Max).ToHEX();
+            }
+            if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
+                TempColorAvg[0] = TempColorF.GetColor(TempOverLap[0].Avg).ToHEX();
+                TempColorAvg[1] = TempColorF.GetColor(TempOverLap[1].Avg).ToHEX();
+                TempColorAvg[2] = TempColorF.GetColor(TempOverLap[2].Avg).ToHEX();
+                TempColorAvg[3] = TempColorF.GetColor(TempOverLap[3].Avg).ToHEX();
+            }
+
+        }
+
         private void CheckCompoundChange(GameData data, Values v, string trackName) {
             // Pads can change at two moments:
             //    a) If we exit garage
@@ -218,7 +283,7 @@ namespace RaceEngineerPlugin.Car {
                 SetLaps[Name] = new Dictionary<int, int>();
             }
 
-            if (v.Car?.Info?.Tyres != null) {
+            if (v.Car.Info?.Tyres != null) {
                 _tyreInfo = v.Car.Info.Tyres?[Name];
                 if (_tyreInfo != null) {
                     PresColorF.UpdateInterpolation(_tyreInfo.IdealPres.F, _tyreInfo.IdealPresRange.F);

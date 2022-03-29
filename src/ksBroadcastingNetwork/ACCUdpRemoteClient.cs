@@ -18,6 +18,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
         public string ConnectionPassword { get; }
         public string CommandPassword { get; }
         public int MsRealtimeUpdateInterval { get; }
+        public bool IsConnected { get; private set; }
 
         private UdpClient _client;
         private Task _listenerTask;
@@ -36,6 +37,8 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             ConnectionPassword = connectionPassword;
             CommandPassword = commandPassword;
             MsRealtimeUpdateInterval = msRealtimeUpdateInterval;
+            IsConnected = false;
+            MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
 
             RaceEngineerPlugin.LogInfo("Requested broadcast connection");
             _listenerTask = ConnectAndRun();
@@ -51,7 +54,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
             ShutdownAsnyc().ContinueWith(t =>
              {
                  if (t.Exception?.InnerExceptions?.Any() == true)
-                     RaceEngineerPlugin.LogInfo($"Client shut down with {t.Exception.InnerExceptions.Count} errors");
+                     RaceEngineerPlugin.LogError($"Client shut down with {t.Exception.InnerExceptions.Count} errors");
                  else
                      RaceEngineerPlugin.LogInfo("Client shut down asynchronously");
 
@@ -65,6 +68,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                 MessageHandler.Disconnect();
                 _client.Close();
                 _client = null;
+                IsConnected = false;
                 await _listenerTask;
             }
         }
@@ -87,13 +91,25 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                 {
                     // Shutdown happened
                     RaceEngineerPlugin.LogInfo("Broadcast client shut down.");
+                    IsConnected = false;
                     break;
                 }
                 catch (Exception ex)
                 {
                     // Other exceptions
                     RaceEngineerPlugin.LogInfo($"Couldn't connect to broadcast client. Err {ex}");
+                    IsConnected = false;
                 }
+            }
+            IsConnected = false;
+        }
+
+        private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
+            if (connectionSuccess) {
+                RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
+                IsConnected = true;
+            } else {
+                RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
             }
         }
 
@@ -114,6 +130,7 @@ namespace RaceEngineerPlugin.ksBroadcastingNetwork
                             _client.Close();
                             _client.Dispose();
                             _client = null;
+                            IsConnected = false;
                         }
 
                     }

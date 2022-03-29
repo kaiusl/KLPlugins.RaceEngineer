@@ -88,8 +88,8 @@ namespace RaceEngineerPlugin.Car {
         }
 
         public void OnLapFinished(GameData data, Values v) { 
-            Tyres.OnLapFinished(data.NewData.AirTemperature, data.NewData.RoadTemperature);
-            Brakes.OnLapFinished();
+            Tyres.OnLapFinished(v);
+            Brakes.OnLapFinished(v);
             Fuel.OnLapFinished(data, v);
         }
 
