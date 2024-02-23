@@ -27,11 +27,11 @@ namespace KLPlugins.RaceEngineer.Stats {
             this.Data = new double[_size] { double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN };
         }
 
-        public Stats(Stats o) {
+        public Stats(Stats o) : this() {
             o.Data.CopyTo(this.Data, 0);
         }
 
-        public Stats(RunningStatistics o) {
+        public Stats(RunningStatistics o) : this() {
             this.Set(o);
         }
 

@@ -22,10 +22,10 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class TyreInfo {
-        public FrontRear IdealPres { get; set; }
-        public FrontRear IdealPresRange { get; set; }
-        public FrontRear IdealTemp { get; set; }
-        public FrontRear IdealTempRange { get; set; }
+        public FrontRear? IdealPres { get; set; }
+        public FrontRear? IdealPresRange { get; set; }
+        public FrontRear? IdealTemp { get; set; }
+        public FrontRear? IdealTempRange { get; set; }
     }
 
     /// <summary>
@@ -41,16 +41,16 @@ namespace KLPlugins.RaceEngineer.Car {
     /// 
     /// </summary>
     public class CarInfo {
-        public Dictionary<string, TyreInfo> Tyres { get; set; }
+        public Dictionary<string, TyreInfo>? Tyres { get; set; }
     }
 
     /// <summary>
     /// Store and update car related values
     /// </summary>
     public class Car {
-        public string Name { get; private set; }
-        public CarInfo Info { get; private set; }
-        public CarSetup Setup { get; private set; }
+        public string? Name { get; private set; }
+        public CarInfo? Info { get; private set; }
+        public CarSetup? Setup { get; private set; }
         public Tyres Tyres { get; private set; }
         public Brakes Brakes { get; private set; }
         public Fuel Fuel { get; private set; }
@@ -136,6 +136,9 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         private void ReadInfo() {
+            if (this.Name == null) return;
+
+
             string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             if (!File.Exists(fname)) {
                 if (RaceEngineerPlugin.Game.IsAcc) {

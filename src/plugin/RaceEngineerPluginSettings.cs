@@ -49,11 +49,16 @@ namespace KLPlugins.RaceEngineer {
         private static readonly string[] REMAINING_STATS_FLAGS = { "Min", "Max", "Avg" };
 
         public Settings() {
-            SettingsInternal s;
+            SettingsInternal s = new SettingsInternal();
             if (File.Exists(SETTINGS_PATH)) {
-                s = JsonConvert.DeserializeObject<SettingsInternal>(File.ReadAllText(SETTINGS_PATH).Replace("\"", "'"));
+                var text = File.ReadAllText(SETTINGS_PATH).Replace("\"", "'");
+                var sTmp = JsonConvert.DeserializeObject<SettingsInternal>(text);
+                if (sTmp != null) {
+                    s = sTmp;
+                } else {
+                    SimHub.Logging.Current.Error("Error deserializing settings file: " + SETTINGS_PATH);
+                }
             } else {
-                s = new SettingsInternal();
                 string txt = JsonConvert.SerializeObject(s, Formatting.Indented);
                 Directory.CreateDirectory(Path.GetDirectoryName(SETTINGS_PATH));
                 File.WriteAllText(SETTINGS_PATH, txt);

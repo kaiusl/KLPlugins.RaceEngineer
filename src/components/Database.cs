@@ -15,8 +15,8 @@ using KLPlugins.RaceEngineer.Car;
 
 namespace KLPlugins.RaceEngineer.Database {
     public struct Event {
-        public string CarId;
-        public string TrackId;
+        public string? CarId;
+        public string? TrackId;
         public string StartTime;
         public string GameVersion;
 
@@ -61,7 +61,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public long SessionId;
         public int StintNr;
         public string StartTime;
-        public string TyreCompound;
+        public string? TyreCompound;
         public double[] TyrePresIn;
         public int BrakePadFront;
         public int BrakePadRear;
@@ -284,12 +284,12 @@ namespace KLPlugins.RaceEngineer.Database {
     /// Handles data collection/storing for plugin.
     /// </summary>
     public class Database : IDisposable {
-        private SQLiteConnection _conn;
+        private SQLiteConnection? _conn;
 
-        private SQLiteCommand _insertEventCmd;
-        private SQLiteCommand _insertSessionCmd;
-        private SQLiteCommand _insertStintCmd;
-        private SQLiteCommand _insertLapCmd;
+        private SQLiteCommand? _insertEventCmd;
+        private SQLiteCommand? _insertSessionCmd;
+        private SQLiteCommand? _insertStintCmd;
+        private SQLiteCommand? _insertLapCmd;
 
         private long _eventId;
         private long _sessionId;
@@ -316,7 +316,7 @@ namespace KLPlugins.RaceEngineer.Database {
 
                 RaceEngineerPlugin.LogInfo($"Opened database from '{location}'");
             } catch (Exception ex) {
-                RaceEngineerPlugin.LogInfo($"Failed to open DB. location={location} Error msq: {ex}");
+                RaceEngineerPlugin.LogError($"Failed to open DB. location={location} Error msq: {ex}");
             }
         }
 
@@ -331,10 +331,10 @@ namespace KLPlugins.RaceEngineer.Database {
                 this._dbMutex.WaitOne();
 
                 if (disposing) {
-                    this._insertEventCmd.Dispose();
-                    this._insertSessionCmd.Dispose();
-                    this._insertStintCmd.Dispose();
-                    this._insertLapCmd.Dispose();
+                    this._insertEventCmd?.Dispose();
+                    this._insertSessionCmd?.Dispose();
+                    this._insertStintCmd?.Dispose();
+                    this._insertLapCmd?.Dispose();
                 }
 
                 if (this._conn != null) {
@@ -347,7 +347,6 @@ namespace KLPlugins.RaceEngineer.Database {
                 this.isDisposed = true;
                 this._dbMutex.ReleaseMutex();
                 this._dbMutex.Dispose();
-                this._dbMutex = null;
             }
         }
 
@@ -560,8 +559,8 @@ namespace KLPlugins.RaceEngineer.Database {
 
         #region INSERTS
 
-        private void SetParam(SQLiteCommand cmd, string name, object value) {
-            cmd.Parameters["@" + name].Value = value.ToString();
+        private void SetParam(SQLiteCommand cmd, string name, object? value) {
+            cmd.Parameters["@" + name].Value = value?.ToString();
         }
 
         private void SetParam(SQLiteCommand cmd, string name, bool value) {
@@ -575,8 +574,10 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         public void InsertEvent(Event e) {
-            this._dbMutex.WaitOne();
+            if (this._insertEventCmd == null) return;
 
+            this._dbMutex.WaitOne();
+            
             this.SetParam(this._insertEventCmd, CAR_ID, e.CarId);
             this.SetParam(this._insertEventCmd, TRACK_ID, e.TrackId);
             this.SetParam(this._insertEventCmd, START_TIME, e.StartTime);
@@ -593,6 +594,8 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         public void InsertSession(Session s) {
+            if (this._insertSessionCmd == null) return; 
+
             this._dbMutex.WaitOne();
 
             this.SetParam(this._insertSessionCmd, EVENT_ID, s.EventId);
@@ -626,6 +629,8 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         private void InsertStint(Stint s) {
+            if (this._insertStintCmd == null) return;
+
             this._dbMutex.WaitOne();
 
             this.SetParam(this._insertStintCmd, SESSION_ID, s.SessionId);
@@ -661,6 +666,8 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         private void InsertLap(Lap l) {
+            if (this._insertLapCmd == null) return;
+
             this._dbMutex.WaitOne();
 
             this.SetParam(this._insertLapCmd, STINT_ID, l.StintId);

@@ -5,6 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace KLPlugins.RaceEngineer.Car {
+    // Non-nullable field must contain a non-null value when exiting constructor.
+    // Consider declaring as nullable.
+    //
+    // The classes below are read from json where all keys are guaranteed to exist
+#pragma warning disable CS8618
+
     public class CarSetup {
         public String carName { get; set; }
         public BasicSetup basicSetup { get; set; }

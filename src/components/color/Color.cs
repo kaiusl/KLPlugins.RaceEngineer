@@ -16,7 +16,7 @@ namespace KLPlugins.RaceEngineer.Color {
         private readonly char[] _digits = "0123456789ABCDEF".ToCharArray();
         private bool _hexSet = false;
         private char[] _hexDigits = new char[7];
-        private string _hex = null;
+        private string? _hex = null;
 
         public HSV(int h, double s, double v) {
             this._h = h;
@@ -113,7 +113,9 @@ namespace KLPlugins.RaceEngineer.Color {
                 this._hexDigits[6] = this._digits[bb & 0xF];
                 this._hex = new string(this._hexDigits);
             }
-            return this._hex;
+
+            // above if will set this._hex if it was null
+            return this._hex!;
         }
     }
 

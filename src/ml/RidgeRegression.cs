@@ -31,11 +31,15 @@ namespace KLPlugins.RaceEngineer.ML {
                 Debug.Assert(this.x[i, 0] == 1, $"Features must be in homogeneous coordinates. First column must be 1. Found {this.x[i, 0]} in sample {i}.");
             }
 
-            this.Fit();
+            this.w = this.GetWeights(); // compiler cannot see that we assign in this.Fit(), so inline it
         }
 
         public void Fit() {
-            this.w = ((this.x.Transpose().Multiply(this.x) + Matrix<double>.Build.DenseIdentity(this.x.ColumnCount)).Inverse()).Multiply(this.x.Transpose().Multiply(this.y));
+            this.w = this.GetWeights();
+        }
+
+        public Vector<double> GetWeights() {
+            return (this.x.Transpose().Multiply(this.x) + Matrix<double>.Build.DenseIdentity(this.x.ColumnCount)).Inverse().Multiply(this.x.Transpose().Multiply(this.y));
         }
 
         public double Predict(double[] v) {

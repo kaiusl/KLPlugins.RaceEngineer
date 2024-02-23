@@ -18,22 +18,36 @@ namespace KLPlugins.RaceEngineer {
     public class RaceEngineerPlugin : IPlugin, IDataPlugin, IWPFSettingsV2 {
         public const string PluginName = "RACE ENGINEER";
 
+        // these are set in Init method, 
+        // so they are technically null but nothing can touch them before 
+        //we actually initialize them, so practically they cannot be nulls
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public RaceEngineerPluginSettings ShSettings;
         public PluginManager PluginManager { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.sdkmenuicon);
         public string LeftMenuTitle => "Race Engineer Plugin";
 
         public static readonly Settings Settings = new Settings();
+
+        // these are set in Init method
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public static Game Game; // Const during the lifetime of this plugin, plugin is rebuilt at game change
         public static string GameDataPath; // Same as above
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
         public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
         public static string DefColor = "#555555";
 
-        private static FileStream _logFile;
-        private static StreamWriter _logWriter;
+        private static FileStream? _logFile;
+        private static StreamWriter? _logWriter;
         private static bool _isLogFlushed = false;
 
+        // these are set in Init method
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         private Values _values;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data, 
@@ -88,7 +102,7 @@ namespace KLPlugins.RaceEngineer {
         /// </summary>
         /// <param name="pluginManager"></param>
         /// <returns></returns>
-        public System.Windows.Controls.Control GetWPFSettingsControl(PluginManager pluginManager) {
+        public System.Windows.Controls.Control? GetWPFSettingsControl(PluginManager pluginManager) {
             return null;//new SettingsControlDemo(this);
         }
 
@@ -98,6 +112,7 @@ namespace KLPlugins.RaceEngineer {
         /// </summary>
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
+            this.PluginManager = pluginManager;
             var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
             Game = new Game(gameName);
             // if (gameName != Game.AccName) return;

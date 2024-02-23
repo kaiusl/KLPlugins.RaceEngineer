@@ -54,7 +54,7 @@ namespace KLPlugins.RaceEngineer.Color {
         private double[] _values;
         private LinearColorInterpolator[] _interpolators;
 
-        private static HSV DefColor;
+        private static HSV DefColor = new HSV(RaceEngineerPlugin.DefColor);
 
 
         /// <summary>
@@ -77,8 +77,6 @@ namespace KLPlugins.RaceEngineer.Color {
             }
             this._interpolators = new LinearColorInterpolator[this.NumColor];
             this.UpdateInterpolators();
-
-            DefColor = new HSV(RaceEngineerPlugin.DefColor);
         }
 
         public void UpdateInterpolation(double[] values) {

@@ -40,7 +40,7 @@ namespace KLPlugins.RaceEngineer.Deque {
         private double _lowerBound = double.NegativeInfinity;
         private double _upperBound = double.PositiveInfinity;
         private RemoveOutliers _removeOutliers;
-        private DescriptiveStatistics _stats;
+        private DescriptiveStatistics? _stats;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.

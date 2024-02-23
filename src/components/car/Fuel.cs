@@ -1,15 +1,11 @@
 using System;
 
-using ACSharedMemory.ACC.MMFModels;
-
 using GameReaderCommon;
 
 using KLPlugins.RaceEngineer.Deque;
-using KLPlugins.RaceEngineer.RawData;
 
 using ksBroadcastingNetwork;
 
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
 
