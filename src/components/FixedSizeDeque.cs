@@ -24,33 +24,27 @@ namespace KLPlugins.RaceEngineer.Deque {
     /// 
     /// In addition we would want some statistics on data.
     /// </summary>
-    public class FixedSizeDequeStats {
-        public Deque<double> Data { get; }
-        public int Capacity { get => this.Data.Capacity; }
-        public int Count { get => this.Data.Count; }
-        public Stats.Stats Stats { get; }
-        public double Min { get => this.Stats.Min; }
-        public double Max { get => this.Stats.Max; }
-        public double Avg { get => this.Stats.Avg; }
-        public double Std { get => this.Stats.Std; }
-        public double Median { get => this.Stats.Median; }
-        public double Q1 { get => this.Stats.Q1; }
-        public double Q3 { get => this.Stats.Q3; }
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.
+    /// </remarks>
+    /// <param name="size">The size.</param>
+    public class FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
+        public Deque<double> Data { get; } = new Deque<double>(size);
+        public int Capacity => this.Data.Capacity;
+        public int Count => this.Data.Count;
+        public Stats.Stats Stats { get; } = new Stats.Stats();
+        public double Min => this.Stats.Min;
+        public double Max => this.Stats.Max;
+        public double Avg => this.Stats.Avg;
+        public double Std => this.Stats.Std;
+        public double Median => this.Stats.Median;
+        public double Q1 => this.Stats.Q1;
+        public double Q3 => this.Stats.Q3;
 
         private double _lowerBound = double.NegativeInfinity;
         private double _upperBound = double.PositiveInfinity;
-        private RemoveOutliers _removeOutliers;
+        private readonly RemoveOutliers _removeOutliers = removeOutliers;
         private DescriptiveStatistics? _stats;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.
-        /// </summary>
-        /// <param name="size">The size.</param>
-        public FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
-            this.Data = new Deque<double>(size);
-            this.Stats = new Stats.Stats();
-            this._removeOutliers = removeOutliers;
-        }
 
         public void Clear() {
             this.Data.Clear();
@@ -72,25 +66,15 @@ namespace KLPlugins.RaceEngineer.Deque {
             var data = this.Data.Where(x => !double.IsNaN(x));
             this.SetBounds(data);
             if (data.Count() > 1) {
-                switch (this._removeOutliers) {
-                    case RemoveOutliers.Upper:
-                        this._stats = new DescriptiveStatistics(data.Where(x => x < this._upperBound));
-                        break;
-                    case RemoveOutliers.Lower:
-                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound < x));
-                        break;
-                    case RemoveOutliers.Both:
-                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound < x && x < this._upperBound));
-                        break;
-                    case RemoveOutliers.QPlus1:
-                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound - 1 < x && x < this._upperBound + 1));
-                        break;
-                    default:
-                        this._stats = new DescriptiveStatistics(data);
-                        break;
-                }
+                this._stats = this._removeOutliers switch {
+                    RemoveOutliers.Upper => new(data.Where(x => x < this._upperBound)),
+                    RemoveOutliers.Lower => new(data.Where(x => this._lowerBound < x)),
+                    RemoveOutliers.Both => new(data.Where(x => this._lowerBound < x && x < this._upperBound)),
+                    RemoveOutliers.QPlus1 => new(data.Where(x => this._lowerBound - 1 < x && x < this._upperBound + 1)),
+                    _ => new(data),
+                };
             } else {
-                this._stats = new DescriptiveStatistics(data);
+                this._stats = new(data);
             }
 
             this.Stats.Avg = this._stats.Mean;
@@ -131,8 +115,6 @@ namespace KLPlugins.RaceEngineer.Deque {
             }
         }
 
-        public double this[int key] {
-            get => this.Data[key];
-        }
+        public double this[int key] => this.Data[key];
     }
 }

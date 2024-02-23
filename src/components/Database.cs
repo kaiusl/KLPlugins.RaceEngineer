@@ -34,25 +34,18 @@ namespace KLPlugins.RaceEngineer.Database {
 
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"CarId = {this.CarId}, TrackId = {this.TrackId}, StartTime = {this.StartTime}, GameVersion = {this.GameVersion}";
         }
     }
 
-    public struct Session {
-        public long EventId;
-        public string SessionType;
-        public int TimeMultiplier;
-        public string StartTime;
+    public struct Session(Values v, long eventId) {
+        public long EventId = eventId;
+        public string SessionType = v.Session.RaceSessionType.ToString();
+        public int TimeMultiplier = v.Session.TimeMultiplier;
+        public string StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
-        public Session(Values v, long eventId) {
-            this.EventId = eventId;
-            this.SessionType = v.Session.RaceSessionType.ToString();
-            this.TimeMultiplier = v.Session.TimeMultiplier;
-            this.StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
-        }
-
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"EventId = {this.EventId}, SessionType = {this.SessionType}, TimeMultiplier = {this.TimeMultiplier}, StartTime = {this.StartTime}";
         }
     }
@@ -87,8 +80,8 @@ namespace KLPlugins.RaceEngineer.Database {
             if (RaceEngineerPlugin.Game.IsAcc) {
                 var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
 
-                this.BrakePadFront = (int)rawDataNew.Physics.frontBrakeCompound + 1;
-                this.BrakePadRear = (int)rawDataNew.Physics.rearBrakeCompound + 1;
+                this.BrakePadFront = rawDataNew.Physics.frontBrakeCompound + 1;
+                this.BrakePadRear = rawDataNew.Physics.rearBrakeCompound + 1;
                 this.TyreSet = v.Car.Tyres.CurrentTyreSet;
             } else {
                 this.BrakePadFront = -1;
@@ -121,14 +114,14 @@ namespace KLPlugins.RaceEngineer.Database {
             }
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $@"SessionId = {this.SessionId}; StartTime = {this.StartTime}; StintNr = {this.StintNr};
 	TyreCompount = {this.TyreCompound}; TyrePresIn = {this.ArrayToString(this.TyrePresIn)}; TyreSet = {this.TyreSet};
 	BrakePad = [F: {this.BrakePadFront}, R: {this.BrakePadRear}]; BrakePadNr = {this.BrakePadNr}; BrakeDuct = [F: {this.BrakeDuctFront}, R: {this.BrakeDuctRear}],
 	Camber = {this.ArrayToString(this.Camber)}; Toe = {this.ArrayToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
         }
 
-        private string ArrayToString<T>(T[] a) {
+        private readonly string ArrayToString<T>(T[] a) {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
     }
@@ -147,24 +140,24 @@ namespace KLPlugins.RaceEngineer.Database {
         public double FuelUsed;
         public double FuelLeft;
 
-        public double[] TyrePresAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] TyrePresMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] TyrePresMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] TyrePresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public bool[] TyrePresLossLap = new bool[4] { false, false, false, false };
+        public double[] TyrePresAvg = [0.0, 0.0, 0.0, 0.0];
+        public double[] TyrePresMin = [0.0, 0.0, 0.0, 0.0];
+        public double[] TyrePresMax = [0.0, 0.0, 0.0, 0.0];
+        public double[] TyrePresLoss = [0.0, 0.0, 0.0, 0.0];
+        public bool[] TyrePresLossLap = [false, false, false, false];
 
-        public double[] TyreTempAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] TyreTempMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] TyreTempMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+        public double[] TyreTempAvg = [0.0, 0.0, 0.0, 0.0];
+        public double[] TyreTempMin = [0.0, 0.0, 0.0, 0.0];
+        public double[] TyreTempMax = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] BrakeTempAvg = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] BrakeTempMin = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] BrakeTempMax = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+        public double[] BrakeTempAvg = [0.0, 0.0, 0.0, 0.0];
+        public double[] BrakeTempMin = [0.0, 0.0, 0.0, 0.0];
+        public double[] BrakeTempMax = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] TyreLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+        public double[] TyreLifeLeft = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] PadLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-        public double[] DiscLifeLeft = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+        public double[] PadLifeLeft = [0.0, 0.0, 0.0, 0.0];
+        public double[] DiscLifeLeft = [0.0, 0.0, 0.0, 0.0];
 
         public int Abs;
         public int Tc;
@@ -232,8 +225,8 @@ namespace KLPlugins.RaceEngineer.Database {
                 this.Tc2 = rawDataNew.Graphics.TCCut;
 
                 for (var i = 0; i < 4; i++) {
-                    this.PadLifeLeft[i] = (float)rawDataNew.Physics.padLife[i];
-                    this.DiscLifeLeft[i] = (float)rawDataNew.Physics.discLife[i];
+                    this.PadLifeLeft[i] = rawDataNew.Physics.padLife[i];
+                    this.DiscLifeLeft[i] = rawDataNew.Physics.discLife[i];
                 }
 
                 this.TrackGripStatus = (int)rawDataNew.Graphics.trackGripStatus;
@@ -286,15 +279,15 @@ namespace KLPlugins.RaceEngineer.Database {
     public class Database : IDisposable {
         private SQLiteConnection? _conn;
 
-        private SQLiteCommand? _insertEventCmd;
-        private SQLiteCommand? _insertSessionCmd;
-        private SQLiteCommand? _insertStintCmd;
-        private SQLiteCommand? _insertLapCmd;
+        private readonly SQLiteCommand? _insertEventCmd;
+        private readonly SQLiteCommand? _insertSessionCmd;
+        private readonly SQLiteCommand? _insertStintCmd;
+        private readonly SQLiteCommand? _insertLapCmd;
 
         private long _eventId;
         private long _sessionId;
         private long _stintId;
-        private Mutex _dbMutex = new Mutex();
+        private readonly Mutex _dbMutex = new();
 
         public Database() {
             var location = $@"{RaceEngineerPlugin.Settings.DataLocation}\{RaceEngineerPlugin.Game.Name}\data.db";
@@ -364,27 +357,27 @@ namespace KLPlugins.RaceEngineer.Database {
         private const string START_TIME = "start_time";
         private const string GAME_VERSION = "game_version";
 
-        private DBTable eventsTable = new DBTable("events", new DBField[] {
+        private readonly DBTable eventsTable = new("events", [
             new DBField(EVENT_ID, "INTEGER PRIMARY KEY"),
             new DBField(CAR_ID, "TEXT"),
             new DBField(TRACK_ID, "TEXT"),
             new DBField(START_TIME, "TEXT"),
             new DBField(GAME_VERSION, "TEXT")
-        });
+        ]);
 
         private const string SESSION_ID = "session_id";
         private const string SESSION_TYPE = "session_type";
         private const string TIME_MULTIPLIER = "time_multiplier";
 
-        private DBTable sessionsTable = new DBTable("sessions", new DBField[] {
+        private readonly DBTable sessionsTable = new("sessions", [
             new DBField(SESSION_ID, "INTEGER PRIMARY KEY"),
             new DBField(EVENT_ID, "INTEGER"),
             new DBField(SESSION_TYPE, "TEXT"),
             new DBField(START_TIME, "TEXT"),
             new DBField(TIME_MULTIPLIER, "INTEGER")
-        });
+        ]);
 
-        private static string[] TYRES = new string[] { Tyres.Names[0].ToLower(), Tyres.Names[1].ToLower(), Tyres.Names[2].ToLower(), Tyres.Names[3].ToLower() };
+        private static readonly string[] TYRES = [Tyres.Names[0].ToLower(), Tyres.Names[1].ToLower(), Tyres.Names[2].ToLower(), Tyres.Names[3].ToLower()];
         private const string STINT_ID = "stint_id";
         private const string STINT_NR = "stint_nr";
         private const string TYRE_COMPOUND = "tyre_compound";
@@ -399,7 +392,7 @@ namespace KLPlugins.RaceEngineer.Database {
         private const string TOE = "toe";
         private const string CASTER = "caster";
 
-        private DBTable stintsTable = new DBTable("stints", new DBField[] {
+        private readonly DBTable stintsTable = new("stints", [
             new DBField(STINT_ID, "INTEGER PRIMARY KEY"),
             new DBField(SESSION_ID, "INTEGER"),
             new DBField(STINT_NR, "INTEGER"),
@@ -425,7 +418,7 @@ namespace KLPlugins.RaceEngineer.Database {
             new DBField(TOE + $"_{TYRES[3]}", "INTEGER"),
             new DBField(CASTER + $"_{TYRES[0]}", "INTEGER"),
             new DBField(CASTER + $"_{TYRES[1]}", "INTEGER"),
-        });
+        ]);
 
         private const string LAP_ID = "lap_id";
         private const string SESSION_LAP_NR = "session_lap_nr";
@@ -466,7 +459,7 @@ namespace KLPlugins.RaceEngineer.Database {
         private const string RAIN_INTENSITY = "rain_intensity";
         private const string RAIN_INTENSITY_CHANGED = "rain_intensity_changed";
 
-        private DBTable lapsTable = new DBTable("laps", new DBField[] {
+        private readonly DBTable lapsTable = new("laps", [
             new DBField(LAP_ID, "INTEGER PRIMARY KEY"),
             new DBField(STINT_ID, "INTEGER"),
             new DBField(SESSION_LAP_NR, "INTEGER"),
@@ -553,7 +546,7 @@ namespace KLPlugins.RaceEngineer.Database {
             new DBField(IS_INLAP, "INTEGER"),
             new DBField(RAIN_INTENSITY, "INTEGER"),
             new DBField(RAIN_INTENSITY_CHANGED, "INTEGER")
-        });
+        ]);
 
         #endregion
 
@@ -577,7 +570,7 @@ namespace KLPlugins.RaceEngineer.Database {
             if (this._insertEventCmd == null) return;
 
             this._dbMutex.WaitOne();
-            
+
             this.SetParam(this._insertEventCmd, CAR_ID, e.CarId);
             this.SetParam(this._insertEventCmd, TRACK_ID, e.TrackId);
             this.SetParam(this._insertEventCmd, START_TIME, e.StartTime);
@@ -594,7 +587,7 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         public void InsertSession(Session s) {
-            if (this._insertSessionCmd == null) return; 
+            if (this._insertSessionCmd == null) return;
 
             this._dbMutex.WaitOne();
 
@@ -796,8 +789,8 @@ namespace KLPlugins.RaceEngineer.Database {
 
             var ty = TYRES[tyre];
 
-            List<double> y = new List<double>();
-            List<double[]> x = new List<double[]>();
+            List<double> y = [];
+            List<double[]> x = [];
 
             this._dbMutex.WaitOne();
 
@@ -833,7 +826,7 @@ namespace KLPlugins.RaceEngineer.Database {
 
                 y.Add(rdr.GetDouble(0));
                 // Homogeneous coordinate, avg_press - loss, air_temp, track_temp
-                x.Add(new double[] { 1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4) });
+                x.Add([1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4)]);
             }
             rdr.Close();
             this._dbMutex.ReleaseMutex();
@@ -857,14 +850,9 @@ namespace KLPlugins.RaceEngineer.Database {
     /// <summary>
     /// Definition of database table and methods to create some methods
     /// </summary>
-    class DBTable {
-        public string name;
-        public DBField[] fields;
-
-        public DBTable(string name, DBField[] fields) {
-            this.name = name;
-            this.fields = fields;
-        }
+    class DBTable(string name, DBField[] fields) {
+        public string name = name;
+        public DBField[] fields = fields;
 
         public void CreateTableWForeignKey(SQLiteConnection conn, string foreignKey) {
             var cmd = new SQLiteCommand(conn);
@@ -947,23 +935,13 @@ namespace KLPlugins.RaceEngineer.Database {
         }
     }
 
-    class DBField {
-        public string name;
-        public string type;
-
-        public DBField(string name, string type) {
-            this.name = name;
-            this.type = type;
-        }
+    class DBField(string name, string type) {
+        public string name = name;
+        public string type = type;
     }
 
-    public class PrevData {
-        public double lapTime;
-        public double fuelUsed;
-
-        public PrevData(double lapTime, double fuelUsed) {
-            this.lapTime = lapTime;
-            this.fuelUsed = fuelUsed;
-        }
+    public class PrevData(double lapTime, double fuelUsed) {
+        public double lapTime = lapTime;
+        public double fuelUsed = fuelUsed;
     }
 }

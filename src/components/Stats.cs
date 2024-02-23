@@ -11,7 +11,7 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// Base class to build different statistics implementations
     /// </summary>
     public class Stats {
-        public static readonly string[] Names = new string[_size] { "Min", "Max", "Avg", "Std", "Median", "Q1", "Q3" };
+        public static readonly string[] Names = ["Min", "Max", "Avg", "Std", "Median", "Q1", "Q3"];
         public double[] Data { get; }
         public double Min { get => this.Data[0]; set => this.Data[0] = value; }
         public double Max { get => this.Data[1]; set => this.Data[1] = value; }
@@ -24,7 +24,7 @@ namespace KLPlugins.RaceEngineer.Stats {
         private const int _size = 7;
 
         public Stats() {
-            this.Data = new double[_size] { double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN };
+            this.Data = [double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN];
         }
 
         public Stats(Stats o) : this() {
@@ -62,9 +62,7 @@ namespace KLPlugins.RaceEngineer.Stats {
             this.Std = o.StandardDeviation;
         }
 
-        public double this[int key] {
-            get => this.Data[key];
-        }
+        public double this[int key] => this.Data[key];
 
     }
 
@@ -74,21 +72,21 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// </summary>
     public class WheelsStats {
         public Stats[] Data { get; }
-        public Stats Fl { get => this.Data[0]; }
-        public Stats Fr { get => this.Data[1]; }
-        public Stats Rl { get => this.Data[2]; }
-        public Stats Rr { get => this.Data[3]; }
+        public Stats Fl => this.Data[0];
+        public Stats Fr => this.Data[1];
+        public Stats Rl => this.Data[2];
+        public Stats Rr => this.Data[3];
 
         private const int _size = 4;
 
         public WheelsStats() {
-            this.Data = new Stats[] { new Stats(), new Stats(), new Stats(), new Stats() };
+            this.Data = [new(), new(), new(), new()];
         }
 
         public WheelsStats(WheelsRunningStats o) {
             this.Data = new Stats[_size];
             for (int i = 0; i < _size; i++) {
-                this.Data[i] = new Stats(o.Data[i]);
+                this.Data[i] = new(o.Data[i]);
             }
         }
 
@@ -104,9 +102,7 @@ namespace KLPlugins.RaceEngineer.Stats {
             }
         }
 
-        public Stats this[int key] {
-            get => this.Data[key];
-        }
+        public Stats this[int key] => this.Data[key];
 
     }
 
@@ -115,32 +111,30 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// </summary>
     public class WheelsRunningStats {
         public RunningStatistics[] Data { get; }
-        public RunningStatistics Fl { get => this.Data[0]; }
-        public RunningStatistics Fr { get => this.Data[1]; }
-        public RunningStatistics Rl { get => this.Data[2]; }
-        public RunningStatistics Rr { get => this.Data[3]; }
+        public RunningStatistics Fl => this.Data[0];
+        public RunningStatistics FR => this.Data[1];
+        public RunningStatistics Rl => this.Data[2];
+        public RunningStatistics RR => this.Data[3];
 
-        private const int _size = 4;
+        private const int _SIZE = 4;
 
         public WheelsRunningStats() {
-            this.Data = new RunningStatistics[] { new RunningStatistics(), new RunningStatistics(), new RunningStatistics(), new RunningStatistics() };
+            this.Data = [new(), new(), new(), new()];
         }
 
         public void Reset() {
-            for (int i = 0; i < _size; i++) {
-                this.Data[i] = new RunningStatistics();
+            for (int i = 0; i < _SIZE; i++) {
+                this.Data[i] = new();
             }
         }
 
         public void Update(double[] values) {
-            for (int i = 0; i < _size; i++) {
+            for (int i = 0; i < _SIZE; i++) {
                 this.Data[i].Push(values[i]);
             }
         }
 
-        public RunningStatistics this[int key] {
-            get => this.Data[key];
-        }
+        public RunningStatistics this[int key] => this.Data[key];
 
     }
 

@@ -22,10 +22,12 @@ namespace KLPlugins.RaceEngineer.Laps {
         public Laps() {
             this.StintNr = 0;
             this.StintLaps = 0;
-            this.PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
-            this.PrevS1Times = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
-            this.PrevS2Times = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
-            this.PrevS3Times = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
+            var numValues = RaceEngineerPlugin.Settings.NumPreviousValuesStored;
+            var outliersStrategy = RemoveOutliers.Upper;
+            this.PrevTimes = new(numValues, outliersStrategy);
+            this.PrevS1Times = new(numValues, outliersStrategy);
+            this.PrevS2Times = new(numValues, outliersStrategy);
+            this.PrevS3Times = new(numValues, outliersStrategy);
             this.PrevTimes.Fill(double.NaN);
             this.PrevS1Times.Fill(double.NaN);
             this.PrevS2Times.Fill(double.NaN);

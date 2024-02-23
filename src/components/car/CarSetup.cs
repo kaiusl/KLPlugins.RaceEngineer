@@ -10,8 +10,10 @@ namespace KLPlugins.RaceEngineer.Car {
     //
     // The classes below are read from json where all keys are guaranteed to exist
 #pragma warning disable CS8618
+#pragma warning disable IDE1006 // Naming Styles
 
     public class CarSetup {
+
         public String carName { get; set; }
         public BasicSetup basicSetup { get; set; }
         public AdvancedSetup advancedSetup { get; set; }
@@ -53,7 +55,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public int fuel { get; set; }
         public int nPitStops { get; set; }
         public int tyreSet { get; set; }
-        public int fronBrakePadCompound { get; set; }
+        public int frontBrakePadCompound { get; set; }
         public int rearBrakePadCompound { get; set; }
         public PitStrategy[] pitStrategy { get; set; }
         public float fuelPerLap { get; set; }
@@ -89,7 +91,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public int[] bumpSlow { get; set; }
         public int[] bumpFast { get; set; }
         public int[] reboundSlow { get; set; }
-        public int[] reboundFase { get; set; }
+        public int[] reboundFast { get; set; }
     }
 
     public class AeroBalance {
@@ -103,6 +105,5 @@ namespace KLPlugins.RaceEngineer.Car {
     public class Drivetrain {
         public int preload { get; set; }
     }
-
 
 }

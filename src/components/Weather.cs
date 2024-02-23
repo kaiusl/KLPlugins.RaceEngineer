@@ -24,7 +24,7 @@ namespace KLPlugins.RaceEngineer {
         // Keep track of weather changes, predict exact time for weather change
 
         public Weather() {
-            this.Forecast = new List<WeatherPoint>();
+            this.Forecast = [];
             this.Reset();
         }
 
@@ -106,14 +106,14 @@ namespace KLPlugins.RaceEngineer {
             }
         }
 
-        private const double secInDay = 24 * 3600;
+        private const double SEC_IN_DAY = 24 * 3600;
         public void UpdateForecast(GameData data, Values v) {
 
             if (RaceEngineerPlugin.Game.IsAcc) {
                 var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
                 var rawDataOld = (ACSharedMemory.ACC.Reader.ACCRawData)data.OldData.GetRawDataObject();
 
-                var nowTime = rawDataNew.Graphics.clock + secInDay * this._daysSinceStart;
+                var nowTime = rawDataNew.Graphics.clock + SEC_IN_DAY * this._daysSinceStart;
                 if (v.Session.TimeMultiplier < 1) return;
                 if (!this._isInitialForecastAdded) {
                     var now = rawDataNew.Graphics.rainIntensity;
@@ -170,36 +170,24 @@ namespace KLPlugins.RaceEngineer {
         }
 
         private static string ToPrettyString(ACC_RAIN_INTENSITY rainIntensity) {
-            switch (rainIntensity) {
-                case ACC_RAIN_INTENSITY.ACC_NO_RAIN:
-                    return "No rain";
-                case ACC_RAIN_INTENSITY.ACC_DRIZZLE:
-                    return "Drizzle";
-                case ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN:
-                    return "Light rain";
-                case ACC_RAIN_INTENSITY.ACC_MEDIUM_RAIN:
-                    return "Medium rain";
-                case ACC_RAIN_INTENSITY.ACC_HEAVY_RAIN:
-                    return "Heavy rain";
-                case ACC_RAIN_INTENSITY.ACC_THUNDERSTORM:
-                    return "Storm";
-                default:
-                    return "Unknown";
-            }
+            return rainIntensity switch {
+                ACC_RAIN_INTENSITY.ACC_NO_RAIN => "No rain",
+                ACC_RAIN_INTENSITY.ACC_DRIZZLE => "Drizzle",
+                ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN => "Light rain",
+                ACC_RAIN_INTENSITY.ACC_MEDIUM_RAIN => "Medium rain",
+                ACC_RAIN_INTENSITY.ACC_HEAVY_RAIN => "Heavy rain",
+                ACC_RAIN_INTENSITY.ACC_THUNDERSTORM => "Storm",
+                _ => "Unknown",
+            };
         }
 
         #endregion
 
     }
 
-    public class WeatherPoint {
-        public ACC_RAIN_INTENSITY RainIntensity { get; }
-        public double StartTime { get; }
-
-        public WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, double startTime) {
-            this.RainIntensity = rainIntensity;
-            this.StartTime = startTime;
-        }
+    public class WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, double startTime) {
+        public ACC_RAIN_INTENSITY RainIntensity { get; } = rainIntensity;
+        public double StartTime { get; } = startTime;
 
         /// <summary>
         /// Time when the given weather starts. 

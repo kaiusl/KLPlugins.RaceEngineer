@@ -5,14 +5,10 @@ namespace KLPlugins.RaceEngineer.Color {
     /// <summary>
     /// Linear interpolator between to points
     /// </summary>
-    public class LinearInterpolator {
-        private double _intersection, _slope, _x0;
-
-        public LinearInterpolator(double x0, double y0, double x1, double y1) {
-            this._slope = (y1 - y0) / (x1 - x0);
-            this._intersection = y0;
-            this._x0 = x0;
-        }
+    public class LinearInterpolator(double x0, double y0, double x1, double y1) {
+        private readonly double _intersection = y0;
+        private readonly double _slope = (y1 - y0) / (x1 - x0);
+        private readonly double _x0 = x0;
 
         public double Interpolate(double x) {
             return this._intersection + (x - this._x0) * this._slope;
@@ -24,16 +20,10 @@ namespace KLPlugins.RaceEngineer.Color {
     /// <summary>
     /// Linear interpolator between two colors in HSV color space.
     /// </summary>
-    public class LinearColorInterpolator {
-        private LinearInterpolator _interH;
-        private LinearInterpolator _interS;
-        private LinearInterpolator _interV;
-
-        public LinearColorInterpolator(double min, HSV minc, double max, HSV maxc) {
-            this._interH = new LinearInterpolator(min, minc.H, max, maxc.H);
-            this._interS = new LinearInterpolator(min, minc.S, max, maxc.S);
-            this._interV = new LinearInterpolator(min, minc.V, max, maxc.V);
-        }
+    public class LinearColorInterpolator(double min, HSV minc, double max, HSV maxc) {
+        private readonly LinearInterpolator _interH = new(min, minc.H, max, maxc.H);
+        private readonly LinearInterpolator _interS = new(min, minc.S, max, maxc.S);
+        private readonly LinearInterpolator _interV = new(min, minc.V, max, maxc.V);
 
         public HSV Interpolate(double x) {
             return new HSV(
@@ -50,11 +40,11 @@ namespace KLPlugins.RaceEngineer.Color {
     public class ColorCalculator {
         public int NumColor;
 
-        private HSV[] _colors;
+        private readonly HSV[] _colors;
         private double[] _values;
-        private LinearColorInterpolator[] _interpolators;
+        private readonly LinearColorInterpolator[] _interpolators;
 
-        private static HSV DefColor = new HSV(RaceEngineerPlugin.DefColor);
+        private static readonly HSV DefColor = new(RaceEngineerPlugin.DefColor);
 
 
         /// <summary>
@@ -91,7 +81,7 @@ namespace KLPlugins.RaceEngineer.Color {
 
         public void UpdateInterpolation(double ideal, double delta) {
             bool even = this.NumColor % 2 == 0;
-            int half_num = (int)this.NumColor / 2;
+            int half_num = this.NumColor / 2;
 
             double[] vals = new double[this.NumColor];
             if (!even) {

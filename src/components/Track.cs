@@ -18,12 +18,13 @@ namespace KLPlugins.RaceEngineer.Track {
         }
 
         private void CheckChange(string? newTrackName) {
-            if (newTrackName != null) {
-                if (this.Name != newTrackName) {
-                    RaceEngineerPlugin.LogInfo($"Track changed from '{this.Name}' to '{newTrackName}'");
-                    this.Name = newTrackName;
-                }
+            if (newTrackName == null) return;
+
+            if (this.Name != newTrackName) {
+                RaceEngineerPlugin.LogInfo($"Track changed from '{this.Name}' to '{newTrackName}'");
+                this.Name = newTrackName;
             }
+
         }
 
     }

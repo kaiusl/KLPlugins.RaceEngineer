@@ -6,9 +6,9 @@ namespace KLPlugins.RaceEngineer.Remaining {
     /// Class to store and calculate current laps/time left in session and fuel needed.
     /// </summary>
     public class RemainingInSession {
-        public Stats.Stats Time = new Stats.Stats();
-        public Stats.Stats Laps = new Stats.Stats();
-        public Stats.Stats FuelNeeded = new Stats.Stats();
+        public Stats.Stats Time = new();
+        public Stats.Stats Laps = new();
+        public Stats.Stats FuelNeeded = new();
 
         public void Reset() {
             this.Time.Reset();
@@ -42,8 +42,8 @@ namespace KLPlugins.RaceEngineer.Remaining {
     /// Class to store and calculate time/laps left on current amount of fuel.
     /// </summary>
     public class RemainingOnFuel {
-        public Stats.Stats Time = new Stats.Stats();
-        public Stats.Stats Laps = new Stats.Stats();
+        public Stats.Stats Time = new();
+        public Stats.Stats Laps = new();
 
         public void Reset() {
             this.Time.Reset();

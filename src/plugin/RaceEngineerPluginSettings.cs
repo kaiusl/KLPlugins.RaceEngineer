@@ -38,15 +38,15 @@ namespace KLPlugins.RaceEngineer {
         public WheelFlags TyreTempFlags => this._tyreTempFlags;
         public WheelFlags BrakeTempFlags => this._brakeTempFlags;
 
-        private StatsFlags _prevLapsStats;
-        private StatsFlags _prevFuelPerLapStats;
-        private StatsFlags _remainingStats;
-        private WheelFlags _tyrePresFlags;
-        private WheelFlags _tyreTempFlags;
-        private WheelFlags _brakeTempFlags;
+        private readonly StatsFlags _prevLapsStats;
+        private readonly StatsFlags _prevFuelPerLapStats;
+        private readonly StatsFlags _remainingStats;
+        private readonly WheelFlags _tyrePresFlags;
+        private readonly WheelFlags _tyreTempFlags;
+        private readonly WheelFlags _brakeTempFlags;
 
         private const string SETTINGS_PATH = @"PluginsData\KLPlugins\RaceEngineer\Settings.json";
-        private static readonly string[] REMAINING_STATS_FLAGS = { "Min", "Max", "Avg" };
+        private static readonly string[] REMAINING_STATS_FLAGS = ["Min", "Max", "Avg"];
 
         public Settings() {
             SettingsInternal s = new SettingsInternal();
@@ -193,24 +193,24 @@ namespace KLPlugins.RaceEngineer {
             this.NumPreviousValuesStored = 10;
             this.DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
             this.AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
-            this.TempColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
-            this.TyreTempColorDefValues = new double[] { 70.0, 80.0, 90.0, 100.0 };
-            this.BrakeTempColorDefValues = new double[] { 200.0, 300.0, 500.0, 700.0 };
-            this.PresColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
-            this.TyrePresColorDefValues = new double[] { 26.5, 27.25, 27.75, 28.5 };
-            this.TimeColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            this.TimeGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            this.TimeColorDeltaValues = new double[] { -1.0, 0.0, 1.0 };
-            this.FuelGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            this.FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
+            this.TempColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
+            this.TyreTempColorDefValues = [70.0, 80.0, 90.0, 100.0];
+            this.BrakeTempColorDefValues = [200.0, 300.0, 500.0, 700.0];
+            this.PresColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
+            this.TyrePresColorDefValues = [26.5, 27.25, 27.75, 28.5];
+            this.TimeColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            this.TimeGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            this.TimeColorDeltaValues = [-1.0, 0.0, 1.0];
+            this.FuelGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            this.FuelGraphColorValues = [-1.0, 0.0, 1.0];
             this.Log = true;
             this.ShowAllLaps = false;
-            this.PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
-            this.PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
-            this.TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            this.TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            this.BrakeTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            this.RemainingInfo = new string[] { "Min", "Max", "Avg" };
+            this.PrevLapsInfo = ["Min", "Max", "Avg", "Std", "Q1", "Median", "Q3"];
+            this.PrevFuelPerLapInfo = ["Min", "Max", "Avg", "Std", "Q1", "Median", "Q3"];
+            this.TyrePresInfo = ["Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color"];
+            this.TyreTempInfo = ["Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color"];
+            this.BrakeTempInfo = ["Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color"];
+            this.RemainingInfo = ["Min", "Max", "Avg"];
         }
     }
 }

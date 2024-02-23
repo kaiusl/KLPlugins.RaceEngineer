@@ -29,7 +29,7 @@ namespace KLPlugins.RaceEngineer {
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.sdkmenuicon);
         public string LeftMenuTitle => "Race Engineer Plugin";
 
-        public static readonly Settings Settings = new Settings();
+        public static readonly Settings Settings = new();
 
         // these are set in Init method
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -83,9 +83,7 @@ namespace KLPlugins.RaceEngineer {
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
             this.SaveCommonSettings("GeneralSettings", this.ShSettings);
-            if (this._values != null) {
-                this._values.Dispose();
-            }
+            this._values?.Dispose();
             if (_logWriter != null) {
                 _logWriter.Dispose();
                 _logWriter = null;
@@ -185,7 +183,7 @@ namespace KLPlugins.RaceEngineer {
             this.AttachDelegate("Fuel.Remaining", () => this._values.Car.Fuel.Remaining);
             this.AttachDelegate("Fuel.RemainingAtLapStart", () => this._values.Car.Fuel.RemainingAtLapStart);
 
-            Action<string, Stats.Stats, StatsFlags> addStats = (name, values, settings) => {
+            void addStats(string name, Stats.Stats values, StatsFlags settings) {
                 if ((StatsFlags.Min & settings) != 0) {
                     this.AttachDelegate(name + "Min", () => values.Min);
                 }
@@ -207,7 +205,7 @@ namespace KLPlugins.RaceEngineer {
                 if ((StatsFlags.Q3 & settings) != 0) {
                     this.AttachDelegate(name + "Q3", () => values.Q3);
                 }
-            };
+            }
 
             addStats("Laps.Time", this._values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
             addStats("Laps.S1Time", this._values.Laps.PrevS1Times.Stats, Settings.PrevLapsStatsFlags);
@@ -221,12 +219,12 @@ namespace KLPlugins.RaceEngineer {
             addStats("Fuel.NeededInSession", this._values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
-            Action<string, double[]> addTyres = (name, values) => {
+            void addTyres(string name, double[] values) {
                 this.AttachDelegate(name + Car.Tyres.Names[0], () => values[0]);
                 this.AttachDelegate(name + Car.Tyres.Names[1], () => values[1]);
                 this.AttachDelegate(name + Car.Tyres.Names[2], () => values[2]);
                 this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
-            };
+            }
 
             addTyres("Tyres.IdealInputPres", this._values.Car.Tyres.IdealInputPres);
             addTyres("Tyres.PredictedIdealInputPresDry", this._values.Car.Tyres.PredictedIdealInputPresDry);
@@ -235,27 +233,27 @@ namespace KLPlugins.RaceEngineer {
             addTyres("Tyres.CurrentInputPres", this._values.Car.Tyres.CurrentInputPres);
             addTyres("Tyres.PresLoss", this._values.Car.Tyres.PresLoss);
 
-            Action<string, string[], WheelFlags> addTyresColor = (name, values, flag) => {
+            void addTyresColor(string name, string[] values, WheelFlags flag) {
                 if ((WheelFlags.Color & flag) != 0) {
                     this.AttachDelegate(name + Car.Tyres.Names[0] + "Color", () => values[0]);
                     this.AttachDelegate(name + Car.Tyres.Names[1] + "Color", () => values[1]);
                     this.AttachDelegate(name + Car.Tyres.Names[2] + "Color", () => values[2]);
                     this.AttachDelegate(name + Car.Tyres.Names[3] + "Color", () => values[3]);
                 }
-            };
+            }
 
             addTyresColor("Tyres.Pres", this._values.Car.Tyres.PresColor, Settings.TyrePresFlags);
             addTyresColor("Tyres.Temp", this._values.Car.Tyres.TempColor, Settings.TyreTempFlags);
             addTyresColor("Brakes.Temp", this._values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
 
-            Action<string, string[], string> addTyreStatsColors = (name, values, statname) => {
+            void addTyreStatsColors(string name, string[] values, string statname) {
                 this.AttachDelegate(name + Car.Tyres.Names[0] + statname + "Color", () => values[0]);
                 this.AttachDelegate(name + Car.Tyres.Names[1] + statname + "Color", () => values[1]);
                 this.AttachDelegate(name + Car.Tyres.Names[2] + statname + "Color", () => values[2]);
                 this.AttachDelegate(name + Car.Tyres.Names[3] + statname + "Color", () => values[3]);
-            };
+            }
 
-            Action<string, Stats.WheelsStats, string[], string[], string[], WheelFlags> addTyresStats = (name, values, minC, maxC, avgC, flags) => {
+            void addTyresStats(string name, Stats.WheelsStats values, string[] minC, string[] maxC, string[] avgC, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Min & flags) != 0) {
                         this.AttachDelegate(n + "Min", () => v.Min);
@@ -287,7 +285,7 @@ namespace KLPlugins.RaceEngineer {
                     addTyreStatsColors(name, avgC, "Avg");
                 }
 
-            };
+            }
 
             addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, this._values.Car.Tyres.PresColorMin, this._values.Car.Tyres.PresColorMax, this._values.Car.Tyres.PresColorAvg, Settings.TyrePresFlags);
             addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, this._values.Car.Tyres.TempColorMin, this._values.Car.Tyres.TempColorMax, this._values.Car.Tyres.TempColorAvg, Settings.TyreTempFlags);
@@ -295,7 +293,9 @@ namespace KLPlugins.RaceEngineer {
 
 
 
-            Action<string, FixedSizeDequeStats> addPrevData = (name, values) => {
+            // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
+            void addPrevData(string name, FixedSizeDequeStats values) {
+#pragma warning disable IDE0011 // Add braces
                 if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
                 if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
                 if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
@@ -327,7 +327,8 @@ namespace KLPlugins.RaceEngineer {
                 if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
                 if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
                 if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
-            };
+#pragma warning restore IDE0011 // Add braces
+            }
 
             addPrevData("Laps.PrevTime", this._values.Laps.PrevTimes);
             addPrevData("Laps.PrevS1Time", this._values.Laps.PrevS1Times);
@@ -350,20 +351,20 @@ namespace KLPlugins.RaceEngineer {
             if (Settings.Log) {
                 var pathParts = sourceFilePath.Split('\\');
                 SimHub.Logging.Current.Info($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-                LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} INFO ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+                LogToFile($"{DateTime.Now:dd.MM.yyyy HH:mm.ss} INFO ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
             }
         }
 
         public static void LogWarn(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             var pathParts = sourceFilePath.Split('\\');
             SimHub.Logging.Current.Warn($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} WARN ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+            LogToFile($"{DateTime.Now:dd.MM.yyyy HH:mm.ss} WARN ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogError(string msq, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int lineNumber = 0) {
             var pathParts = sourceFilePath.Split('\\');
             SimHub.Logging.Current.Error($"{PluginName} ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}");
-            LogToFile($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss")} ERROR ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
+            LogToFile($"{DateTime.Now:dd.MM.yyyy HH:mm.ss} ERROR ({pathParts[pathParts.Length - 1]}: {memberName},{lineNumber})\n\t{msq}\n");
         }
 
         public static void LogFileSeparator() {
@@ -385,7 +386,7 @@ namespace KLPlugins.RaceEngineer {
                     if ((method.Attributes & MethodAttributes.Abstract) == MethodAttributes.Abstract || method.ContainsGenericParameters) {
                         continue;
                     }
-                    System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                    RuntimeHelpers.PrepareMethod(method.MethodHandle);
                 }
             }
 
@@ -400,23 +401,15 @@ namespace KLPlugins.RaceEngineer {
     public static class Helpers {
 
         public static RaceSessionType RaceSessionTypeFromString(string s) {
-            switch (s) {
-                case "PRACTICE":
-                    return RaceSessionType.Practice;
-                case "QUALIFY":
-                    return RaceSessionType.Qualifying;
-                case "RACE":
-                    return RaceSessionType.Race;
-                case "HOTLAP":
-                    return RaceSessionType.Hotlap;
-                case "7":
-                    return RaceSessionType.Hotstint;
-                case "8":
-                    return RaceSessionType.HotlapSuperpole;
-                default:
-                    return RaceSessionType.Practice;
-
-            }
+            return s switch {
+                "PRACTICE" => RaceSessionType.Practice,
+                "QUALIFY" => RaceSessionType.Qualifying,
+                "RACE" => RaceSessionType.Race,
+                "HOTLAP" => RaceSessionType.Hotlap,
+                "7" => RaceSessionType.Hotstint,
+                "8" => RaceSessionType.HotlapSuperpole,
+                _ => RaceSessionType.Practice,
+            };
         }
 
         public static string GetAccCarClass(string name) {
@@ -425,19 +418,16 @@ namespace KLPlugins.RaceEngineer {
                 return "gt4";
             }
 
-            switch (name) {
-                case "porsche_991ii_gt3_cup":
-                case "porsche_992_gt3_cup":
-                case "ferrari_488_challenge_evo":
-                case "lamborghini_huracan_st_evo2":
-                case "lamborghini_huracan_st":
-                    return "gtc";
-                case "bmw_m2_cs_racing":
-                    return "tcx";
+            return name switch {
+                "porsche_991ii_gt3_cup"
+                or "porsche_992_gt3_cup"
+                or "ferrari_488_challenge_evo"
+                or "lamborghini_huracan_st_evo2"
+                or "lamborghini_huracan_st" => "gtc",
 
-                default:
-                    return "gt3";
-            }
+                "bmw_m2_cs_racing" => "tcx",
+                _ => "gt3",
+            };
         }
 
 

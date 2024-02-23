@@ -11,7 +11,7 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static string[] Names = new string[4] { "FL", "FR", "RL", "RR" };
+        public static string[] Names = ["FL", "FR", "RL", "RR"];
 
         public string? Name { get; private set; }
 
@@ -53,8 +53,8 @@ namespace KLPlugins.RaceEngineer.Car {
         private volatile bool _updatingPresPredictorDry = false;
         private volatile bool _updatingPresPredictorNowWet = false;
         private volatile bool _updatingPresPredictorFutureWet = false;
-        private WheelsRunningStats _presRunning = new WheelsRunningStats();
-        private WheelsRunningStats _tempRunning = new WheelsRunningStats();
+        private readonly WheelsRunningStats _presRunning = new();
+        private readonly WheelsRunningStats _tempRunning = new();
         private TyreInfo? _tyreInfo = null;
         private double _lastSampleTimeSec = DateTime.Now.Second;
         private int _wetSet = 0;
@@ -63,22 +63,22 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Created new Tyres");
             this.PresOverLap = new WheelsStats();
             this.TempOverLap = new WheelsStats();
-            this.IdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            this.PredictedIdealInputPresDry = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            this.PredictedIdealInputPresNowWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            this.PredictedIdealInputPresFutureWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            this.CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            this.PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-            this.PresLossLap = new bool[4] { false, false, false, false };
-            this.SetLaps = new Dictionary<string, Dictionary<int, int>>();
-            this.PresColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.PresColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.PresColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.PresColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.TempColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.TempColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            this.TempColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.IdealInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.PredictedIdealInputPresDry = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.PredictedIdealInputPresNowWet = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.PredictedIdealInputPresFutureWet = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.CurrentInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.PresLoss = [0.0, 0.0, 0.0, 0.0];
+            this.PresLossLap = [false, false, false, false];
+            this.SetLaps = [];
+            this.PresColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.PresColorMin = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.PresColorMax = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.PresColorAvg = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.TempColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.TempColorMin = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.TempColorMax = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            this.TempColorAvg = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
             this.Reset();
         }
 
@@ -128,6 +128,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public int GetCurrentSetLaps() {
             if (!RaceEngineerPlugin.Game.IsAcc || this.Name == null) return -1;
+
             if (this.SetLaps.ContainsKey(this.Name) && this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
                 return this.SetLaps[this.Name][this.CurrentTyreSet];
             }
@@ -175,7 +176,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            CheckCompoundChange(data, v, data.NewData.TrackId);
+            this.CheckCompoundChange(data, v, data.NewData.TrackId);
             this.CheckPresChange(data, v.Booleans);
             this.UpdateOverLapData(data, v.Booleans);
             this.PredictIdealInputPressures(data, v);
@@ -291,7 +292,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
             this.Name = newTyreName;
             if (!this.SetLaps.ContainsKey(this.Name)) {
-                this.SetLaps[this.Name] = new Dictionary<int, int>();
+                this.SetLaps[this.Name] = [];
             }
 
             if (v.Car.Info?.Tyres != null) {
@@ -365,18 +366,18 @@ namespace KLPlugins.RaceEngineer.Car {
             if (booleans.NewData.IsMoving && booleans.NewData.IsOnTrack) {
                 double now = data.FrameTime.Second;
                 if (this._lastSampleTimeSec == now) return;
-                double[] currentPres = new double[] {
+                double[] currentPres = [
                     data.NewData.TyrePressureFrontLeft,
                     data.NewData.TyrePressureFrontRight,
                     data.NewData.TyrePressureRearLeft,
                     data.NewData.TyrePressureRearRight
-                };
-                double[] currentTemp = new double[] {
+                ];
+                double[] currentTemp = [
                     data.NewData.TyreTemperatureFrontLeft,
                     data.NewData.TyreTemperatureFrontRight,
                     data.NewData.TyreTemperatureRearLeft,
                     data.NewData.TyreTemperatureRearRight
-                };
+                ];
 
                 this._presRunning.Update(currentPres);
                 this._tempRunning.Update(currentTemp);
@@ -542,30 +543,30 @@ namespace KLPlugins.RaceEngineer.Car {
 
 
     public class InputTyrePresPredictor {
-        private ML.RidgeRegression?[] regressors;
-        private string trackName;
-        private string carName;
-        private int[] brakeDucts;
-        private string compound;
+        private readonly ML.RidgeRegression?[] _regressors;
+        private readonly string _trackName;
+        private readonly string _carName;
+        private readonly int[] _brakeDucts;
+        private readonly string _compound;
 
         public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, ACC_RAIN_INTENSITY rain_intensity, string trackGrip, Database.Database db) {
-            this.trackName = trackName;
-            this.carName = carName;
-            this.brakeDucts = brakeDucts;
-            this.compound = compound;
+            this._trackName = trackName;
+            this._carName = carName;
+            this._brakeDucts = brakeDucts;
+            this._compound = compound;
 
-            this.regressors = new ML.RidgeRegression?[] {
+            this._regressors = [
                 this.InitRegressor(0, rain_intensity, trackGrip, db),
                 this.InitRegressor(1, rain_intensity, trackGrip, db),
                 this.InitRegressor(2, rain_intensity, trackGrip, db),
                 this.InitRegressor(3, rain_intensity, trackGrip, db)
-            };
+            ];
 
             RaceEngineerPlugin.LogInfo($"Created InputTyrePresPredictor({trackName}, {carName}, [{brakeDucts[0]}, {brakeDucts[1]}], {compound})");
         }
 
         private ML.RidgeRegression? InitRegressor(int tyre, ACC_RAIN_INTENSITY rainIntensity, string trackGrip, Database.Database db) {
-            var data = db.GetInputPresData(tyre, this.carName, this.trackName, tyre < 2 ? this.brakeDucts[0] : this.brakeDucts[1], this.compound, trackGrip, rainIntensity);
+            var data = db.GetInputPresData(tyre, this._carName, this._trackName, tyre < 2 ? this._brakeDucts[0] : this._brakeDucts[1], this._compound, trackGrip, rainIntensity);
             if (data.Item2.Count != 0) {
                 return new ML.RidgeRegression(data.Item1, data.Item2);
             } else {
@@ -576,8 +577,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public double[] Predict(double airtemp, double tracktemp, double idealPresFront, double idealPresRear) {
             var res = new double[4];
             for (int i = 0; i < 4; i++) {
-                if (this.regressors[i] != null && airtemp != 0.0) {
-                    res[i] = this.regressors[i]?.Predict(new double[] { i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp }) ?? -1.0;
+                if (this._regressors[i] != null && airtemp != 0.0) {
+                    res[i] = this._regressors[i]?.Predict([i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp]) ?? -1.0;
                 } else {
                     res[i] = double.NaN;
                 }

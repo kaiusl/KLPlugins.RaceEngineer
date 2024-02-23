@@ -12,47 +12,39 @@
         public const string IracingName = "IRacing";
         public const string R3eName = "RRRE";
 
-        public bool IsAc { get => this._isAc; }
-        public bool IsAcc { get => this._isAcc; }
-        public bool IsRf2 { get => this._isRf2; }
-        public bool IsIracing { get => this._isIracing; }
-        public bool IsR3e { get => this._isR3e; }
-        public bool IsUnknown { get => this._isUnknown; }
-        public string Name { get => this._name; }
-
-        private readonly bool _isAc = false;
-        private readonly bool _isAcc = false;
-        private readonly bool _isRf2 = false;
-        private readonly bool _isIracing = false;
-        private readonly bool _isR3e = false;
-        private readonly bool _isUnknown = false;
-        private readonly string _name;
+        public bool IsAc { get; } = false;
+        public bool IsAcc { get; } = false;
+        public bool IsRf2 { get; } = false;
+        public bool IsIracing { get; } = false;
+        public bool IsR3e { get; } = false;
+        public bool IsUnknown { get; } = false;
+        public string Name { get; }
 
         public Game(string gameName) {
-            this._name = gameName;
+            this.Name = gameName;
             switch (gameName) {
                 case AcName:
-                    this._isAc = true;
+                    this.IsAc = true;
                     RaceEngineerPlugin.LogInfo("Game set to AC");
                     break;
                 case AccName:
-                    this._isAcc = true;
+                    this.IsAcc = true;
                     RaceEngineerPlugin.LogInfo("Game set to ACC");
                     break;
                 case Rf2Name:
-                    this._isRf2 = true;
+                    this.IsRf2 = true;
                     RaceEngineerPlugin.LogInfo("Game set to RF2");
                     break;
                 case IracingName:
-                    this._isIracing = true;
+                    this.IsIracing = true;
                     RaceEngineerPlugin.LogInfo("Game set to IRacing");
                     break;
                 case R3eName:
-                    this._isR3e = true;
+                    this.IsR3e = true;
                     RaceEngineerPlugin.LogInfo("Game set to R3E");
                     break;
                 default:
-                    this._isUnknown = true;
+                    this.IsUnknown = true;
                     RaceEngineerPlugin.LogInfo("Game set to Unknown");
                     break;
             }

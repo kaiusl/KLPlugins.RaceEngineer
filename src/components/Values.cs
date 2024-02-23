@@ -14,16 +14,16 @@ namespace KLPlugins.RaceEngineer {
     /// Storage and calculation of new properties
     /// </summary>
     public class Values : IDisposable {
-        public Booleans.Booleans Booleans = new Booleans.Booleans();
-        public Car.Car Car = new Car.Car();
-        public Track.Track Track = new Track.Track();
-        public Laps.Laps Laps = new Laps.Laps();
-        public Weather Weather = new Weather();
+        public Booleans.Booleans Booleans = new();
+        public Car.Car Car = new();
+        public Track.Track Track = new();
+        public Laps.Laps Laps = new();
+        public Weather Weather = new();
         //public ACCRawData RawData = new ACCRawData();
-        public Session Session = new Session();
-        public Remaining.RemainingInSession RemainingInSession = new Remaining.RemainingInSession();
-        public Remaining.RemainingOnFuel RemainingOnFuel = new Remaining.RemainingOnFuel();
-        public Database.Database Db = new Database.Database();
+        public Session Session = new();
+        public Remaining.RemainingInSession RemainingInSession = new();
+        public Remaining.RemainingOnFuel RemainingOnFuel = new();
+        public Database.Database Db = new();
 
         //public ACCUdpRemoteClient BroadcastClient = null;
 
@@ -52,16 +52,16 @@ namespace KLPlugins.RaceEngineer {
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed = false;
+        private bool _isDisposed = false;
         protected virtual void Dispose(bool disposing) {
-            if (!this.isDisposed) {
+            if (!this._isDisposed) {
                 if (disposing) {
                     RaceEngineerPlugin.LogInfo("Disposed");
                     this.Db.Dispose();
                     //DisposeBroadcastClient();
                 }
 
-                this.isDisposed = true;
+                this._isDisposed = true;
             }
         }
 
@@ -110,7 +110,7 @@ namespace KLPlugins.RaceEngineer {
         ///     OnNewEvent - at the start of event, eg at the start of first session
         /// 
         /// </summary>
-        private DateTime lastWeather = DateTime.Now;
+        private readonly DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
             // RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
