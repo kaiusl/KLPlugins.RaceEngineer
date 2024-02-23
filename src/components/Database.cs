@@ -4,8 +4,6 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,8 +13,6 @@ using GameReaderCommon;
 
 using KLPlugins.RaceEngineer.Car;
 
-using SimHub.Plugins;
-
 namespace KLPlugins.RaceEngineer.Database {
     public struct Event {
         public string CarId;
@@ -24,11 +20,18 @@ namespace KLPlugins.RaceEngineer.Database {
         public string StartTime;
         public string GameVersion;
 
-        public Event(Values v) {
+        public Event(GameData data, Values v) {
             this.CarId = v.Car.Name;
             this.TrackId = v.Track.Name;
             this.StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
-            this.GameVersion = $"{v.RawData.NewData.StaticInfo.ACVersion}/{v.RawData.NewData.StaticInfo.SMVersion}";
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                this.GameVersion = $"{rawDataNew.StaticInfo.ACVersion}/{rawDataNew.StaticInfo.SMVersion}";
+            } else {
+                this.GameVersion = "unknown";
+            }
+
         }
 
         public override string ToString() {
@@ -82,8 +85,10 @@ namespace KLPlugins.RaceEngineer.Database {
             this.TyrePresIn = v.Car.Tyres.CurrentInputPres;
 
             if (RaceEngineerPlugin.Game.IsAcc) {
-                this.BrakePadFront = (int)v.RawData.NewData.Physics.frontBrakeCompound + 1;
-                this.BrakePadRear = (int)v.RawData.NewData.Physics.rearBrakeCompound + 1;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                this.BrakePadFront = (int)rawDataNew.Physics.frontBrakeCompound + 1;
+                this.BrakePadRear = (int)rawDataNew.Physics.rearBrakeCompound + 1;
                 this.TyreSet = v.Car.Tyres.CurrentTyreSet;
             } else {
                 this.BrakePadFront = -1;
@@ -222,14 +227,17 @@ namespace KLPlugins.RaceEngineer.Database {
             this.EcuMapChanged = v.Booleans.OldData.EcuMapChangedThisLap;
 
             if (RaceEngineerPlugin.Game.IsAcc) {
-                this.Tc2 = v.RawData.NewData.Graphics.TCCut;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                this.Tc2 = rawDataNew.Graphics.TCCut;
 
                 for (var i = 0; i < 4; i++) {
-                    this.PadLifeLeft[i] = (float)v.RawData.NewData.Physics.padLife[i];
-                    this.DiscLifeLeft[i] = (float)v.RawData.NewData.Physics.discLife[i];
+                    this.PadLifeLeft[i] = (float)rawDataNew.Physics.padLife[i];
+                    this.DiscLifeLeft[i] = (float)rawDataNew.Physics.discLife[i];
                 }
 
-                this.TrackGripStatus = (int)v.RawData.NewData.Graphics.trackGripStatus;
+                this.TrackGripStatus = (int)rawDataNew.Graphics.trackGripStatus;
+                this.RainIntensity = (int)rawDataNew.Graphics.rainIntensity;
             } else {
                 this.Tc2 = -1;
                 for (var i = 0; i < 4; i++) {
@@ -237,6 +245,7 @@ namespace KLPlugins.RaceEngineer.Database {
                 }
 
                 this.TrackGripStatus = -1;
+                this.RainIntensity = -1;
             }
 
             this.IsValid = v.Booleans.NewData.SavePrevLap;
@@ -245,7 +254,8 @@ namespace KLPlugins.RaceEngineer.Database {
             this.IsOutLap = v.Booleans.OldData.IsOutLap;
             this.IsInLap = v.Booleans.OldData.IsInLap;
 
-            this.RainIntensity = (int)v.RawData.NewData.Graphics.rainIntensity;
+
+
             this.RainIntensityChanged = v.Booleans.OldData.RainIntensityChangedThisLap;
         }
 
@@ -559,7 +569,7 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         public void InsertEvent(GameData data, Values v) {
-            var e = new Event(v);
+            var e = new Event(data, v);
             RaceEngineerPlugin.LogInfo(e.ToString());
             _ = Task.Run(() => this.InsertEvent(e));
         }
@@ -714,8 +724,18 @@ namespace KLPlugins.RaceEngineer.Database {
 
         #region QUERIES
 
-        public List<PrevData> GetPrevSessionData(Values v) {
-            var trackGrip = (int)v.RawData.NewData.Graphics.trackGripStatus;
+        public List<PrevData> GetPrevSessionData(GameData data, Values v) {
+            int trackGrip;
+            int rainIntensity;
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                trackGrip = (int)rawDataNew.Graphics.trackGripStatus;
+                rainIntensity = (int)rawDataNew.Graphics.rainIntensity;
+            } else {
+                trackGrip = (int)ACC_TRACK_GRIP_STATUS.ACC_OPTIMUM;
+                rainIntensity = (int)ACC_RAIN_INTENSITY.ACC_NO_RAIN;
+            }
             string conds = $"AND l.{IS_VALID} AND l.{TRACK_GRIP_STATUS} IN ";
             if (0 < trackGrip && trackGrip < 3) {
                 conds += "(0, 1, 2)";
@@ -726,6 +746,8 @@ namespace KLPlugins.RaceEngineer.Database {
             List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.Settings.NumPreviousValuesStored);
             this._dbMutex.WaitOne();
 
+
+
             var cmd = new SQLiteCommand(this._conn) {
                 CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {this.lapsTable.name} AS l 
 					INNER JOIN {this.stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
@@ -735,7 +757,7 @@ namespace KLPlugins.RaceEngineer.Database {
 						e.{CAR_ID} == '{v.Car.Name}' 
 						AND e.{TRACK_ID} == '{v.Track.Name}' 
 						{conds} 
-						AND l.{RAIN_INTENSITY} == {(int)v.RawData.NewData.Graphics.rainIntensity} 
+						AND l.{RAIN_INTENSITY} == {rainIntensity} 
 						AND l.{RAIN_INTENSITY_CHANGED} == 0
 					ORDER BY l.{LAP_ID} DESC
 					LIMIT {RaceEngineerPlugin.Settings.NumPreviousValuesStored}"

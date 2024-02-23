@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 using GameReaderCommon;
 
 using Newtonsoft.Json;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
     public class FrontRear {
@@ -82,11 +79,11 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public void OnNewEvent(GameData data, Values v) {
             this.CheckChange(data.NewData.CarModel);
-            this.Fuel.OnNewEvent(v);
+            this.Fuel.OnNewEvent(data, v);
         }
 
-        public void OnNewSession(Values v) {
-            this.Fuel.OnSessionChange(v);
+        public void OnNewSession(GameData data, Values v) {
+            this.Fuel.OnSessionChange(data, v);
         }
 
         public void OnNewStint() {
@@ -106,7 +103,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public void OnRegularUpdate(GameData data, Values v) {
             this.CheckChange(data.NewData.CarModel);
 
-            if (!v.Booleans.NewData.IsMoving && (this.Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
+            if (RaceEngineerPlugin.Game.IsAcc && !v.Booleans.NewData.IsMoving && (this.Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
                 this.UpdateSetup(data.NewData.TrackId);
             }
 
@@ -167,8 +164,8 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
                 this.Tyres.OnSetupChange();
-            } catch (IOException) {
-                // RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
+            } catch (IOException e) {
+                RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 this.Setup = null;
             }
         }

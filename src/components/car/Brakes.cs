@@ -3,10 +3,7 @@ using System;
 using GameReaderCommon;
 
 using KLPlugins.RaceEngineer.Color;
-using KLPlugins.RaceEngineer.RawData;
 using KLPlugins.RaceEngineer.Stats;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
     public class Brakes {
@@ -58,7 +55,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            this.CheckPadChange(v);
+            this.CheckPadChange(data, v);
             this.UpdateOverLapData(data, v);
             this.UpdateColors(data, v);
 
@@ -68,15 +65,18 @@ namespace KLPlugins.RaceEngineer.Car {
 
         #region PRIVATE METHODS
 
-        private void CheckPadChange(Values v) {
+        private void CheckPadChange(GameData data, Values v) {
             // Other games don't have pad life properties
             if (!RaceEngineerPlugin.Game.IsAcc) return;
+
+            var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+            var rawDataOld = (ACSharedMemory.ACC.Reader.ACCRawData)data.OldData.GetRawDataObject();
 
             // Pads can change at two moments:
             //    a) If we exit garage it's always new brakes
             //    b) If we change brakes in pit stop. Sudden change on ExitPitBox.
 
-            if (v.Booleans.NewData.ExitedMenu || (v.Booleans.NewData.ExitedPitBox && v.RawData.NewData.Physics.padLife[0] > v.RawData.OldData.Physics.padLife[0])) {
+            if (v.Booleans.NewData.ExitedMenu || (v.Booleans.NewData.ExitedPitBox && rawDataNew.Physics.padLife[0] > rawDataOld.Physics.padLife[0])) {
                 RaceEngineerPlugin.LogInfo("Brake pads changed.");
                 this.SetNr += 1;
                 this.LapsNr = 0;

@@ -1,16 +1,10 @@
-using System;
 using System.Collections.Generic;
 
 using ACSharedMemory.ACC.MMFModels;
 
 using GameReaderCommon;
 
-using KLPlugins.RaceEngineer.Deque;
-using KLPlugins.RaceEngineer.RawData;
-
 using ksBroadcastingNetwork;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer {
     public class Weather {
@@ -64,6 +58,8 @@ namespace KLPlugins.RaceEngineer {
         #region Private methods
 
         public void UpdateTemps(GameData data, Values v) {
+
+
             if (v.Booleans.NewData.EnteredMenu) {
                 this.AirTempAtLapStart = double.NaN;
                 this.TrackTempAtLapStart = double.NaN;
@@ -73,7 +69,14 @@ namespace KLPlugins.RaceEngineer {
             if (v.Booleans.NewData.IsMoving && double.IsNaN(this.AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
-                switch (v.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName)) {
+                RaceSessionType sessionType = Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+                if (RaceEngineerPlugin.Game.IsAcc) {
+                    var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                    sessionType = rawDataNew.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.CarClass);
+                }
+
+                switch (sessionType) {
                     case RaceSessionType.Race:
                     case RaceSessionType.Hotstint:
                         if (data.OldData.SessionTimeLeft != data.NewData.SessionTimeLeft) {
@@ -93,8 +96,10 @@ namespace KLPlugins.RaceEngineer {
             }
 
             if (RaceEngineerPlugin.Game.IsAcc && data.NewData.AirTemperature == 0.0) {
-                this.AirTemp = v.RawData.NewData.Realtime?.AmbientTemp ?? 0.0;
-                this.TrackTemp = v.RawData.NewData.Realtime?.TrackTemp ?? 0.0;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                this.AirTemp = rawDataNew.Realtime?.AmbientTemp ?? 0.0;
+                this.TrackTemp = rawDataNew.Realtime?.TrackTemp ?? 0.0;
             } else {
                 this.AirTemp = data.NewData.AirTemperature;
                 this.TrackTemp = data.NewData.RoadTemperature;
@@ -103,13 +108,17 @@ namespace KLPlugins.RaceEngineer {
 
         private const double secInDay = 24 * 3600;
         public void UpdateForecast(GameData data, Values v) {
+
             if (RaceEngineerPlugin.Game.IsAcc) {
-                var nowTime = v.RawData.NewData.Graphics.clock + secInDay * this._daysSinceStart;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                var rawDataOld = (ACSharedMemory.ACC.Reader.ACCRawData)data.OldData.GetRawDataObject();
+
+                var nowTime = rawDataNew.Graphics.clock + secInDay * this._daysSinceStart;
                 if (v.Session.TimeMultiplier < 1) return;
                 if (!this._isInitialForecastAdded) {
-                    var now = v.RawData.NewData.Graphics.rainIntensity;
-                    var in10 = v.RawData.NewData.Graphics.rainIntensityIn10min;
-                    var in30 = v.RawData.NewData.Graphics.rainIntensityIn30min;
+                    var now = rawDataNew.Graphics.rainIntensity;
+                    var in10 = rawDataNew.Graphics.rainIntensityIn10min;
+                    var in30 = rawDataNew.Graphics.rainIntensityIn30min;
 
                     if (in10 != now) {
                         this.Forecast.Add(new WeatherPoint(in10, nowTime + 10 * 60));
@@ -122,7 +131,7 @@ namespace KLPlugins.RaceEngineer {
                     return;
                 }
 
-                if (v.RawData.NewData.Graphics.clock < v.RawData.OldData.Graphics.clock && v.RawData.NewData.Graphics.globalRed == 0) {
+                if (rawDataNew.Graphics.clock < rawDataOld.Graphics.clock && rawDataNew.Graphics.globalRed == 0) {
                     // Graphics.clock can jump back and forth is session is not running, that could add false days. Check that we are in session.
                     this._daysSinceStart += 1;
                 }
@@ -133,13 +142,13 @@ namespace KLPlugins.RaceEngineer {
                 }
 
                 var changed = false;
-                if (this._add10MinChange && v.RawData.OldData.Graphics.rainIntensityIn10min != v.RawData.NewData.Graphics.rainIntensityIn10min) {
-                    this.Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn10min, nowTime + 10 * 60));
+                if (this._add10MinChange && rawDataOld.Graphics.rainIntensityIn10min != rawDataNew.Graphics.rainIntensityIn10min) {
+                    this.Forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn10min, nowTime + 10 * 60));
                     changed = true;
                 }
 
-                if (v.RawData.OldData.Graphics.rainIntensityIn30min != v.RawData.NewData.Graphics.rainIntensityIn30min) {
-                    this.Forecast.Add(new WeatherPoint(v.RawData.NewData.Graphics.rainIntensityIn30min, nowTime + 30 * 60));
+                if (rawDataOld.Graphics.rainIntensityIn30min != rawDataNew.Graphics.rainIntensityIn30min) {
+                    this.Forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn30min, nowTime + 30 * 60));
                     changed = true;
                 }
 

@@ -34,16 +34,16 @@ namespace KLPlugins.RaceEngineer.Car {
 
         #region On... METHODS
 
-        public void OnNewEvent(Values v) {
-            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
+        public void OnNewEvent(GameData data, Values v) {
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
-        public void OnSessionChange(Values v) {
+        public void OnSessionChange(GameData data, Values v) {
             this.Reset();
 
-            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
@@ -65,8 +65,10 @@ namespace KLPlugins.RaceEngineer.Car {
             this.Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
             if (RaceEngineerPlugin.Game.IsAcc && this.Remaining == 0.0) {
-                double avgFuelPerLapACC = v.RawData.NewData.Graphics.FuelXLap;
-                double estLaps = v.RawData.NewData.Graphics.fuelEstimatedLaps;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                double avgFuelPerLapACC = rawDataNew.Graphics.FuelXLap;
+                double estLaps = rawDataNew.Graphics.fuelEstimatedLaps;
                 this.Remaining = estLaps * avgFuelPerLapACC;
             }
 
@@ -82,7 +84,9 @@ namespace KLPlugins.RaceEngineer.Car {
                 var sessType = v.Session.RaceSessionType;
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
                 if (RaceEngineerPlugin.Game.IsAcc && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
-                    var sessPhase = v.RawData.NewData.Realtime?.Phase;
+                    var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                    var sessPhase = rawDataNew.Realtime?.Phase;
                     if ((sessPhase != null && sessPhase == SessionPhase.Session && sessPhase == SessionPhase.PreSession) || (data.NewData.SessionTimeLeft != data.OldData.SessionTimeLeft)) {
                         set_lap_start_fuel = true;
                     }

@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 
 using GameReaderCommon;
-
-using KLPlugins.RaceEngineer.RawData;
 
 using ksBroadcastingNetwork;
 
 using SimHub.Plugins;
 
-using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 
 namespace KLPlugins.RaceEngineer {
 
@@ -25,7 +19,7 @@ namespace KLPlugins.RaceEngineer {
         public Track.Track Track = new Track.Track();
         public Laps.Laps Laps = new Laps.Laps();
         public Weather Weather = new Weather();
-        public ACCRawData RawData = new ACCRawData();
+        //public ACCRawData RawData = new ACCRawData();
         public Session Session = new Session();
         public Remaining.RemainingInSession RemainingInSession = new Remaining.RemainingInSession();
         public Remaining.RemainingOnFuel RemainingOnFuel = new Remaining.RemainingOnFuel();
@@ -47,7 +41,7 @@ namespace KLPlugins.RaceEngineer {
             this.Weather.Reset();
             this.RemainingInSession.Reset();
             this.RemainingOnFuel.Reset();
-            this.RawData.Reset();
+            // RawData.Reset();
             this.Session.Reset();
         }
 
@@ -97,11 +91,11 @@ namespace KLPlugins.RaceEngineer {
 
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent.");
-            var sessType = this.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+            var sessType = Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
             this.Booleans.OnNewEvent(sessType);
             this.Track.OnNewEvent(data);
             this.Car.OnNewEvent(data, this);
-            this.Laps.OnNewEvent(this);
+            this.Laps.OnNewEvent(data, this);
             this.Db.InsertEvent(data, this);
         }
 
@@ -118,7 +112,7 @@ namespace KLPlugins.RaceEngineer {
         /// </summary>
         private DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
-            this.RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
+            // RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
             if (this.Booleans.NewData.IsNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
@@ -171,8 +165,8 @@ namespace KLPlugins.RaceEngineer {
                 RaceEngineerPlugin.LogInfo("New session");
                 this.Booleans.OnNewSession(this);
                 this.Session.OnNewSession();
-                this.Car.OnNewSession(this);
-                this.Laps.OnNewSession(this);
+                this.Car.OnNewSession(data, this);
+                this.Laps.OnNewSession(data, this);
                 this.Db.InsertSession(data, this);
             }
 

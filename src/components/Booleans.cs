@@ -1,13 +1,6 @@
-using System.Diagnostics;
-using System.IO;
-
 using GameReaderCommon;
 
-using KLPlugins.RaceEngineer.RawData;
-
 using ksBroadcastingNetwork;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Booleans {
 
@@ -134,7 +127,8 @@ namespace KLPlugins.RaceEngineer.Booleans {
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
             this.IsOnTrack = !this.IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.Game.IsAcc ? data.NewData.AirTemperature > 0.0 : true);
             if (RaceEngineerPlugin.Game.IsAcc && this.IsInMenu) {
-                this.IsSetupMenuVisible = v.RawData.NewData.Graphics.IsSetupMenuVisible == 1;
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                this.IsSetupMenuVisible = rawDataNew.Graphics.IsSetupMenuVisible == 1;
             }
 
             this.IsMoving = data.NewData.SpeedKmh > 1;
@@ -182,9 +176,14 @@ namespace KLPlugins.RaceEngineer.Booleans {
             }
             //EcuMapChangedThisLap |= (data.OldData.EngineMap != data.NewData.EngineMap);
 
-            if (!this.RainIntensityChangedThisLap && !this.IsInMenu && !this.IsInPitLane && v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity) {
-                RaceEngineerPlugin.LogInfo("Set 'RainIntensityChangedThisLap = true'");
-                this.RainIntensityChangedThisLap = true;
+            if (RaceEngineerPlugin.Game.IsAcc && !this.RainIntensityChangedThisLap && !this.IsInMenu) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                var rawDataOld = (ACSharedMemory.ACC.Reader.ACCRawData)data.OldData.GetRawDataObject();
+
+                if (!this.IsInPitLane && rawDataNew.Graphics.rainIntensity != rawDataOld.Graphics.rainIntensity) {
+                    RaceEngineerPlugin.LogInfo("Set 'RainIntensityChangedThisLap = true'");
+                    this.RainIntensityChangedThisLap = true;
+                }
             }
 
         }

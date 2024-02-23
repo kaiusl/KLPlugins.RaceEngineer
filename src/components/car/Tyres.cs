@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 using ACSharedMemory.ACC.MMFModels;
 
 using GameReaderCommon;
 
-using KLPlugins.RaceEngineer.RawData;
 using KLPlugins.RaceEngineer.Stats;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
 
@@ -179,10 +173,10 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            this.CheckCompoundChange(data, v, data.NewData.TrackId);
+            CheckCompoundChange(data, v, data.NewData.TrackId);
             this.CheckPresChange(data, v.Booleans);
             this.UpdateOverLapData(data, v.Booleans);
-            this.PredictIdealInputPressures(v);
+            this.PredictIdealInputPressures(data, v);
             this.UpdateColors(data, v.Booleans.NewData.IsInMenu);
 
 
@@ -258,25 +252,36 @@ namespace KLPlugins.RaceEngineer.Car {
 
             if (this.Name != null && !(v.Booleans.NewData.ExitedMenu || v.Booleans.NewData.ExitedPitBox)) return;
 
-            string newTyreName = v.RawData.NewData.Graphics.TyreCompound;
+            string newTyreName;
 
-            if (newTyreName == "wet_compound") {
-                if (v.Booleans.NewData.ExitedMenu) {
-                    this._wetSet += 1; // Definitely is new set
-                } else if (v.Booleans.NewData.ExitedPitBox) {
-                    // Could be new set but there is really no way to tell since wet sets are not numbered
-                    // Since tyre change takes 30 seconds, let's assume that if pitstop is 29s or longer that we changed tyres. 
-                    // Not 100% true since with repairs or brake change we can get longer pitstops
-                    // But we do know that if pit was shorter than 30s, we couldn't have changed tyres.
-                    RaceEngineerPlugin.LogInfo($"Exited pit box: pit time = {data.OldData.IsInPitSince}");
-                    if (data.OldData.IsInPitSince > 29) {
-                        this._wetSet += 1;
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+
+                newTyreName = rawDataNew.Graphics.TyreCompound;
+                if (newTyreName == "wet_compound") {
+                    if (v.Booleans.NewData.ExitedMenu) {
+                        this._wetSet += 1; // Definitely is new set
+                    } else if (v.Booleans.NewData.ExitedPitBox) {
+                        // Could be new set but there is really no way to tell since wet sets are not numbered
+                        // Since tyre change takes 30 seconds, let's assume that if pitstop is 29s or longer that we changed tyres. 
+                        // Not 100% true since with repairs or brake change we can get longer pitstops
+                        // But we do know that if pit was shorter than 30s, we couldn't have changed tyres.
+                        RaceEngineerPlugin.LogInfo($"Exited pit box: pit time = {data.OldData.IsInPitSince}");
+                        if (data.OldData.IsInPitSince > 29) {
+                            this._wetSet += 1;
+                        }
                     }
+                    this.CurrentTyreSet = this._wetSet;
+                } else {
+                    this.CurrentTyreSet = rawDataNew.Graphics.currentTyreSet;
                 }
-                this.CurrentTyreSet = this._wetSet;
             } else {
-                this.CurrentTyreSet = RaceEngineerPlugin.Game.IsAcc ? v.RawData.NewData.Graphics.currentTyreSet : -1;
+                // TODO: figure out other games
+                newTyreName = "unknown";
+                this.CurrentTyreSet = -1;
             }
+
+
 
             if (newTyreName == null || newTyreName == this.Name) return;
             RaceEngineerPlugin.LogInfo($"Tyres changed from '{this.Name}' to '{newTyreName}'.");
@@ -379,7 +384,7 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        private void PredictIdealInputPressures(Values v) {
+        private void PredictIdealInputPressures(GameData data, Values v) {
             if (this._tyreInfo == null || v.Weather.AirTemp == 0.0) {
                 // RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null' || 'AirTemp == 0.0'");
                 for (int i = 0; i < 4; i++) {
@@ -390,51 +395,56 @@ namespace KLPlugins.RaceEngineer.Car {
                 return;
             }
 
-            if (!this._updatingPresPredictorDry
-                && (v.RawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
-                    || v.RawData.NewData.Graphics.rainIntensityIn10min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
-                    || v.RawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
-                )
-            ) {
-                if (this.InputTyrePresPredictorDry != null) {
-                    var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
-                    preds.CopyTo(this.PredictedIdealInputPresDry, 0);
-                } else {
-                    if (v.Car.Setup != null) {
-                        this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
-                        for (int i = 0; i < 4; i++) {
-                            this.PredictedIdealInputPresDry[i] = double.NaN;
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                var rawDataOld = (ACSharedMemory.ACC.Reader.ACCRawData)data.OldData.GetRawDataObject();
+
+                if (!this._updatingPresPredictorDry
+                    && (rawDataNew.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                        || rawDataNew.Graphics.rainIntensityIn10min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                        || rawDataNew.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                    )
+                ) {
+                    if (this.InputTyrePresPredictorDry != null) {
+                        var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        preds.CopyTo(this.PredictedIdealInputPresDry, 0);
+                    } else {
+                        if (v.Car.Setup != null) {
+                            this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
+                            for (int i = 0; i < 4; i++) {
+                                this.PredictedIdealInputPresDry[i] = double.NaN;
+                            }
                         }
-                    }
 
+                    }
                 }
-            }
 
-            if (!this._updatingPresPredictorNowWet && v.RawData.NewData.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
-                if (v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity || this.InputTyrePresPredictorNowWet == null) {
-                    if (v.Car.Setup != null) {
-                        this.InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                if (!this._updatingPresPredictorNowWet && rawDataNew.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
+                    if (rawDataNew.Graphics.rainIntensity != rawDataOld.Graphics.rainIntensity || this.InputTyrePresPredictorNowWet == null) {
+                        if (v.Car.Setup != null) {
+                            this.InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, data, v.Db);
+                        }
+                        for (int i = 0; i < 4; i++) {
+                            this.PredictedIdealInputPresNowWet[i] = double.NaN;
+                        }
+                    } else {
+                        var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        preds.CopyTo(this.PredictedIdealInputPresNowWet, 0);
                     }
-                    for (int i = 0; i < 4; i++) {
-                        this.PredictedIdealInputPresNowWet[i] = double.NaN;
-                    }
-                } else {
-                    var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
-                    preds.CopyTo(this.PredictedIdealInputPresNowWet, 0);
                 }
-            }
 
-            if (!this._updatingPresPredictorFutureWet && (v.RawData.NewData.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || v.RawData.NewData.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
-                if (v.RawData.NewData.Graphics.rainIntensityIn30min != v.RawData.OldData.Graphics.rainIntensityIn30min || this.InputTyrePresPredictorFutureWet == null) {
-                    if (v.Car.Setup != null) {
-                        this.InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                if (!this._updatingPresPredictorFutureWet && (rawDataNew.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || rawDataNew.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
+                    if (rawDataNew.Graphics.rainIntensityIn30min != rawDataOld.Graphics.rainIntensityIn30min || this.InputTyrePresPredictorFutureWet == null) {
+                        if (v.Car.Setup != null) {
+                            this.InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, data, v.Db);
+                        }
+                        for (int i = 0; i < 4; i++) {
+                            this.PredictedIdealInputPresFutureWet[i] = double.NaN;
+                        }
+                    } else {
+                        var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        preds.CopyTo(this.PredictedIdealInputPresFutureWet, 0);
                     }
-                    for (int i = 0; i < 4; i++) {
-                        this.PredictedIdealInputPresFutureWet[i] = double.NaN;
-                    }
-                } else {
-                    var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
-                    preds.CopyTo(this.PredictedIdealInputPresFutureWet, 0);
                 }
             }
         }
@@ -450,37 +460,45 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Started building dry tyre pres models.");
         }
 
-        private void InitInputTyrePresPredictorNowWet(string trackName, string carName, int[] brakeDucts, ACCRawData rawData, Database.Database db) {
+        private void InitInputTyrePresPredictorNowWet(string trackName, string carName, int[] brakeDucts, GameData data, Database.Database db) {
             this.InputTyrePresPredictorNowWet = null;
-            _ = Task.Run(() => {
-                this._updatingPresPredictorNowWet = true;
-                this.InputTyrePresPredictorNowWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensity, $"({(int)rawData.NewData.Graphics.trackGripStatus})", db);
-                this._updatingPresPredictorNowWet = false;
-            });
-            RaceEngineerPlugin.LogInfo("Started building now wet tyre pres models.");
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                _ = Task.Run(() => {
+                    this._updatingPresPredictorNowWet = true;
+                    this.InputTyrePresPredictorNowWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawDataNew.Graphics.rainIntensity, $"({(int)rawDataNew.Graphics.trackGripStatus})", db);
+                    this._updatingPresPredictorNowWet = false;
+                });
+                RaceEngineerPlugin.LogInfo("Started building now wet tyre pres models.");
+            }
         }
 
-        private void InitInputTyrePresPredictorFutureWet(string trackName, string carName, int[] brakeDucts, ACCRawData rawData, Database.Database db) {
+        private void InitInputTyrePresPredictorFutureWet(string trackName, string carName, int[] brakeDucts, GameData data, Database.Database db) {
             this.InputTyrePresPredictorFutureWet = null;
-            _ = Task.Run(() => {
-                this._updatingPresPredictorFutureWet = true;
 
-                var futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_WET;
-                if (rawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_THUNDERSTORM) {
-                    futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_FLOODED;
-                } else if (rawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_DRIZZLE
-                    && (rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
-                        || rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_DRIZZLE
-                        || rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN
-                    )
-                ) {
-                    futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_DAMP;
-                }
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
 
-                this.InputTyrePresPredictorFutureWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensityIn30min, $"({(int)futureTrackGrip})", db);
-                this._updatingPresPredictorFutureWet = false;
-            });
-            RaceEngineerPlugin.LogInfo("Started building future wet tyre pres models.");
+                _ = Task.Run(() => {
+                    this._updatingPresPredictorFutureWet = true;
+
+                    var futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_WET;
+                    if (rawDataNew.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_THUNDERSTORM) {
+                        futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_FLOODED;
+                    } else if (rawDataNew.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_DRIZZLE
+                        && (rawDataNew.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                            || rawDataNew.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_DRIZZLE
+                            || rawDataNew.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN
+                        )
+                    ) {
+                        futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_DAMP;
+                    }
+
+                    this.InputTyrePresPredictorFutureWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawDataNew.Graphics.rainIntensityIn30min, $"({(int)futureTrackGrip})", db);
+                    this._updatingPresPredictorFutureWet = false;
+                });
+                RaceEngineerPlugin.LogInfo("Started building future wet tyre pres models.");
+            }
         }
 
 

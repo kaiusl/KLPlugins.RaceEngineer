@@ -44,18 +44,18 @@ namespace KLPlugins.RaceEngineer.Laps {
             this.StintLaps = 0;
         }
 
-        public void OnNewEvent(Values v) {
-            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
-                RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
+        public void OnNewEvent(GameData data, Values v) {
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
+                //RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 this.PrevTimes.AddToFront(pd.lapTime);
             }
         }
 
-        public void OnNewSession(Values v) {
+        public void OnNewSession(GameData data, Values v) {
             this.Reset();
 
-            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
-                RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
+            foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
+                //RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 this.PrevTimes.AddToFront(pd.lapTime);
             }
         }

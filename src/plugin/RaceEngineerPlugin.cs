@@ -1,24 +1,15 @@
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Windows.Media;
 
-using ACSharedMemory.ACC.Reader;
-
 using GameReaderCommon;
-using GameReaderCommon.Enums;
+using SimHub.Plugins;
 
 using KLPlugins.RaceEngineer.Deque;
-
 using ksBroadcastingNetwork;
-
-using Newtonsoft.Json;
-
-using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -54,7 +45,7 @@ namespace KLPlugins.RaceEngineer {
         /// <param name="pluginManager"></param>
         /// <param name="data"></param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data) {
-            if (!Game.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
+            //if (!Game.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
             if (data.GameRunning && data.OldData != null && data.NewData != null) {
                 //var swatch = Stopwatch.StartNew();
@@ -108,7 +99,8 @@ namespace KLPlugins.RaceEngineer {
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager) {
             var gameName = (string)pluginManager.GetPropertyValue<SimHub.Plugins.DataPlugins.DataCore.DataCorePlugin>("CurrentGame");
-            if (gameName != Game.AccName) return;
+            Game = new Game(gameName);
+            // if (gameName != Game.AccName) return;
 
             if (Settings.Log) {
                 var fpath = $"{Settings.DataLocation}\\Logs\\RELog_{PluginStartTime}.txt";
@@ -123,7 +115,7 @@ namespace KLPlugins.RaceEngineer {
 
             // DataCorePlugin should be built before, thus this property should be available.
 
-            Game = new Game(gameName);
+
             GameDataPath = $@"{Settings.DataLocation}\{gameName}";
             this._values = new Values();
 
@@ -140,7 +132,7 @@ namespace KLPlugins.RaceEngineer {
 
             #region ADD DELEGATES
 
-            this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this._values.RawData.NewData.Graphics.clock));
+            this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this._values.Session.TimeOfDay));
             this.AttachDelegate("Session.TimeMultiplier", () => this._values.Session.TimeMultiplier);
             this.AttachDelegate("Session.Type", () => this._values.Session.RaceSessionType);
 
