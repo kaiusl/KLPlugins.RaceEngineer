@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using MathNet.Numerics.Statistics;
@@ -105,10 +103,10 @@ namespace KLPlugins.RaceEngineer.Deque {
                 foreach (var a in this.Data) {
                     txt += $"{a:0.000}, ";
                 }
-                RaceEngineerPlugin.LogInfo($@"{txt}],
-    (Min, Q1, Median, Q3, Max) = ({this.Min}, {this.Q1}, {this.Median}, {this.Q3}, {this.Max}),
-    (Avg, Std) = ({this.Avg}, {this.Std}),
-    (lowerBound, upperBound) = ({this._lowerBound}, {this._upperBound})");
+                //            RaceEngineerPlugin.LogInfo($@"{txt}],
+                //(Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
+                //(Avg, Std) = ({Avg}, {Std}),
+                //(lowerBound, upperBound) = ({_lowerBound}, {_upperBound})");
             }
         }
 
