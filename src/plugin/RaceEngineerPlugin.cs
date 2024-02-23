@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -196,6 +196,9 @@ namespace KLPlugins.RaceEngineer {
             };
 
             addStats("Laps.Time", this._values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S1Time", this._values.Laps.PrevS1Times.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S2Time", this._values.Laps.PrevS2Times.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S3Time", this._values.Laps.PrevS3Times.Stats, Settings.PrevLapsStatsFlags);
             addStats("Fuel.UsedPerLap", this._values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
             addStats("Fuel.LapsRemaining", this._values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
             addStats("Fuel.TimeRemaining", this._values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
@@ -313,6 +316,9 @@ namespace KLPlugins.RaceEngineer {
             };
 
             addPrevData("Laps.PrevTime", this._values.Laps.PrevTimes);
+            addPrevData("Laps.PrevS1Time", this._values.Laps.PrevS1Times);
+            addPrevData("Laps.PrevS2Time", this._values.Laps.PrevS2Times);
+            addPrevData("Laps.PrevS3Time", this._values.Laps.PrevS3Times);
             addPrevData("Fuel.PrevUsedPerLap", this._values.Car.Fuel.PrevUsedPerLap);
 
             #endregion
