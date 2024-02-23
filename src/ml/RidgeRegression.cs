@@ -1,8 +1,9 @@
-﻿using MathNet.Numerics.LinearAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using MathNet.Numerics.LinearAlgebra;
 
 namespace KLPlugins.RaceEngineer.ML {
 
@@ -30,19 +31,19 @@ namespace KLPlugins.RaceEngineer.ML {
                 Debug.Assert(this.x[i, 0] == 1, $"Features must be in homogeneous coordinates. First column must be 1. Found {this.x[i, 0]} in sample {i}.");
             }
 
-            Fit();
+            this.Fit();
         }
 
         public void Fit() {
-            this.w = ((x.Transpose().Multiply(x) + Matrix<double>.Build.DenseIdentity(x.ColumnCount)).Inverse()).Multiply(x.Transpose().Multiply(y));
+            this.w = ((this.x.Transpose().Multiply(this.x) + Matrix<double>.Build.DenseIdentity(this.x.ColumnCount)).Inverse()).Multiply(this.x.Transpose().Multiply(this.y));
         }
 
         public double Predict(double[] v) {
-            Debug.Assert(v.Length == w.Count - 1, $"Model has {w.Count - 1} features. Provided input has {v.Length} features.");
+            Debug.Assert(v.Length == this.w.Count - 1, $"Model has {this.w.Count - 1} features. Provided input has {v.Length} features.");
 
-            var res = w[0];
+            var res = this.w[0];
             for (int i = 0; i < v.Length; i++) {
-                res += v[i] * w[i + 1];
+                res += v[i] * this.w[i + 1];
             }
             return res;
         }

@@ -10,31 +10,31 @@ namespace KLPlugins.RaceEngineer.Remaining {
         public Stats.Stats Laps = new Stats.Stats();
         public Stats.Stats FuelNeeded = new Stats.Stats();
 
-        public void Reset() { 
-            Time.Reset(); 
-            Laps.Reset();
-            FuelNeeded.Reset();
+        public void Reset() {
+            this.Time.Reset();
+            this.Laps.Reset();
+            this.FuelNeeded.Reset();
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
             if (v.Booleans.NewData.IsTimeLimitedSession) {
                 var timeLeft = data.NewData.SessionTimeLeft.TotalSeconds;
-                Time.Set(timeLeft);
+                this.Time.Set(timeLeft);
 
-                Laps.Min = timeLeft / v.Laps.PrevTimes.Max;
-                Laps.Max = timeLeft / v.Laps.PrevTimes.Min;
-                Laps.Avg = timeLeft / v.Laps.PrevTimes.Avg;
+                this.Laps.Min = timeLeft / v.Laps.PrevTimes.Max;
+                this.Laps.Max = timeLeft / v.Laps.PrevTimes.Min;
+                this.Laps.Avg = timeLeft / v.Laps.PrevTimes.Avg;
             } else if (v.Booleans.NewData.IsLapLimitedSession) {
                 var lapsLeft = data.NewData.RemainingLaps;
-                Laps.Set(lapsLeft);
-                Time.Min = lapsLeft * v.Laps.PrevTimes.Min;
-                Time.Max = lapsLeft * v.Laps.PrevTimes.Max;
-                Time.Avg = lapsLeft * v.Laps.PrevTimes.Avg;
+                this.Laps.Set(lapsLeft);
+                this.Time.Min = lapsLeft * v.Laps.PrevTimes.Min;
+                this.Time.Max = lapsLeft * v.Laps.PrevTimes.Max;
+                this.Time.Avg = lapsLeft * v.Laps.PrevTimes.Avg;
             }
 
-            FuelNeeded.Min = Laps.Min * v.Car.Fuel.PrevUsedPerLap.Min;
-            FuelNeeded.Max = Laps.Max * v.Car.Fuel.PrevUsedPerLap.Max;
-            FuelNeeded.Avg = Laps.Avg * v.Car.Fuel.PrevUsedPerLap.Avg;
+            this.FuelNeeded.Min = this.Laps.Min * v.Car.Fuel.PrevUsedPerLap.Min;
+            this.FuelNeeded.Max = this.Laps.Max * v.Car.Fuel.PrevUsedPerLap.Max;
+            this.FuelNeeded.Avg = this.Laps.Avg * v.Car.Fuel.PrevUsedPerLap.Avg;
         }
     }
 
@@ -46,17 +46,17 @@ namespace KLPlugins.RaceEngineer.Remaining {
         public Stats.Stats Laps = new Stats.Stats();
 
         public void Reset() {
-            Time.Reset();
-            Laps.Reset();
+            this.Time.Reset();
+            this.Laps.Reset();
         }
 
         public void OnRegularUpdate(Values v) {
-            Laps.Min = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Max;
-            Laps.Max = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Min;
-            Laps.Avg = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Avg;
-            Time.Min = Laps.Min * v.Laps.PrevTimes.Min;
-            Time.Max = Laps.Max * v.Laps.PrevTimes.Max;
-            Time.Avg = Laps.Avg * v.Laps.PrevTimes.Avg;
+            this.Laps.Min = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Max;
+            this.Laps.Max = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Min;
+            this.Laps.Avg = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Avg;
+            this.Time.Min = this.Laps.Min * v.Laps.PrevTimes.Min;
+            this.Time.Max = this.Laps.Max * v.Laps.PrevTimes.Max;
+            this.Time.Avg = this.Laps.Avg * v.Laps.PrevTimes.Avg;
         }
     }
 

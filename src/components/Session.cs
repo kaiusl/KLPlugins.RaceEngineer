@@ -1,11 +1,13 @@
-﻿using GameReaderCommon;
-using ksBroadcastingNetwork;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using GameReaderCommon;
+
+using ksBroadcastingNetwork;
 
 namespace KLPlugins.RaceEngineer {
     public class Session {
@@ -19,53 +21,53 @@ namespace KLPlugins.RaceEngineer {
         private bool _isTimeMultiplierCalculated = false;
 
         public Session() {
-            Reset();
+            this.Reset();
         }
 
         public void Reset() {
-            RaceSessionType = null;
-            IsNewSession = false;
-            TimeMultiplier = -1;
-            _startClock = double.NaN;
-            _startISplit = double.NaN;
-            _firstClock = double.NaN;
-            _isTimeMultiplierCalculated = false;
+            this.RaceSessionType = null;
+            this.IsNewSession = false;
+            this.TimeMultiplier = -1;
+            this._startClock = double.NaN;
+            this._startISplit = double.NaN;
+            this._firstClock = double.NaN;
+            this._isTimeMultiplierCalculated = false;
         }
 
         public void OnNewSession() {
-            TimeMultiplier = -1;
-            _startClock = double.NaN;
-            _startISplit = double.NaN;
-            _firstClock = double.NaN;
-            _isTimeMultiplierCalculated = false;
+            this.TimeMultiplier = -1;
+            this._startClock = double.NaN;
+            this._startISplit = double.NaN;
+            this._firstClock = double.NaN;
+            this._isTimeMultiplierCalculated = false;
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
             var newSessType = v.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
-            IsNewSession = newSessType != RaceSessionType;
-            RaceSessionType = newSessType;
+            this.IsNewSession = newSessType != this.RaceSessionType;
+            this.RaceSessionType = newSessType;
 
-            if (!_isTimeMultiplierCalculated) {
-                if (double.IsNaN(_firstClock) && v.RawData.NewData.Graphics.iSplit > 5.0 && v.RawData.NewData.Graphics.clock != 0.0) {
-                    _firstClock = v.RawData.NewData.Graphics.clock;
+            if (!this._isTimeMultiplierCalculated) {
+                if (double.IsNaN(this._firstClock) && v.RawData.NewData.Graphics.iSplit > 5.0 && v.RawData.NewData.Graphics.clock != 0.0) {
+                    this._firstClock = v.RawData.NewData.Graphics.clock;
 
-                    RaceEngineerPlugin.LogInfo($"_firstClock = {_firstClock}");
+                    RaceEngineerPlugin.LogInfo($"_firstClock = {this._firstClock}");
                 }
 
-                if (double.IsNaN(_firstClock)) return;
+                if (double.IsNaN(this._firstClock)) return;
 
-                if (double.IsNaN(_startClock) && v.RawData.NewData.Graphics.clock - _firstClock > 5.0 && v.RawData.NewData.Graphics.iSplit > 5.0) {
-                    _startClock = v.RawData.NewData.Graphics.clock;
-                    _startISplit = v.RawData.NewData.Graphics.iSplit;
-                    RaceEngineerPlugin.LogInfo($"Started timer. _startClock = {_startClock}, _startIsplit = {_startISplit}");
+                if (double.IsNaN(this._startClock) && v.RawData.NewData.Graphics.clock - this._firstClock > 5.0 && v.RawData.NewData.Graphics.iSplit > 5.0) {
+                    this._startClock = v.RawData.NewData.Graphics.clock;
+                    this._startISplit = v.RawData.NewData.Graphics.iSplit;
+                    RaceEngineerPlugin.LogInfo($"Started timer. _startClock = {this._startClock}, _startIsplit = {this._startISplit}");
                 }
 
-                var diffMs = v.RawData.NewData.Graphics.iSplit - _startISplit;
+                var diffMs = v.RawData.NewData.Graphics.iSplit - this._startISplit;
                 if (diffMs > 5000) {
-                    TimeMultiplier = (int)Math.Round((v.RawData.NewData.Graphics.clock - _startClock) / (diffMs) * 1000.0);
-                    _isTimeMultiplierCalculated = true;
-                    v.Db.UpdateSessionTimeMultiplier(TimeMultiplier);
-                    RaceEngineerPlugin.LogInfo($"Ended timer. TimeMultiplier = {TimeMultiplier}");
+                    this.TimeMultiplier = (int)Math.Round((v.RawData.NewData.Graphics.clock - this._startClock) / (diffMs) * 1000.0);
+                    this._isTimeMultiplierCalculated = true;
+                    v.Db.UpdateSessionTimeMultiplier(this.TimeMultiplier);
+                    RaceEngineerPlugin.LogInfo($"Ended timer. TimeMultiplier = {this.TimeMultiplier}");
                 }
             }
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Nito.Collections;
-using MathNet.Numerics.Statistics;
 using System.Diagnostics;
+using System.Linq;
+
+using MathNet.Numerics.Statistics;
+
+using Nito.Collections;
 
 namespace KLPlugins.RaceEngineer.Deque {
 
@@ -26,16 +28,16 @@ namespace KLPlugins.RaceEngineer.Deque {
     /// </summary>
     public class FixedSizeDequeStats {
         public Deque<double> Data { get; }
-        public int Capacity { get => Data.Capacity; }
-        public int Count { get => Data.Count; }
+        public int Capacity { get => this.Data.Capacity; }
+        public int Count { get => this.Data.Count; }
         public Stats.Stats Stats { get; }
-        public double Min { get => Stats.Min; }
-        public double Max { get => Stats.Max; }
-        public double Avg { get => Stats.Avg; }
-        public double Std { get => Stats.Std; }
-        public double Median { get => Stats.Median; }
-        public double Q1 { get => Stats.Q1; }
-        public double Q3 { get => Stats.Q3; }
+        public double Min { get => this.Stats.Min; }
+        public double Max { get => this.Stats.Max; }
+        public double Avg { get => this.Stats.Avg; }
+        public double Std { get => this.Stats.Std; }
+        public double Median { get => this.Stats.Median; }
+        public double Q1 { get => this.Stats.Q1; }
+        public double Q3 { get => this.Stats.Q3; }
 
         private double _lowerBound = double.NegativeInfinity;
         private double _upperBound = double.PositiveInfinity;
@@ -47,16 +49,16 @@ namespace KLPlugins.RaceEngineer.Deque {
         /// </summary>
         /// <param name="size">The size.</param>
         public FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
-            Data = new Deque<double>(size);
-            Stats = new Stats.Stats();
+            this.Data = new Deque<double>(size);
+            this.Stats = new Stats.Stats();
             this._removeOutliers = removeOutliers;
         }
 
         public void Clear() {
-            Data.Clear();
-            Stats.Reset();
-            _lowerBound = double.NegativeInfinity;
-            _upperBound = double.PositiveInfinity;
+            this.Data.Clear();
+            this.Stats.Reset();
+            this._lowerBound = double.NegativeInfinity;
+            this._upperBound = double.PositiveInfinity;
         }
 
 
@@ -65,48 +67,48 @@ namespace KLPlugins.RaceEngineer.Deque {
         /// </summary>
         /// <param name="value">The value.</param>
         public void AddToFront(double value) {
-            if (Count == Capacity) {
-                double oldData = Data.RemoveFromBack();
+            if (this.Count == this.Capacity) {
+                double oldData = this.Data.RemoveFromBack();
             }
-            Data.AddToFront(value);
-            var data = Data.Where(x => !double.IsNaN(x));
-            SetBounds(data);
+            this.Data.AddToFront(value);
+            var data = this.Data.Where(x => !double.IsNaN(x));
+            this.SetBounds(data);
             if (data.Count() > 1) {
-                switch (_removeOutliers) {
+                switch (this._removeOutliers) {
                     case RemoveOutliers.Upper:
-                        _stats = new DescriptiveStatistics(data.Where(x => x < _upperBound));
+                        this._stats = new DescriptiveStatistics(data.Where(x => x < this._upperBound));
                         break;
                     case RemoveOutliers.Lower:
-                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound < x));
+                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound < x));
                         break;
                     case RemoveOutliers.Both:
-                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound < x && x < _upperBound));
+                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound < x && x < this._upperBound));
                         break;
                     case RemoveOutliers.QPlus1:
-                        _stats = new DescriptiveStatistics(data.Where(x => _lowerBound - 1 < x && x < _upperBound + 1));
+                        this._stats = new DescriptiveStatistics(data.Where(x => this._lowerBound - 1 < x && x < this._upperBound + 1));
                         break;
                     default:
-                        _stats = new DescriptiveStatistics(data);
+                        this._stats = new DescriptiveStatistics(data);
                         break;
                 }
             } else {
-                _stats = new DescriptiveStatistics(data);
+                this._stats = new DescriptiveStatistics(data);
             }
 
-            Stats.Avg = _stats.Mean;
-            Stats.Std = _stats.StandardDeviation;
-            Stats.Min = _stats.Minimum;
-            Stats.Max = _stats.Maximum;
+            this.Stats.Avg = this._stats.Mean;
+            this.Stats.Std = this._stats.StandardDeviation;
+            this.Stats.Min = this._stats.Minimum;
+            this.Stats.Max = this._stats.Maximum;
 
             if (RaceEngineerPlugin.Settings.Log) {
                 string txt = "Data = [";
-                foreach (var a in Data) {
+                foreach (var a in this.Data) {
                     txt += $"{a:0.000}, ";
                 }
                 RaceEngineerPlugin.LogInfo($@"{txt}],
-    (Min, Q1, Median, Q3, Max) = ({Min}, {Q1}, {Median}, {Q3}, {Max}),
-    (Avg, Std) = ({Avg}, {Std}),
-    (lowerBound, upperBound) = ({_lowerBound}, {_upperBound})");
+    (Min, Q1, Median, Q3, Max) = ({this.Min}, {this.Q1}, {this.Median}, {this.Q3}, {this.Max}),
+    (Avg, Std) = ({this.Avg}, {this.Std}),
+    (lowerBound, upperBound) = ({this._lowerBound}, {this._upperBound})");
             }
         }
 
@@ -114,25 +116,25 @@ namespace KLPlugins.RaceEngineer.Deque {
             if (data.Count() > 1) {
                 var s = Statistics.FiveNumberSummary(data);
 
-                Stats.Q1 = s[1];
-                Stats.Median = s[2];
-                Stats.Q3 = s[3];
+                this.Stats.Q1 = s[1];
+                this.Stats.Median = s[2];
+                this.Stats.Q3 = s[3];
 
-                var iqr3 = 3*(Q3 - Q1);
-                _lowerBound = Q1 - iqr3;
-                _upperBound = Q3 + iqr3;
-            }  
+                var iqr3 = 3 * (this.Q3 - this.Q1);
+                this._lowerBound = this.Q1 - iqr3;
+                this._upperBound = this.Q3 + iqr3;
+            }
         }
 
         public void Fill(double value) {
-            Data.Clear();
-            for (int i = 0; i < Capacity; i++) {
-                Data.AddToFront(value);
+            this.Data.Clear();
+            for (int i = 0; i < this.Capacity; i++) {
+                this.Data.AddToFront(value);
             }
         }
 
         public double this[int key] {
-            get => Data[key];
+            get => this.Data[key];
         }
     }
 }

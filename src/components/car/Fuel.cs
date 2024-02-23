@@ -1,10 +1,15 @@
-using GameReaderCommon;
-using SimHub.Plugins;
 using System;
+
+using ACSharedMemory.ACC.MMFModels;
+
+using GameReaderCommon;
+
 using KLPlugins.RaceEngineer.Deque;
 using KLPlugins.RaceEngineer.RawData;
-using ACSharedMemory.ACC.MMFModels;
+
 using ksBroadcastingNetwork;
+
+using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
 
@@ -14,64 +19,64 @@ namespace KLPlugins.RaceEngineer.Car {
         public double LastUsedPerLap { get; private set; }
         public FixedSizeDequeStats PrevUsedPerLap { get; private set; }
 
-        public Fuel() { 
-            PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
-            Reset();
+        public Fuel() {
+            this.PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
+            this.Reset();
         }
 
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Fuel.Reset()");
-            Remaining = 0.0;
-            RemainingAtLapStart = 0.0;
-            LastUsedPerLap = 0.0;
-            PrevUsedPerLap.Fill(double.NaN);
+            this.Remaining = 0.0;
+            this.RemainingAtLapStart = 0.0;
+            this.LastUsedPerLap = 0.0;
+            this.PrevUsedPerLap.Fill(double.NaN);
         }
 
         #region On... METHODS
 
         public void OnNewEvent(Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
-                PrevUsedPerLap.AddToFront(pd.fuelUsed);
+                this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
         public void OnSessionChange(Values v) {
-            Reset();
+            this.Reset();
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
-                PrevUsedPerLap.AddToFront(pd.fuelUsed);
+                this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
         public void OnLapFinished(GameData data, Values v) {
-            LastUsedPerLap = RemainingAtLapStart - data.NewData.Fuel;
-            RemainingAtLapStart = data.NewData.Fuel;
-            RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+            this.LastUsedPerLap = this.RemainingAtLapStart - data.NewData.Fuel;
+            this.RemainingAtLapStart = data.NewData.Fuel;
+            RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{this.RemainingAtLapStart}'");
 
             if (v.Booleans.NewData.SavePrevLap) {
-                RaceEngineerPlugin.LogInfo($"Stored fuel used '{LastUsedPerLap}' to deque.");
-                PrevUsedPerLap.AddToFront(LastUsedPerLap);
+                RaceEngineerPlugin.LogInfo($"Stored fuel used '{this.LastUsedPerLap}' to deque.");
+                this.PrevUsedPerLap.AddToFront(this.LastUsedPerLap);
             }
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
             /////////////
             // Fuel left
-            Remaining = data.NewData.Fuel;
+            this.Remaining = data.NewData.Fuel;
             // Above == 0 in pits in ACC. But there is another way to calculate it.
-            if (RaceEngineerPlugin.Game.IsAcc && Remaining == 0.0) {
-                double avgFuelPerLapACC =  v.RawData.NewData.Graphics.FuelXLap;
+            if (RaceEngineerPlugin.Game.IsAcc && this.Remaining == 0.0) {
+                double avgFuelPerLapACC = v.RawData.NewData.Graphics.FuelXLap;
                 double estLaps = v.RawData.NewData.Graphics.fuelEstimatedLaps;
-                Remaining = estLaps * avgFuelPerLapACC;
+                this.Remaining = estLaps * avgFuelPerLapACC;
             }
 
             // This happens when we jump to pits, reset fuel
             if (v.Booleans.NewData.EnteredMenu) {
-                RemainingAtLapStart = 0.0;
-                RaceEngineerPlugin.LogInfo($"Reset fuel at lap start to '{RemainingAtLapStart}'");
+                this.RemainingAtLapStart = 0.0;
+                RaceEngineerPlugin.LogInfo($"Reset fuel at lap start to '{this.RemainingAtLapStart}'");
             }
 
-            if (v.Booleans.NewData.IsMoving && RemainingAtLapStart == 0.0) {
+            if (v.Booleans.NewData.IsMoving && this.RemainingAtLapStart == 0.0) {
                 bool set_lap_start_fuel = false;
 
                 var sessType = v.Session.RaceSessionType;
@@ -86,14 +91,14 @@ namespace KLPlugins.RaceEngineer.Car {
                 }
 
                 if (set_lap_start_fuel) {
-                    RemainingAtLapStart = data.NewData.Fuel;
-                    RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{RemainingAtLapStart}'");
+                    this.RemainingAtLapStart = data.NewData.Fuel;
+                    RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{this.RemainingAtLapStart}'");
                 }
             }
 
             if (data.NewData.IsInPitLane == 1 && data.OldData.Fuel != 0 && data.NewData.Fuel != 0 && Math.Abs(data.OldData.Fuel - data.NewData.Fuel) > 0.5) {
-                RemainingAtLapStart += Remaining - data.OldData.Fuel;
-                RaceEngineerPlugin.LogInfo($"Added {Remaining - data.OldData.Fuel} liters of fuel.\n Set fuel at lap start to '{RemainingAtLapStart}'");
+                this.RemainingAtLapStart += this.Remaining - data.OldData.Fuel;
+                RaceEngineerPlugin.LogInfo($"Added {this.Remaining - data.OldData.Fuel} liters of fuel.\n Set fuel at lap start to '{this.RemainingAtLapStart}'");
             }
         }
 

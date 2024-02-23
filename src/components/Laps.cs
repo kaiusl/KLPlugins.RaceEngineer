@@ -1,7 +1,10 @@
-using GameReaderCommon;
-using SimHub.Plugins;
 using System;
+
+using GameReaderCommon;
+
 using KLPlugins.RaceEngineer.Deque;
+
+using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Laps {
 
@@ -14,49 +17,49 @@ namespace KLPlugins.RaceEngineer.Laps {
         private double _maxTime = 1000;
 
         public Laps() {
-            StintNr = 0;
-            StintLaps = 0;
-            PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
-            PrevTimes.Fill(double.NaN);
+            this.StintNr = 0;
+            this.StintLaps = 0;
+            this.PrevTimes = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.Upper);
+            this.PrevTimes.Fill(double.NaN);
         }
 
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Laps.Reset()");
-            PrevTimes.Fill(double.NaN);
-            _maxTime = 1000;
-            LastTime = 0.0;
-            StintNr = 0;
-            StintLaps = 0;
+            this.PrevTimes.Fill(double.NaN);
+            this._maxTime = 1000;
+            this.LastTime = 0.0;
+            this.StintNr = 0;
+            this.StintLaps = 0;
         }
 
         public void OnNewEvent(Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
-                PrevTimes.AddToFront(pd.lapTime);
+                this.PrevTimes.AddToFront(pd.lapTime);
             }
         }
 
         public void OnNewSession(Values v) {
-            Reset();
+            this.Reset();
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(v)) {
                 RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
-                PrevTimes.AddToFront(pd.lapTime);
+                this.PrevTimes.AddToFront(pd.lapTime);
             }
         }
 
         public void OnNewStint() {
-            StintNr += 1;
-            StintLaps = 0;
+            this.StintNr += 1;
+            this.StintLaps = 0;
         }
 
         public void OnLapFinished(GameData data, Values v) {
-            StintLaps += 1;
-            LastTime = data.NewData.LastLapTime.TotalSeconds;
+            this.StintLaps += 1;
+            this.LastTime = data.NewData.LastLapTime.TotalSeconds;
             if (v.Booleans.NewData.SavePrevLap) {
-                RaceEngineerPlugin.LogInfo($"Added laptime '{LastTime}' to deque.");
-                PrevTimes.AddToFront(LastTime);
-                _maxTime = PrevTimes.Min + 30;
+                RaceEngineerPlugin.LogInfo($"Added laptime '{this.LastTime}' to deque.");
+                this.PrevTimes.AddToFront(this.LastTime);
+                this._maxTime = this.PrevTimes.Min + 30;
             }
         }
     }

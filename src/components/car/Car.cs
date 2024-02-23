@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+
 using GameReaderCommon;
+
 using Newtonsoft.Json;
+
 using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
@@ -11,9 +14,12 @@ namespace KLPlugins.RaceEngineer.Car {
         public double R { get; set; }
 
         public double this[int key] {
-            get { 
-                if (key < 2) return F;
-                else return R;
+            get {
+                if (key < 2) {
+                    return this.F;
+                } else {
+                    return this.R;
+                }
             }
         }
     }
@@ -38,7 +44,7 @@ namespace KLPlugins.RaceEngineer.Car {
     /// 
     /// </summary>
     public class CarInfo {
-        public Dictionary<string, TyreInfo> Tyres { get; set; }    
+        public Dictionary<string, TyreInfo> Tyres { get; set; }
     }
 
     /// <summary>
@@ -54,59 +60,59 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public Car() {
             RaceEngineerPlugin.LogInfo("Created new Car");
-            Name = null;
-            Info = null;
-            Setup = null;
-            Tyres = new Tyres();
-            Brakes = new Brakes();
-            Fuel = new Fuel();
+            this.Name = null;
+            this.Info = null;
+            this.Setup = null;
+            this.Tyres = new Tyres();
+            this.Brakes = new Brakes();
+            this.Fuel = new Fuel();
         }
 
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Car.Reset()");
-            Name = null;
-            Info = null;
-            Setup = null;
-            Tyres.Reset();
-            Brakes.Reset();
-            Fuel.Reset();
+            this.Name = null;
+            this.Info = null;
+            this.Setup = null;
+            this.Tyres.Reset();
+            this.Brakes.Reset();
+            this.Fuel.Reset();
         }
 
         #region On... METHODS
 
         public void OnNewEvent(GameData data, Values v) {
-            CheckChange(data.NewData.CarModel);
-            Fuel.OnNewEvent(v);
+            this.CheckChange(data.NewData.CarModel);
+            this.Fuel.OnNewEvent(v);
         }
 
         public void OnNewSession(Values v) {
-            Fuel.OnSessionChange(v);
+            this.Fuel.OnSessionChange(v);
         }
 
         public void OnNewStint() {
-            Tyres.OnNewStint();
+            this.Tyres.OnNewStint();
         }
 
-        public void OnLapFinished(GameData data, Values v) { 
-            Tyres.OnLapFinished(v);
-            Brakes.OnLapFinished(v);
-            Fuel.OnLapFinished(data, v);
+        public void OnLapFinished(GameData data, Values v) {
+            this.Tyres.OnLapFinished(v);
+            this.Brakes.OnLapFinished(v);
+            this.Fuel.OnLapFinished(data, v);
         }
 
         public void OnLapFinishedAfterInsert() {
-            Tyres.OnLapFinishedAfterInsert();
+            this.Tyres.OnLapFinishedAfterInsert();
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            CheckChange(data.NewData.CarModel);
-           
-            if (!v.Booleans.NewData.IsMoving && (Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
-                UpdateSetup(data.NewData.TrackId);
+            this.CheckChange(data.NewData.CarModel);
+
+            if (!v.Booleans.NewData.IsMoving && (this.Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
+                this.UpdateSetup(data.NewData.TrackId);
             }
-            
-            Tyres.OnRegularUpdate(data, v);
-            Brakes.OnRegularUpdate(data, v);
-            Fuel.OnRegularUpdate(data, v);
+
+            this.Tyres.OnRegularUpdate(data, v);
+            this.Brakes.OnRegularUpdate(data, v);
+            this.Fuel.OnRegularUpdate(data, v);
         }
 
         #endregion
@@ -120,11 +126,11 @@ namespace KLPlugins.RaceEngineer.Car {
         /// <returns></returns>
         private bool CheckChange(string newName) {
             if (newName != null) {
-                var hasChanged = Name != newName;
+                var hasChanged = this.Name != newName;
                 if (hasChanged) {
-                    RaceEngineerPlugin.LogInfo($"Car changed from '{Name}' to '{newName}'");
-                    Name = newName;
-                    ReadInfo();
+                    RaceEngineerPlugin.LogInfo($"Car changed from '{this.Name}' to '{newName}'");
+                    this.Name = newName;
+                    this.ReadInfo();
                 }
 
                 return hasChanged;
@@ -133,12 +139,12 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         private void ReadInfo() {
-            string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{Name}.json";
+            string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             if (!File.Exists(fname)) {
                 if (RaceEngineerPlugin.Game.IsAcc) {
-                    var carClass = Helpers.GetAccCarClass(Name);
+                    var carClass = Helpers.GetAccCarClass(this.Name);
                     fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carClass}.json";
-                    if (!File.Exists(fname)) { 
+                    if (!File.Exists(fname)) {
                         fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
                     }
                 } else {
@@ -147,23 +153,23 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             try {
-                Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
+                this.Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
-            } catch (IOException e) {
+            } catch (IOException) {
                 //RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
-                Info = null;
+                this.Info = null;
             }
         }
 
         private void UpdateSetup(string trackName) {
-            string fname = $@"{RaceEngineerPlugin.Settings.AccDataLocation}\Setups\{Name}\{trackName}\current.json";
+            string fname = $@"{RaceEngineerPlugin.Settings.AccDataLocation}\Setups\{this.Name}\{trackName}\current.json";
             try {
-                Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
+                this.Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
-                Tyres.OnSetupChange();
-            } catch (IOException e) {
-               // RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
-                Setup = null;
+                this.Tyres.OnSetupChange();
+            } catch (IOException) {
+                // RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
+                this.Setup = null;
             }
         }
 

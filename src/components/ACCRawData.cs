@@ -1,4 +1,5 @@
 ﻿using ksBroadcastingNetwork.Structs;
+
 using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 
 namespace KLPlugins.RaceEngineer.RawData {
@@ -7,16 +8,16 @@ namespace KLPlugins.RaceEngineer.RawData {
         public SHACCRawData NewData { get; private set; }
 
         public ACCRawData() {
-            OldData = new SHACCRawData();
-            NewData = new SHACCRawData();
+            this.OldData = new SHACCRawData();
+            this.NewData = new SHACCRawData();
         }
 
         public void Update(SHACCRawData newData) {
-            OldData = NewData;
-            NewData = newData;
+            this.OldData = this.NewData;
+            this.NewData = newData;
 
             //if (newData == null) return;
- 
+
             //OldData.Physics = NewData.Physics;
             //OldData.Graphics = NewData.Graphics;
             //OldData.StaticInfo = NewData.StaticInfo;
@@ -38,8 +39,8 @@ namespace KLPlugins.RaceEngineer.RawData {
         //}
 
         public void Reset() {
-            OldData = new SHACCRawData();
-            NewData = new SHACCRawData();
+            this.OldData = new SHACCRawData();
+            this.NewData = new SHACCRawData();
         }
     }
 }

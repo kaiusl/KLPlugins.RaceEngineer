@@ -6,9 +6,9 @@ namespace KLPlugins.RaceEngineer.Color {
     /// Stores HSV color 
     /// </summary>
     public class HSV {
-        public int H { get => _h;  }
-        public double S { get => _s;  }
-        public double V { get => _v;  }
+        public int H { get => this._h; }
+        public double S { get => this._s; }
+        public double V { get => this._v; }
 
         private int _h;
         private double _s;
@@ -22,75 +22,75 @@ namespace KLPlugins.RaceEngineer.Color {
             this._h = h;
             this._s = s;
             this._v = v;
-            _hexDigits[0] = '#';
+            this._hexDigits[0] = '#';
         }
 
         public HSV(string hex) {
-            _hexDigits[0] = '#';
+            this._hexDigits[0] = '#';
             double r = byte.Parse(hex.Substring(1, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
             double g = byte.Parse(hex.Substring(3, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
             double b = byte.Parse(hex.Substring(5, 2), System.Globalization.NumberStyles.HexNumber) / 255.0;
 
-            _v = Math.Max(Math.Max(r, g), b);
+            this._v = Math.Max(Math.Max(r, g), b);
             double cmin = Math.Min(Math.Min(r, g), b);
-            double diff = _v - cmin;
+            double diff = this._v - cmin;
 
             double hue;
-            if (_v == r) {
+            if (this._v == r) {
                 hue = (60 * ((g - b) / diff) + 360) % 360;
-            } else if (V == g) {
+            } else if (this.V == g) {
                 hue = (60 * ((b - r) / diff) + 120) % 360;
-            } else if (V == b) {
+            } else if (this.V == b) {
                 hue = (60 * ((r - g) / diff) + 240) % 360;
             } else {
                 hue = 0.0;
             }
 
-            if (V == 0.0) {
-                _s = 0.0;
+            if (this.V == 0.0) {
+                this._s = 0.0;
             } else {
-                _s = (diff / V);
+                this._s = (diff / this.V);
             }
 
-            _h = (int)hue;
+            this._h = (int)hue;
         }
 
         public void Update(int h, double s, double v) {
             this._h = h;
             this._s = s;
             this._v = v;
-            _hexSet = false;
+            this._hexSet = false;
         }
 
         public string ToHEX() {
-            if (!_hexSet) {
-                var c = _s * _v;
-                var x = c * (1 - Math.Abs((_h / 60.0) % 2 - 1));
-                var m = _v - c;
+            if (!this._hexSet) {
+                var c = this._s * this._v;
+                var x = c * (1 - Math.Abs((this._h / 60.0) % 2 - 1));
+                var m = this._v - c;
 
                 double r, g, b;
 
-                if (0 <= _h && _h < 60) {
+                if (0 <= this._h && this._h < 60) {
                     r = c;
                     g = x;
                     b = 0.0;
-                } else if (60 <= _h && _h < 120) {
+                } else if (60 <= this._h && this._h < 120) {
                     r = x;
                     g = c;
                     b = 0.0;
-                } else if (120 <= _h && _h < 180) {
+                } else if (120 <= this._h && this._h < 180) {
                     r = 0;
                     g = c;
                     b = x;
-                } else if (180 <= _h && _h < 240) {
+                } else if (180 <= this._h && this._h < 240) {
                     r = 0;
                     g = x;
                     b = c;
-                } else if (240 <= _h && _h < 300) {
+                } else if (240 <= this._h && this._h < 300) {
                     r = x;
                     g = 0;
                     b = c;
-                } else if (300 <= _h && _h < 360) {
+                } else if (300 <= this._h && this._h < 360) {
                     r = c;
                     g = 0;
                     b = x;
@@ -105,15 +105,15 @@ namespace KLPlugins.RaceEngineer.Color {
                 var bb = (byte)Math.Floor((b + m) * 255);
 
                 // Algorith from here https://www.baeldung.com/java-byte-arrays-hex-strings
-                _hexDigits[1] = _digits[(rb >> 4) & 0xF];
-                _hexDigits[2] = _digits[rb & 0xF];
-                _hexDigits[3] = _digits[(gb >> 4) & 0xF];
-                _hexDigits[4] = _digits[gb & 0xF];
-                _hexDigits[5] = _digits[(bb >> 4) & 0xF];
-                _hexDigits[6] = _digits[bb & 0xF];
-                _hex = new string(_hexDigits);
+                this._hexDigits[1] = this._digits[(rb >> 4) & 0xF];
+                this._hexDigits[2] = this._digits[rb & 0xF];
+                this._hexDigits[3] = this._digits[(gb >> 4) & 0xF];
+                this._hexDigits[4] = this._digits[gb & 0xF];
+                this._hexDigits[5] = this._digits[(bb >> 4) & 0xF];
+                this._hexDigits[6] = this._digits[bb & 0xF];
+                this._hex = new string(this._hexDigits);
             }
-            return _hex;
+            return this._hex;
         }
     }
 

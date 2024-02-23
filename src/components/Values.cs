@@ -1,13 +1,18 @@
-﻿using GameReaderCommon;
-using SimHub.Plugins;
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+
+using GameReaderCommon;
+
 using KLPlugins.RaceEngineer.RawData;
-using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
+
 using ksBroadcastingNetwork;
-using System.Collections.Concurrent;
+
+using SimHub.Plugins;
+
+using SHACCRawData = ACSharedMemory.ACC.Reader.ACCRawData;
 
 namespace KLPlugins.RaceEngineer {
 
@@ -28,53 +33,53 @@ namespace KLPlugins.RaceEngineer {
 
         //public ACCUdpRemoteClient BroadcastClient = null;
 
-        public Values() {}
+        public Values() { }
 
         public void Reset() {
             //if (BroadcastClient != null) {
             //    DisposeBroadcastClient();
             //}
 
-            Booleans.Reset();
-            Car.Reset();
-            Track.Reset();
-            Laps.Reset();
-            Weather.Reset();
-            RemainingInSession.Reset();
-            RemainingOnFuel.Reset();
-            RawData.Reset();
-            Session.Reset();
+            this.Booleans.Reset();
+            this.Car.Reset();
+            this.Track.Reset();
+            this.Laps.Reset();
+            this.Weather.Reset();
+            this.RemainingInSession.Reset();
+            this.RemainingOnFuel.Reset();
+            this.RawData.Reset();
+            this.Session.Reset();
         }
 
 
         #region IDisposable Support
-        ~Values() { 
-            Dispose(false);
+        ~Values() {
+            this.Dispose(false);
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed = false; 
+        private bool isDisposed = false;
         protected virtual void Dispose(bool disposing) {
-            if (!isDisposed) {
+            if (!this.isDisposed) {
                 if (disposing) {
                     RaceEngineerPlugin.LogInfo("Disposed");
-                    Db.Dispose();
+                    this.Db.Dispose();
                     //DisposeBroadcastClient();
                 }
 
-                isDisposed = true;
+                this.isDisposed = true;
             }
         }
 
         public void Dispose() {
-            Dispose(true);
+            this.Dispose(true);
         }
         #endregion
 
         private void OnNewStint(GameData data) {
-            Laps.OnNewStint();
-            Car.OnNewStint();
-            Db.InsertStint(data, this);
+            this.Laps.OnNewStint();
+            this.Car.OnNewStint();
+            this.Db.InsertStint(data, this);
         }
 
         public void OnGameStateChanged(bool running, PluginManager manager) {
@@ -85,19 +90,19 @@ namespace KLPlugins.RaceEngineer {
                 //}
                 //ConnectToBroadcastClient();
             } else {
-                Reset();
+                this.Reset();
             }
 
         }
 
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent.");
-            var sessType = RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
-            Booleans.OnNewEvent(sessType);
-            Track.OnNewEvent(data);
-            Car.OnNewEvent(data, this);
-            Laps.OnNewEvent(this);
-            Db.InsertEvent(data, this);
+            var sessType = this.RawData.NewData.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+            this.Booleans.OnNewEvent(sessType);
+            this.Track.OnNewEvent(data);
+            this.Car.OnNewEvent(data, this);
+            this.Laps.OnNewEvent(this);
+            this.Db.InsertEvent(data, this);
         }
 
         /// <summary>
@@ -113,62 +118,62 @@ namespace KLPlugins.RaceEngineer {
         /// </summary>
         private DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
-            RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
+            this.RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
-            if (Booleans.NewData.IsNewEvent) {
+            if (this.Booleans.NewData.IsNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
-                OnNewEvent(data);
+                this.OnNewEvent(data);
             }
 
-            Booleans.OnRegularUpdate(data, this);
-            Session.OnRegularUpdate(data, this);
-            Track.OnRegularUpdate(data);
-            Car.OnRegularUpdate(data, this);
-            Weather.OnRegularUpdate(data, this);
+            this.Booleans.OnRegularUpdate(data, this);
+            this.Session.OnRegularUpdate(data, this);
+            this.Track.OnRegularUpdate(data);
+            this.Car.OnRegularUpdate(data, this);
+            this.Weather.OnRegularUpdate(data, this);
 
-            if (Booleans.NewData.ExitedPitLane && !Booleans.NewData.IsInMenu) {
+            if (this.Booleans.NewData.ExitedPitLane && !this.Booleans.NewData.IsInMenu) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
-                OnNewStint(data);
+                this.OnNewStint(data);
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!Booleans.NewData.IsRaceStartStintAdded && Booleans.NewData.IsMoving && (Session.RaceSessionType == RaceSessionType.Race || Session.RaceSessionType == RaceSessionType.Hotstint || Session.RaceSessionType == RaceSessionType.Hotlap)) {
+            if (!this.Booleans.NewData.IsRaceStartStintAdded && this.Booleans.NewData.IsMoving && (this.Session.RaceSessionType == RaceSessionType.Race || this.Session.RaceSessionType == RaceSessionType.Hotstint || this.Session.RaceSessionType == RaceSessionType.Hotlap)) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
-                OnNewStint(data);
-                Booleans.RaceStartStintAdded();
+                this.OnNewStint(data);
+                this.Booleans.RaceStartStintAdded();
             }
 
-            RemainingInSession.OnRegularUpdate(data, this);
-            RemainingOnFuel.OnRegularUpdate(this);
+            this.RemainingInSession.OnRegularUpdate(data, this);
+            this.RemainingOnFuel.OnRegularUpdate(this);
 
-            if (Booleans.NewData.IsLapFinished) {
+            if (this.Booleans.NewData.IsLapFinished) {
                 Stopwatch sw = Stopwatch.StartNew();
 
-                Booleans.OnLapFinished(data);
-                Car.OnLapFinished(data, this);
-                Laps.OnLapFinished(data, this);
-                if (Laps.LastTime != 0) {
-                    Db.InsertLap(data, this);
+                this.Booleans.OnLapFinished(data);
+                this.Car.OnLapFinished(data, this);
+                this.Laps.OnLapFinished(data, this);
+                if (this.Laps.LastTime != 0) {
+                    this.Db.InsertLap(data, this);
                 }
 
-                Weather.OnLapFinishedAfterInsert(data);
-                Car.OnLapFinishedAfterInsert();
+                this.Weather.OnLapFinishedAfterInsert(data);
+                this.Car.OnLapFinishedAfterInsert();
 
                 var t = sw.Elapsed;
                 RaceEngineerPlugin.LogInfo($"Lap finished. Update took {t.TotalMilliseconds}ms.");
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
-            if (Session.IsNewSession) {
+            if (this.Session.IsNewSession) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
-                Booleans.OnNewSession(this);
-                Session.OnNewSession();
-                Car.OnNewSession(this);
-                Laps.OnNewSession(this);
-                Db.InsertSession(data, this);
+                this.Booleans.OnNewSession(this);
+                this.Session.OnNewSession();
+                this.Car.OnNewSession(this);
+                this.Laps.OnNewSession(this);
+                this.Db.InsertSession(data, this);
             }
 
             //if ((data.NewData.PacketTime - lastWeather).TotalSeconds > 5) {

@@ -1,9 +1,13 @@
-using GameReaderCommon;
-using SimHub.Plugins;
 using System.Diagnostics;
 using System.IO;
+
+using GameReaderCommon;
+
 using KLPlugins.RaceEngineer.RawData;
+
 using ksBroadcastingNetwork;
+
+using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Booleans {
 
@@ -51,201 +55,201 @@ namespace KLPlugins.RaceEngineer.Booleans {
         private bool _isSessionLimitSet = false;
 
         public BooleansBase() {
-            Reset();
+            this.Reset();
         }
 
         public void Update(BooleansBase o) {
-            IsInMenu = o.IsInMenu;
-            EnteredMenu = o.EnteredMenu;
-            ExitedMenu = o.ExitedMenu;
+            this.IsInMenu = o.IsInMenu;
+            this.EnteredMenu = o.EnteredMenu;
+            this.ExitedMenu = o.ExitedMenu;
 
-            IsInPitLane = o.IsInPitLane;
-            ExitedPitLane = o.ExitedPitLane;
-            EnteredPitLane = o.EnteredPitLane;
+            this.IsInPitLane = o.IsInPitLane;
+            this.ExitedPitLane = o.ExitedPitLane;
+            this.EnteredPitLane = o.EnteredPitLane;
 
-            IsInPitBox = o.IsInPitBox;
-            ExitedPitBox = o.ExitedPitBox;
-            EnteredPitBox = o.EnteredPitBox;
+            this.IsInPitBox = o.IsInPitBox;
+            this.ExitedPitBox = o.ExitedPitBox;
+            this.EnteredPitBox = o.EnteredPitBox;
 
-            IsOnTrack = o.IsOnTrack;
-            IsMoving = o.IsMoving;
-            IsLapFinished = o.IsLapFinished;
+            this.IsOnTrack = o.IsOnTrack;
+            this.IsMoving = o.IsMoving;
+            this.IsLapFinished = o.IsLapFinished;
 
-            IsSetupMenuVisible = o.IsSetupMenuVisible;
-            IsFuelWarning = o.IsFuelWarning;
-            HavePressuresChanged = o.HavePressuresChanged;
+            this.IsSetupMenuVisible = o.IsSetupMenuVisible;
+            this.IsFuelWarning = o.IsFuelWarning;
+            this.HavePressuresChanged = o.HavePressuresChanged;
 
-            HasNewStintStarted = o.HasNewStintStarted;
-            IsValidFuelLap = o.IsValidFuelLap;
-            IsTimeLimitedSession = o.IsTimeLimitedSession;
+            this.HasNewStintStarted = o.HasNewStintStarted;
+            this.IsValidFuelLap = o.IsValidFuelLap;
+            this.IsTimeLimitedSession = o.IsTimeLimitedSession;
 
-            IsLapLimitedSession = o.IsLapLimitedSession;
-            SavePrevLap = o.SavePrevLap;
-            HasSetupChanged = o.HasSetupChanged;
+            this.IsLapLimitedSession = o.IsLapLimitedSession;
+            this.SavePrevLap = o.SavePrevLap;
+            this.HasSetupChanged = o.HasSetupChanged;
 
-            IsNewEvent = o.IsNewEvent;
-            IsRaceStartStintAdded = o.IsRaceStartStintAdded;
-            IsOutLap = o.IsOutLap;
+            this.IsNewEvent = o.IsNewEvent;
+            this.IsRaceStartStintAdded = o.IsRaceStartStintAdded;
+            this.IsOutLap = o.IsOutLap;
 
-            IsInLap = o.IsInLap;
-            EcuMapChangedThisLap = o.EcuMapChangedThisLap;
-            RainIntensityChangedThisLap = o.RainIntensityChangedThisLap;
+            this.IsInLap = o.IsInLap;
+            this.EcuMapChangedThisLap = o.EcuMapChangedThisLap;
+            this.RainIntensityChangedThisLap = o.RainIntensityChangedThisLap;
         }
 
         public void Update(GameData data, Values v) {
-            IsInMenu = data.NewData.AirTemperature == 0;
+            this.IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
-            EnteredMenu = !wasInMenu && IsInMenu;
-            ExitedMenu = wasInMenu && !IsInMenu;
+            this.EnteredMenu = !wasInMenu && this.IsInMenu;
+            this.ExitedMenu = wasInMenu && !this.IsInMenu;
 
-            IsInPitLane = data.NewData.IsInPitLane == 1;
-            IsInPitBox = data.NewData.IsInPit == 1;
+            this.IsInPitLane = data.NewData.IsInPitLane == 1;
+            this.IsInPitBox = data.NewData.IsInPit == 1;
             var wasInPitLane = data.OldData.IsInPitLane == 1;
             var wasInPitBox = data.OldData.IsInPit == 1;
-            EnteredPitLane = !wasInPitLane && IsInPitLane;
-            ExitedPitLane = wasInPitLane && !IsInPitLane;
-            EnteredPitBox = !wasInPitBox && IsInPitBox;
-            ExitedPitBox = wasInPitBox && !IsInPitBox;
+            this.EnteredPitLane = !wasInPitLane && this.IsInPitLane;
+            this.ExitedPitLane = wasInPitLane && !this.IsInPitLane;
+            this.EnteredPitBox = !wasInPitBox && this.IsInPitBox;
+            this.ExitedPitBox = wasInPitBox && !this.IsInPitBox;
 
-            if (EnteredMenu) {
+            if (this.EnteredMenu) {
                 RaceEngineerPlugin.LogInfo("Entered menu");
             }
-            if (ExitedMenu) {
+            if (this.ExitedMenu) {
                 RaceEngineerPlugin.LogInfo("Exited menu");
             }
-            if (EnteredPitLane) {
+            if (this.EnteredPitLane) {
                 RaceEngineerPlugin.LogInfo("Entered pitlane");
             }
-            if (ExitedPitLane) {
+            if (this.ExitedPitLane) {
                 RaceEngineerPlugin.LogInfo("Exited pitlane");
             }
-            if (EnteredPitBox) {
+            if (this.EnteredPitBox) {
                 RaceEngineerPlugin.LogInfo("Entered pitbox");
             }
-            if (ExitedPitBox) {
+            if (this.ExitedPitBox) {
                 RaceEngineerPlugin.LogInfo("Exited pitbox");
             }
 
 
             // In ACC AirTemp=0 if UI is visible. Nice way to identify but doesn't work in other games.
-            IsOnTrack = !IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.Game.IsAcc ? data.NewData.AirTemperature > 0.0 : true);
-            if (RaceEngineerPlugin.Game.IsAcc && IsInMenu) {
-                IsSetupMenuVisible = v.RawData.NewData.Graphics.IsSetupMenuVisible == 1;
+            this.IsOnTrack = !this.IsInPitLane && !data.GamePaused && (RaceEngineerPlugin.Game.IsAcc ? data.NewData.AirTemperature > 0.0 : true);
+            if (RaceEngineerPlugin.Game.IsAcc && this.IsInMenu) {
+                this.IsSetupMenuVisible = v.RawData.NewData.Graphics.IsSetupMenuVisible == 1;
             }
 
-            IsMoving = data.NewData.SpeedKmh > 1;
-            IsLapFinished = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
-            if (!_isSessionLimitSet) {
+            this.IsMoving = data.NewData.SpeedKmh > 1;
+            this.IsLapFinished = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
+            if (!this._isSessionLimitSet) {
                 // Need to set once as at the end of the session SessionTimeLeft == 0 and this will confuse plugin
-                IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
-                IsLapLimitedSession = data.NewData.RemainingLaps != 0;
+                this.IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
+                this.IsLapLimitedSession = data.NewData.RemainingLaps != 0;
             }
 
-            if (IsValidFuelLap && IsInPitLane) {
+            if (this.IsValidFuelLap && this.IsInPitLane) {
                 RaceEngineerPlugin.LogInfo("Set 'IsValidFuelLap = false'");
-                IsValidFuelLap = false;
+                this.IsValidFuelLap = false;
             }
             // IsValidFuelLap &= !IsInPitLane;
 
             double lastLapTime = data.NewData.LastLapTime.TotalSeconds;
 
-            if (IsLapFinished) {
-                SavePrevLap = lastLapTime > 0.0
-                    && IsValidFuelLap
+            if (this.IsLapFinished) {
+                this.SavePrevLap = lastLapTime > 0.0
+                    && this.IsValidFuelLap
                     && v.Car.Fuel.RemainingAtLapStart != 0.0
                     && v.Car.Fuel.RemainingAtLapStart > data.NewData.Fuel
-                    && !IsInLap
-                    && !IsOutLap;
-                RaceEngineerPlugin.LogInfo($"'SaveLap = {SavePrevLap}', 'lastLapTime = {lastLapTime}', 'IsValidFuelLap = {IsValidFuelLap}', 'fuelUsedLapStart = {v.Car.Fuel.RemainingAtLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
+                    && !this.IsInLap
+                    && !this.IsOutLap;
+                RaceEngineerPlugin.LogInfo($"'SaveLap = {this.SavePrevLap}', 'lastLapTime = {lastLapTime}', 'IsValidFuelLap = {this.IsValidFuelLap}', 'fuelUsedLapStart = {v.Car.Fuel.RemainingAtLapStart}', 'data.NewData.Fuel = {data.NewData.Fuel}'");
             }
 
-            if (!IsInLap && (EnteredPitLane || EnteredMenu)) {
-                if (IsMoving || (data.OldData.AirTemperature != 0 && data.NewData.AirTemperature == 0)) {
+            if (!this.IsInLap && (this.EnteredPitLane || this.EnteredMenu)) {
+                if (this.IsMoving || (data.OldData.AirTemperature != 0 && data.NewData.AirTemperature == 0)) {
                     RaceEngineerPlugin.LogInfo("Set 'IsInLap = true'");
-                    IsInLap = true;
+                    this.IsInLap = true;
                 }
             }
 
-            if (!IsOutLap && (ExitedPitLane || ExitedMenu)) {
+            if (!this.IsOutLap && (this.ExitedPitLane || this.ExitedMenu)) {
                 RaceEngineerPlugin.LogInfo("Set 'IsOutLap = true'");
-                IsOutLap = true;
+                this.IsOutLap = true;
             }
             // IsOutLap |= ExitedPitLane;
 
-            if (!EcuMapChangedThisLap && !IsInMenu && !IsInPitLane && data.OldData.EngineMap != data.NewData.EngineMap) {
+            if (!this.EcuMapChangedThisLap && !this.IsInMenu && !this.IsInPitLane && data.OldData.EngineMap != data.NewData.EngineMap) {
                 RaceEngineerPlugin.LogInfo("Set 'EcuMapChangedThisLap = true'");
-                EcuMapChangedThisLap = true;
+                this.EcuMapChangedThisLap = true;
             }
             //EcuMapChangedThisLap |= (data.OldData.EngineMap != data.NewData.EngineMap);
 
-            if (!RainIntensityChangedThisLap && !IsInMenu && !IsInPitLane && v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity) {
+            if (!this.RainIntensityChangedThisLap && !this.IsInMenu && !this.IsInPitLane && v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity) {
                 RaceEngineerPlugin.LogInfo("Set 'RainIntensityChangedThisLap = true'");
-                RainIntensityChangedThisLap = true;
+                this.RainIntensityChangedThisLap = true;
             }
 
         }
 
         public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
-            IsInMenu = true;
-            EnteredMenu = false;
-            ExitedMenu = false;
+            this.IsInMenu = true;
+            this.EnteredMenu = false;
+            this.ExitedMenu = false;
 
-            IsInPitLane = true;
-            EnteredPitLane = false;
-            ExitedPitLane = false;
+            this.IsInPitLane = true;
+            this.EnteredPitLane = false;
+            this.ExitedPitLane = false;
 
-            IsInPitBox = false;
-            EnteredPitBox = false;
-            ExitedPitBox = false;
+            this.IsInPitBox = false;
+            this.EnteredPitBox = false;
+            this.ExitedPitBox = false;
 
-            IsOnTrack = false;
-            IsMoving = false;
-            IsLapFinished = false;
+            this.IsOnTrack = false;
+            this.IsMoving = false;
+            this.IsLapFinished = false;
 
-            IsSetupMenuVisible = false;
-            IsFuelWarning = false;
-            HavePressuresChanged = false;
+            this.IsSetupMenuVisible = false;
+            this.IsFuelWarning = false;
+            this.HavePressuresChanged = false;
 
-            HasNewStintStarted = false;
-            IsValidFuelLap = false;
-            IsTimeLimitedSession = false;
+            this.HasNewStintStarted = false;
+            this.IsValidFuelLap = false;
+            this.IsTimeLimitedSession = false;
 
-            IsLapLimitedSession = false;
-            SavePrevLap = false;
-            HasSetupChanged = false;
+            this.IsLapLimitedSession = false;
+            this.SavePrevLap = false;
+            this.HasSetupChanged = false;
 
-            IsNewEvent = true;
-            IsRaceStartStintAdded = false;
-            IsOutLap = !(sessionType == RaceSessionType.Hotstint || sessionType == RaceSessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
+            this.IsNewEvent = true;
+            this.IsRaceStartStintAdded = false;
+            this.IsOutLap = !(sessionType == RaceSessionType.Hotstint || sessionType == RaceSessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
 
-            IsValidFuelLap = sessionType == RaceSessionType.Hotstint; // First lap of HOTSTINT is proper lap
-            EcuMapChangedThisLap = false;
-            RainIntensityChangedThisLap = false;
+            this.IsValidFuelLap = sessionType == RaceSessionType.Hotstint; // First lap of HOTSTINT is proper lap
+            this.EcuMapChangedThisLap = false;
+            this.RainIntensityChangedThisLap = false;
 
-            _isSessionLimitSet = false;
+            this._isSessionLimitSet = false;
         }
 
         public void RaceStartStintAdded() {
-            IsRaceStartStintAdded = true;
+            this.IsRaceStartStintAdded = true;
         }
 
-        public void OnNewEvent(RaceSessionType sessionType) { 
-            Reset(sessionType);
-            IsNewEvent = false;
+        public void OnNewEvent(RaceSessionType sessionType) {
+            this.Reset(sessionType);
+            this.IsNewEvent = false;
         }
 
         public void OnSessionChange(RaceSessionType sessionType) {
-            Reset(sessionType);
-            IsNewEvent = false;
+            this.Reset(sessionType);
+            this.IsNewEvent = false;
         }
 
         public void OnLapFinished(GameData data) {
             // HOTLAP doesn't have fuel usage, thus set isValidFuelLap = false in that case always, otherwise reset to valid lap in other cases
-            IsValidFuelLap =  data.NewData.SessionTypeName != "HOTLAP";
-            IsOutLap = false;
-            IsInLap = false;
-            EcuMapChangedThisLap = false;
-            RaceEngineerPlugin.LogInfo($@"Set 'IsValidFuelLap = {IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
+            this.IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
+            this.IsOutLap = false;
+            this.IsInLap = false;
+            this.EcuMapChangedThisLap = false;
+            RaceEngineerPlugin.LogInfo($@"Set 'IsValidFuelLap = {this.IsValidFuelLap}', 'IsOutLap = false', 'IsInLap = false'");
         }
 
     }
@@ -258,38 +262,38 @@ namespace KLPlugins.RaceEngineer.Booleans {
         public BooleansBase NewData { get; private set; }
         public BooleansBase OldData { get; private set; }
 
-        public Booleans() { 
-            NewData = new BooleansBase();
-            OldData = new BooleansBase();
+        public Booleans() {
+            this.NewData = new BooleansBase();
+            this.OldData = new BooleansBase();
         }
 
         public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
             RaceEngineerPlugin.LogInfo("Booleans.Reset()");
-            OldData.Reset(sessionType);
-            NewData.Reset(sessionType);
+            this.OldData.Reset(sessionType);
+            this.NewData.Reset(sessionType);
         }
 
         public void RaceStartStintAdded() {
             RaceEngineerPlugin.LogInfo("Booleans.RaceStartStintAdded()");
-            NewData.RaceStartStintAdded();
+            this.NewData.RaceStartStintAdded();
         }
 
         public void OnNewEvent(RaceSessionType sessionType) {
-            NewData.OnNewEvent(sessionType);
-            OldData.OnNewEvent(sessionType);
+            this.NewData.OnNewEvent(sessionType);
+            this.OldData.OnNewEvent(sessionType);
         }
 
         public void OnNewSession(Values v) {
-            NewData.OnSessionChange(v.Session.RaceSessionType ?? RaceSessionType.Practice);
+            this.NewData.OnSessionChange(v.Session.RaceSessionType ?? RaceSessionType.Practice);
         }
 
         public void OnLapFinished(GameData data) {
-            NewData.OnLapFinished(data);
+            this.NewData.OnLapFinished(data);
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            OldData.Update(NewData);
-            NewData.Update(data, v);
+            this.OldData.Update(this.NewData);
+            this.NewData.Update(data, v);
         }
 
     }

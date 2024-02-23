@@ -1,4 +1,5 @@
 using GameReaderCommon;
+
 using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Track {
@@ -7,22 +8,22 @@ namespace KLPlugins.RaceEngineer.Track {
         public string Name { get; private set; }
 
         public void Reset() {
-            Name = null;
+            this.Name = null;
         }
 
         public void OnNewEvent(GameData data) {
-            CheckChange(data.NewData.TrackId);
+            this.CheckChange(data.NewData.TrackId);
         }
 
         public void OnRegularUpdate(GameData data) {
-            CheckChange(data.NewData.TrackId);
+            this.CheckChange(data.NewData.TrackId);
         }
 
         private void CheckChange(string newTrackName) {
             if (newTrackName != null) {
-                if (Name != newTrackName) {
-                    RaceEngineerPlugin.LogInfo($"Track changed from '{Name}' to '{newTrackName}'");
-                    Name = newTrackName;
+                if (this.Name != newTrackName) {
+                    RaceEngineerPlugin.LogInfo($"Track changed from '{this.Name}' to '{newTrackName}'");
+                    this.Name = newTrackName;
                 }
             }
         }

@@ -1,14 +1,18 @@
-using GameReaderCommon;
-using SimHub.Plugins;
 using System;
-using KLPlugins.RaceEngineer.Stats;
-using System.IO;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics;
-using KLPlugins.RaceEngineer.RawData;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
 using ACSharedMemory.ACC.MMFModels;
+
+using GameReaderCommon;
+
+using KLPlugins.RaceEngineer.RawData;
+using KLPlugins.RaceEngineer.Stats;
+
+using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer.Car {
 
@@ -63,75 +67,75 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public Tyres() {
             RaceEngineerPlugin.LogInfo("Created new Tyres");
-            PresOverLap = new WheelsStats();
-            TempOverLap = new WheelsStats();
-            IdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN};
-            PredictedIdealInputPresDry = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            PredictedIdealInputPresNowWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            PredictedIdealInputPresFutureWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
-            PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
-            PresLossLap = new bool[4] { false, false, false, false };
-            SetLaps = new Dictionary<string, Dictionary<int, int>>();
-            PresColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            PresColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            PresColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            PresColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            TempColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            TempColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            TempColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
-            Reset();
+            this.PresOverLap = new WheelsStats();
+            this.TempOverLap = new WheelsStats();
+            this.IdealInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
+            this.PredictedIdealInputPresDry = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
+            this.PredictedIdealInputPresNowWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
+            this.PredictedIdealInputPresFutureWet = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
+            this.CurrentInputPres = new double[4] { double.NaN, double.NaN, double.NaN, double.NaN };
+            this.PresLoss = new double[4] { 0.0, 0.0, 0.0, 0.0 };
+            this.PresLossLap = new bool[4] { false, false, false, false };
+            this.SetLaps = new Dictionary<string, Dictionary<int, int>>();
+            this.PresColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.PresColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.PresColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.PresColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.TempColor = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.TempColorMin = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.TempColorMax = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.TempColorAvg = new string[4] { RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor };
+            this.Reset();
         }
 
         public void Reset() {
-            Name = null;
+            this.Name = null;
 
             for (int i = 0; i < 4; i++) {
-                IdealInputPres[i] = double.NaN;
-                PredictedIdealInputPresDry[i] = double.NaN;
-                PredictedIdealInputPresNowWet[i] = double.NaN;
-                PredictedIdealInputPresFutureWet[i] = double.NaN;
-                CurrentInputPres[i] = double.NaN;
-                PresLoss[i] = 0.0;
-                PresLossLap[i] = false;
-                PresColor[i] = RaceEngineerPlugin.DefColor;
-                PresColorMin[i] = RaceEngineerPlugin.DefColor;
-                PresColorMax[i] = RaceEngineerPlugin.DefColor;
-                PresColorAvg[i] = RaceEngineerPlugin.DefColor;
-                TempColor[i] = RaceEngineerPlugin.DefColor;
-                TempColorMin[i] = RaceEngineerPlugin.DefColor;
-                TempColorMax[i] = RaceEngineerPlugin.DefColor;
-                TempColorAvg[i] = RaceEngineerPlugin.DefColor;
+                this.IdealInputPres[i] = double.NaN;
+                this.PredictedIdealInputPresDry[i] = double.NaN;
+                this.PredictedIdealInputPresNowWet[i] = double.NaN;
+                this.PredictedIdealInputPresFutureWet[i] = double.NaN;
+                this.CurrentInputPres[i] = double.NaN;
+                this.PresLoss[i] = 0.0;
+                this.PresLossLap[i] = false;
+                this.PresColor[i] = RaceEngineerPlugin.DefColor;
+                this.PresColorMin[i] = RaceEngineerPlugin.DefColor;
+                this.PresColorMax[i] = RaceEngineerPlugin.DefColor;
+                this.PresColorAvg[i] = RaceEngineerPlugin.DefColor;
+                this.TempColor[i] = RaceEngineerPlugin.DefColor;
+                this.TempColorMin[i] = RaceEngineerPlugin.DefColor;
+                this.TempColorMax[i] = RaceEngineerPlugin.DefColor;
+                this.TempColorAvg[i] = RaceEngineerPlugin.DefColor;
             }
 
-            PresOverLap.Reset();
-            TempOverLap.Reset();
+            this.PresOverLap.Reset();
+            this.TempOverLap.Reset();
 
-            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
-            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
-            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
-            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            this.PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            this.PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            this.TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            this.TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
 
-            SetLaps.Clear();
-            InputTyrePresPredictorDry = null;
-            InputTyrePresPredictorNowWet = null;
-            InputTyrePresPredictorFutureWet = null;
+            this.SetLaps.Clear();
+            this.InputTyrePresPredictorDry = null;
+            this.InputTyrePresPredictorNowWet = null;
+            this.InputTyrePresPredictorFutureWet = null;
 
-            _updatingPresPredictorDry = false;
-            _updatingPresPredictorNowWet = false;
-            _updatingPresPredictorFutureWet = false;
-            _presRunning.Reset();
-            _tempRunning.Reset();
-            _tyreInfo = null;
-            _wetSet = 0;
-            CurrentTyreSet = 0;
+            this._updatingPresPredictorDry = false;
+            this._updatingPresPredictorNowWet = false;
+            this._updatingPresPredictorFutureWet = false;
+            this._presRunning.Reset();
+            this._tempRunning.Reset();
+            this._tyreInfo = null;
+            this._wetSet = 0;
+            this.CurrentTyreSet = 0;
         }
 
         public int GetCurrentSetLaps() {
-            if (!RaceEngineerPlugin.Game.IsAcc || Name == null) return -1;
-            if (SetLaps.ContainsKey(Name) && SetLaps[Name].ContainsKey(CurrentTyreSet)) {
-                return SetLaps[Name][CurrentTyreSet];
+            if (!RaceEngineerPlugin.Game.IsAcc || this.Name == null) return -1;
+            if (this.SetLaps.ContainsKey(this.Name) && this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                return this.SetLaps[this.Name][this.CurrentTyreSet];
             }
             return -1;
         }
@@ -139,48 +143,48 @@ namespace KLPlugins.RaceEngineer.Car {
         #region On... METHODS
 
         public void OnSetupChange() {
-            InputTyrePresPredictorDry = null;
-            InputTyrePresPredictorNowWet = null;
-            InputTyrePresPredictorFutureWet = null;
-            _updatingPresPredictorDry = false;
-            _updatingPresPredictorNowWet = false;
-            _updatingPresPredictorFutureWet = false;
+            this.InputTyrePresPredictorDry = null;
+            this.InputTyrePresPredictorNowWet = null;
+            this.InputTyrePresPredictorFutureWet = null;
+            this._updatingPresPredictorDry = false;
+            this._updatingPresPredictorNowWet = false;
+            this._updatingPresPredictorFutureWet = false;
         }
 
         public void OnNewStint() {
             if (RaceEngineerPlugin.Game.IsAcc) {
-                if (!SetLaps[Name].ContainsKey(CurrentTyreSet)) {
-                    SetLaps[Name][CurrentTyreSet] = 0;
+                if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                    this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
                 }
             }
         }
 
         public void OnLapFinished(Values v) {
             if (RaceEngineerPlugin.Game.IsAcc) {
-                SetLaps[Name][CurrentTyreSet] += 1;
+                this.SetLaps[this.Name][this.CurrentTyreSet] += 1;
             }
 
-            PresOverLap.Update(_presRunning);
-            TempOverLap.Update(_tempRunning);
-            UpdateIdealInputPressures(v.Weather.AirTemp, v.Weather.TrackTemp);
-            UpdateOverLapColors(v);
-            _presRunning.Reset();
-            _tempRunning.Reset();
+            this.PresOverLap.Update(this._presRunning);
+            this.TempOverLap.Update(this._tempRunning);
+            this.UpdateIdealInputPressures(v.Weather.AirTemp, v.Weather.TrackTemp);
+            this.UpdateOverLapColors(v);
+            this._presRunning.Reset();
+            this._tempRunning.Reset();
         }
 
         public void OnLapFinishedAfterInsert() {
             for (int i = 0; i < 4; i++) {
-                PresLossLap[i] = false;
+                this.PresLossLap[i] = false;
             }
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            CheckCompoundChange(data, v, data.NewData.TrackId);
-            CheckPresChange(data, v.Booleans);
-            UpdateOverLapData(data, v.Booleans);
-            PredictIdealInputPressures(v);
-            UpdateColors(data, v.Booleans.NewData.IsInMenu);
-            
+            this.CheckCompoundChange(data, v, data.NewData.TrackId);
+            this.CheckPresChange(data, v.Booleans);
+            this.UpdateOverLapData(data, v.Booleans);
+            this.PredictIdealInputPressures(v);
+            this.UpdateColors(data, v.Booleans.NewData.IsInMenu);
+
 
         }
 
@@ -191,58 +195,58 @@ namespace KLPlugins.RaceEngineer.Car {
         private void UpdateColors(GameData data, bool isInMenu) {
             if (!isInMenu) {
                 if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                    PresColor[0] = PresColorF.GetColor(data.NewData.TyrePressureFrontLeft).ToHEX();
-                    PresColor[1] = PresColorF.GetColor(data.NewData.TyrePressureFrontRight).ToHEX();
-                    PresColor[2] = PresColorR.GetColor(data.NewData.TyrePressureRearLeft).ToHEX();
-                    PresColor[3] = PresColorR.GetColor(data.NewData.TyrePressureRearRight).ToHEX();
+                    this.PresColor[0] = this.PresColorF.GetColor(data.NewData.TyrePressureFrontLeft).ToHEX();
+                    this.PresColor[1] = this.PresColorF.GetColor(data.NewData.TyrePressureFrontRight).ToHEX();
+                    this.PresColor[2] = this.PresColorR.GetColor(data.NewData.TyrePressureRearLeft).ToHEX();
+                    this.PresColor[3] = this.PresColorR.GetColor(data.NewData.TyrePressureRearRight).ToHEX();
                 }
 
                 if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                    TempColor[0] = TempColorF.GetColor(data.NewData.TyreTemperatureFrontLeft).ToHEX();
-                    TempColor[1] = TempColorF.GetColor(data.NewData.TyreTemperatureFrontRight).ToHEX();
-                    TempColor[2] = TempColorR.GetColor(data.NewData.TyreTemperatureRearLeft).ToHEX();
-                    TempColor[3] = TempColorR.GetColor(data.NewData.TyreTemperatureRearRight).ToHEX();
+                    this.TempColor[0] = this.TempColorF.GetColor(data.NewData.TyreTemperatureFrontLeft).ToHEX();
+                    this.TempColor[1] = this.TempColorF.GetColor(data.NewData.TyreTemperatureFrontRight).ToHEX();
+                    this.TempColor[2] = this.TempColorR.GetColor(data.NewData.TyreTemperatureRearLeft).ToHEX();
+                    this.TempColor[3] = this.TempColorR.GetColor(data.NewData.TyreTemperatureRearRight).ToHEX();
                 }
             }
         }
 
         private void UpdateOverLapColors(Values v) {
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                PresColorMin[0] = PresColorF.GetColor(PresOverLap[0].Min).ToHEX();
-                PresColorMin[1] = PresColorF.GetColor(PresOverLap[1].Min).ToHEX();
-                PresColorMin[2] = PresColorF.GetColor(PresOverLap[2].Min).ToHEX();
-                PresColorMin[3] = PresColorF.GetColor(PresOverLap[3].Min).ToHEX();
+                this.PresColorMin[0] = this.PresColorF.GetColor(this.PresOverLap[0].Min).ToHEX();
+                this.PresColorMin[1] = this.PresColorF.GetColor(this.PresOverLap[1].Min).ToHEX();
+                this.PresColorMin[2] = this.PresColorF.GetColor(this.PresOverLap[2].Min).ToHEX();
+                this.PresColorMin[3] = this.PresColorF.GetColor(this.PresOverLap[3].Min).ToHEX();
             }
             if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                PresColorMax[0] = PresColorF.GetColor(PresOverLap[0].Max).ToHEX();
-                PresColorMax[1] = PresColorF.GetColor(PresOverLap[1].Max).ToHEX();
-                PresColorMax[2] = PresColorF.GetColor(PresOverLap[2].Max).ToHEX();
-                PresColorMax[3] = PresColorF.GetColor(PresOverLap[3].Max).ToHEX();
+                this.PresColorMax[0] = this.PresColorF.GetColor(this.PresOverLap[0].Max).ToHEX();
+                this.PresColorMax[1] = this.PresColorF.GetColor(this.PresOverLap[1].Max).ToHEX();
+                this.PresColorMax[2] = this.PresColorF.GetColor(this.PresOverLap[2].Max).ToHEX();
+                this.PresColorMax[3] = this.PresColorF.GetColor(this.PresOverLap[3].Max).ToHEX();
             }
             if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                PresColorAvg[0] = PresColorF.GetColor(PresOverLap[0].Avg).ToHEX();
-                PresColorAvg[1] = PresColorF.GetColor(PresOverLap[1].Avg).ToHEX();
-                PresColorAvg[2] = PresColorF.GetColor(PresOverLap[2].Avg).ToHEX();
-                PresColorAvg[3] = PresColorF.GetColor(PresOverLap[3].Avg).ToHEX();
+                this.PresColorAvg[0] = this.PresColorF.GetColor(this.PresOverLap[0].Avg).ToHEX();
+                this.PresColorAvg[1] = this.PresColorF.GetColor(this.PresOverLap[1].Avg).ToHEX();
+                this.PresColorAvg[2] = this.PresColorF.GetColor(this.PresOverLap[2].Avg).ToHEX();
+                this.PresColorAvg[3] = this.PresColorF.GetColor(this.PresOverLap[3].Avg).ToHEX();
             }
 
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                TempColorMin[0] = TempColorF.GetColor(TempOverLap[0].Min).ToHEX();
-                TempColorMin[1] = TempColorF.GetColor(TempOverLap[1].Min).ToHEX();
-                TempColorMin[2] = TempColorF.GetColor(TempOverLap[2].Min).ToHEX();
-                TempColorMin[3] = TempColorF.GetColor(TempOverLap[3].Min).ToHEX();
+                this.TempColorMin[0] = this.TempColorF.GetColor(this.TempOverLap[0].Min).ToHEX();
+                this.TempColorMin[1] = this.TempColorF.GetColor(this.TempOverLap[1].Min).ToHEX();
+                this.TempColorMin[2] = this.TempColorF.GetColor(this.TempOverLap[2].Min).ToHEX();
+                this.TempColorMin[3] = this.TempColorF.GetColor(this.TempOverLap[3].Min).ToHEX();
             }
             if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                TempColorMax[0] = TempColorF.GetColor(TempOverLap[0].Max).ToHEX();
-                TempColorMax[1] = TempColorF.GetColor(TempOverLap[1].Max).ToHEX();
-                TempColorMax[2] = TempColorF.GetColor(TempOverLap[2].Max).ToHEX();
-                TempColorMax[3] = TempColorF.GetColor(TempOverLap[3].Max).ToHEX();
+                this.TempColorMax[0] = this.TempColorF.GetColor(this.TempOverLap[0].Max).ToHEX();
+                this.TempColorMax[1] = this.TempColorF.GetColor(this.TempOverLap[1].Max).ToHEX();
+                this.TempColorMax[2] = this.TempColorF.GetColor(this.TempOverLap[2].Max).ToHEX();
+                this.TempColorMax[3] = this.TempColorF.GetColor(this.TempOverLap[3].Max).ToHEX();
             }
             if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                TempColorAvg[0] = TempColorF.GetColor(TempOverLap[0].Avg).ToHEX();
-                TempColorAvg[1] = TempColorF.GetColor(TempOverLap[1].Avg).ToHEX();
-                TempColorAvg[2] = TempColorF.GetColor(TempOverLap[2].Avg).ToHEX();
-                TempColorAvg[3] = TempColorF.GetColor(TempOverLap[3].Avg).ToHEX();
+                this.TempColorAvg[0] = this.TempColorF.GetColor(this.TempOverLap[0].Avg).ToHEX();
+                this.TempColorAvg[1] = this.TempColorF.GetColor(this.TempOverLap[1].Avg).ToHEX();
+                this.TempColorAvg[2] = this.TempColorF.GetColor(this.TempOverLap[2].Avg).ToHEX();
+                this.TempColorAvg[3] = this.TempColorF.GetColor(this.TempOverLap[3].Avg).ToHEX();
             }
 
         }
@@ -252,13 +256,13 @@ namespace KLPlugins.RaceEngineer.Car {
             //    a) If we exit garage
             //    b) If we change tyres in pit stop.
 
-            if (Name != null && !(v.Booleans.NewData.ExitedMenu || v.Booleans.NewData.ExitedPitBox)) return;
+            if (this.Name != null && !(v.Booleans.NewData.ExitedMenu || v.Booleans.NewData.ExitedPitBox)) return;
 
             string newTyreName = v.RawData.NewData.Graphics.TyreCompound;
 
             if (newTyreName == "wet_compound") {
                 if (v.Booleans.NewData.ExitedMenu) {
-                    _wetSet += 1; // Definitely is new set
+                    this._wetSet += 1; // Definitely is new set
                 } else if (v.Booleans.NewData.ExitedPitBox) {
                     // Could be new set but there is really no way to tell since wet sets are not numbered
                     // Since tyre change takes 30 seconds, let's assume that if pitstop is 29s or longer that we changed tyres. 
@@ -266,32 +270,32 @@ namespace KLPlugins.RaceEngineer.Car {
                     // But we do know that if pit was shorter than 30s, we couldn't have changed tyres.
                     RaceEngineerPlugin.LogInfo($"Exited pit box: pit time = {data.OldData.IsInPitSince}");
                     if (data.OldData.IsInPitSince > 29) {
-                        _wetSet += 1;
+                        this._wetSet += 1;
                     }
                 }
-                CurrentTyreSet = _wetSet;
+                this.CurrentTyreSet = this._wetSet;
             } else {
-                CurrentTyreSet = RaceEngineerPlugin.Game.IsAcc ? v.RawData.NewData.Graphics.currentTyreSet : -1;
+                this.CurrentTyreSet = RaceEngineerPlugin.Game.IsAcc ? v.RawData.NewData.Graphics.currentTyreSet : -1;
             }
 
-            if (newTyreName == null || newTyreName == Name) return;
-            RaceEngineerPlugin.LogInfo($"Tyres changed from '{Name}' to '{newTyreName}'.");
-            ResetValues();
+            if (newTyreName == null || newTyreName == this.Name) return;
+            RaceEngineerPlugin.LogInfo($"Tyres changed from '{this.Name}' to '{newTyreName}'.");
+            this.ResetValues();
 
-            Name = newTyreName;
-            if (!SetLaps.ContainsKey(Name)) {
-                SetLaps[Name] = new Dictionary<int, int>();
+            this.Name = newTyreName;
+            if (!this.SetLaps.ContainsKey(this.Name)) {
+                this.SetLaps[this.Name] = new Dictionary<int, int>();
             }
 
             if (v.Car.Info?.Tyres != null) {
-                _tyreInfo = v.Car.Info.Tyres?[Name];
-                if (_tyreInfo != null) {
-                    PresColorF.UpdateInterpolation(_tyreInfo.IdealPres.F, _tyreInfo.IdealPresRange.F);
-                    PresColorR.UpdateInterpolation(_tyreInfo.IdealPres.R, _tyreInfo.IdealPresRange.R);
-                    TempColorF.UpdateInterpolation(_tyreInfo.IdealTemp.F, _tyreInfo.IdealTempRange.F);
-                    TempColorR.UpdateInterpolation(_tyreInfo.IdealTemp.R, _tyreInfo.IdealTempRange.R);
+                this._tyreInfo = v.Car.Info.Tyres?[this.Name];
+                if (this._tyreInfo != null) {
+                    this.PresColorF.UpdateInterpolation(this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPresRange.F);
+                    this.PresColorR.UpdateInterpolation(this._tyreInfo.IdealPres.R, this._tyreInfo.IdealPresRange.R);
+                    this.TempColorF.UpdateInterpolation(this._tyreInfo.IdealTemp.F, this._tyreInfo.IdealTempRange.F);
+                    this.TempColorR.UpdateInterpolation(this._tyreInfo.IdealTemp.R, this._tyreInfo.IdealTempRange.R);
                 } else {
-                    ResetColors();
+                    this.ResetColors();
                 }
             } else {
                 RaceEngineerPlugin.LogInfo($"Current CarInfo '{v.Car.Name}' doesn't have specs for tyres. Resetting to defaults.");
@@ -300,11 +304,11 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void ResetPressureLoss() {
             for (int i = 0; i < 4; i++) {
-                PresLoss[i] = 0.0;
+                this.PresLoss[i] = 0.0;
             }
         }
 
-        private const double PRESS_LOSS_THRESHOLD = 0.1; 
+        private const double PRESS_LOSS_THRESHOLD = 0.1;
         private void CheckPresChange(GameData data, Booleans.Booleans booleans) {
             if (booleans.NewData.IsInMenu) {
                 return;
@@ -320,20 +324,20 @@ namespace KLPlugins.RaceEngineer.Car {
             if (data.NewData.SpeedKmh < 10) {
                 Func<double, bool> pred = v => Math.Abs(v) > PRESS_LOSS_THRESHOLD;
                 if (pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
-                    CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
-                    CurrentInputPres[1] = Math.Ceiling(data.NewData.TyrePressureFrontRight * 10.0) / 10.0;
-                    CurrentInputPres[2] = Math.Ceiling(data.NewData.TyrePressureRearLeft * 10.0) / 10.0;
-                    CurrentInputPres[3] = Math.Ceiling(data.NewData.TyrePressureRearRight * 10.0) / 10.0;
+                    this.CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
+                    this.CurrentInputPres[1] = Math.Ceiling(data.NewData.TyrePressureFrontRight * 10.0) / 10.0;
+                    this.CurrentInputPres[2] = Math.Ceiling(data.NewData.TyrePressureRearLeft * 10.0) / 10.0;
+                    this.CurrentInputPres[3] = Math.Ceiling(data.NewData.TyrePressureRearRight * 10.0) / 10.0;
 
-                    RaceEngineerPlugin.LogInfo($"Current input tyre pressures updated to [{CurrentInputPres[0]}, {CurrentInputPres[1]}, {CurrentInputPres[2]}, {CurrentInputPres[3]}].");
-                    ResetPressureLoss();
+                    RaceEngineerPlugin.LogInfo($"Current input tyre pressures updated to [{this.CurrentInputPres[0]}, {this.CurrentInputPres[1]}, {this.CurrentInputPres[2]}, {this.CurrentInputPres[3]}].");
+                    this.ResetPressureLoss();
 
                 }
             } else {
                 for (int i = 0; i < 4; i++) {
-                    if (presDelta[i] < -PRESS_LOSS_THRESHOLD) { 
-                        PresLoss[i] += presDelta[i];
-                        PresLossLap[i] = true;
+                    if (presDelta[i] < -PRESS_LOSS_THRESHOLD) {
+                        this.PresLoss[i] += presDelta[i];
+                        this.PresLossLap[i] = true;
                         RaceEngineerPlugin.LogInfo($"Pressure loss on {Names[i]} by {presDelta[i]}.");
                     }
                 }
@@ -344,7 +348,7 @@ namespace KLPlugins.RaceEngineer.Car {
             // Add sample to counters
             if (booleans.NewData.IsMoving && booleans.NewData.IsOnTrack) {
                 double now = data.FrameTime.Second;
-                if (_lastSampleTimeSec == now) return;
+                if (this._lastSampleTimeSec == now) return;
                 double[] currentPres = new double[] {
                     data.NewData.TyrePressureFrontLeft,
                     data.NewData.TyrePressureFrontRight,
@@ -358,17 +362,17 @@ namespace KLPlugins.RaceEngineer.Car {
                     data.NewData.TyreTemperatureRearRight
                 };
 
-                _presRunning.Update(currentPres);
-                _tempRunning.Update(currentTemp);
+                this._presRunning.Update(currentPres);
+                this._tempRunning.Update(currentTemp);
 
-                _lastSampleTimeSec = now;
+                this._lastSampleTimeSec = now;
             }
         }
 
         private void UpdateIdealInputPressures(double airtemp, double tracktemp) {
-            if (_tyreInfo != null) {    
+            if (this._tyreInfo != null) {
                 for (int i = 0; i < 4; i++) {
-                    IdealInputPres[i] = CurrentInputPres[i] + (_tyreInfo.IdealPres[i] - PresOverLap[i].Avg);
+                    this.IdealInputPres[i] = this.CurrentInputPres[i] + (this._tyreInfo.IdealPres[i] - this.PresOverLap[i].Avg);
                 }
             } else {
                 RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null'");
@@ -376,96 +380,96 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         private void PredictIdealInputPressures(Values v) {
-            if (_tyreInfo == null || v.Weather.AirTemp == 0.0) {
-               // RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null' || 'AirTemp == 0.0'");
+            if (this._tyreInfo == null || v.Weather.AirTemp == 0.0) {
+                // RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null' || 'AirTemp == 0.0'");
                 for (int i = 0; i < 4; i++) {
-                    PredictedIdealInputPresDry[i] = double.NaN;
-                    PredictedIdealInputPresNowWet[i] = double.NaN;
-                    PredictedIdealInputPresFutureWet[i] = double.NaN;
+                    this.PredictedIdealInputPresDry[i] = double.NaN;
+                    this.PredictedIdealInputPresNowWet[i] = double.NaN;
+                    this.PredictedIdealInputPresFutureWet[i] = double.NaN;
                 }
                 return;
             }
 
-            if (!_updatingPresPredictorDry 
-                && (v.RawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN 
-                    || v.RawData.NewData.Graphics.rainIntensityIn10min == ACC_RAIN_INTENSITY.ACC_NO_RAIN 
+            if (!this._updatingPresPredictorDry
+                && (v.RawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                    || v.RawData.NewData.Graphics.rainIntensityIn10min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
                     || v.RawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_NO_RAIN
                 )
             ) {
-                if (InputTyrePresPredictorDry != null) {
-                    var preds = InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, _tyreInfo.IdealPres.F, _tyreInfo.IdealPres.R);
-                    preds.CopyTo(PredictedIdealInputPresDry, 0);
+                if (this.InputTyrePresPredictorDry != null) {
+                    var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                    preds.CopyTo(this.PredictedIdealInputPresDry, 0);
                 } else {
                     if (v.Car.Setup != null) {
-                        InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
+                        this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
                         for (int i = 0; i < 4; i++) {
-                            PredictedIdealInputPresDry[i] = double.NaN;
+                            this.PredictedIdealInputPresDry[i] = double.NaN;
                         }
                     }
-                    
+
                 }
             }
 
-            if (!_updatingPresPredictorNowWet && v.RawData.NewData.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
-                if (v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity || InputTyrePresPredictorNowWet == null) {
+            if (!this._updatingPresPredictorNowWet && v.RawData.NewData.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
+                if (v.RawData.NewData.Graphics.rainIntensity != v.RawData.OldData.Graphics.rainIntensity || this.InputTyrePresPredictorNowWet == null) {
                     if (v.Car.Setup != null) {
-                        InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                        this.InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
                     }
                     for (int i = 0; i < 4; i++) {
-                        PredictedIdealInputPresNowWet[i] = double.NaN;
+                        this.PredictedIdealInputPresNowWet[i] = double.NaN;
                     }
                 } else {
-                    var preds = InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, _tyreInfo.IdealPres.F, _tyreInfo.IdealPres.R);
-                    preds.CopyTo(PredictedIdealInputPresNowWet, 0);
+                    var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                    preds.CopyTo(this.PredictedIdealInputPresNowWet, 0);
                 }
             }
 
-            if (!_updatingPresPredictorFutureWet && (v.RawData.NewData.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || v.RawData.NewData.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
-                if (v.RawData.NewData.Graphics.rainIntensityIn30min != v.RawData.OldData.Graphics.rainIntensityIn30min || InputTyrePresPredictorFutureWet == null) {
+            if (!this._updatingPresPredictorFutureWet && (v.RawData.NewData.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || v.RawData.NewData.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
+                if (v.RawData.NewData.Graphics.rainIntensityIn30min != v.RawData.OldData.Graphics.rainIntensityIn30min || this.InputTyrePresPredictorFutureWet == null) {
                     if (v.Car.Setup != null) {
-                        InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
+                        this.InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.RawData, v.Db);
                     }
                     for (int i = 0; i < 4; i++) {
-                        PredictedIdealInputPresFutureWet[i] = double.NaN;
+                        this.PredictedIdealInputPresFutureWet[i] = double.NaN;
                     }
                 } else {
-                    var preds = InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, _tyreInfo.IdealPres.F, _tyreInfo.IdealPres.R);
-                    preds.CopyTo(PredictedIdealInputPresFutureWet, 0);
+                    var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                    preds.CopyTo(this.PredictedIdealInputPresFutureWet, 0);
                 }
             }
         }
 
 
         private void InitInputTyrePresPredictorDry(string trackName, string carName, int[] brakeDucts, Database.Database db) {
-            InputTyrePresPredictorDry = null;
+            this.InputTyrePresPredictorDry = null;
             _ = Task.Run(() => {
-                _updatingPresPredictorDry = true;
-                InputTyrePresPredictorDry = new InputTyrePresPredictor(trackName, carName, brakeDucts, "dry_compound", ACC_RAIN_INTENSITY.ACC_NO_RAIN, $"(0, 1, 2)", db);
-                _updatingPresPredictorDry = false;
+                this._updatingPresPredictorDry = true;
+                this.InputTyrePresPredictorDry = new InputTyrePresPredictor(trackName, carName, brakeDucts, "dry_compound", ACC_RAIN_INTENSITY.ACC_NO_RAIN, $"(0, 1, 2)", db);
+                this._updatingPresPredictorDry = false;
             });
             RaceEngineerPlugin.LogInfo("Started building dry tyre pres models.");
         }
 
-        private void InitInputTyrePresPredictorNowWet(string trackName, string carName, int[] brakeDucts, ACCRawData rawData,  Database.Database db) {
-            InputTyrePresPredictorNowWet = null;
+        private void InitInputTyrePresPredictorNowWet(string trackName, string carName, int[] brakeDucts, ACCRawData rawData, Database.Database db) {
+            this.InputTyrePresPredictorNowWet = null;
             _ = Task.Run(() => {
-                _updatingPresPredictorNowWet = true;
-                InputTyrePresPredictorNowWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensity, $"({(int)rawData.NewData.Graphics.trackGripStatus})", db);
-                _updatingPresPredictorNowWet = false;
+                this._updatingPresPredictorNowWet = true;
+                this.InputTyrePresPredictorNowWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensity, $"({(int)rawData.NewData.Graphics.trackGripStatus})", db);
+                this._updatingPresPredictorNowWet = false;
             });
             RaceEngineerPlugin.LogInfo("Started building now wet tyre pres models.");
         }
 
         private void InitInputTyrePresPredictorFutureWet(string trackName, string carName, int[] brakeDucts, ACCRawData rawData, Database.Database db) {
-            InputTyrePresPredictorFutureWet = null;
+            this.InputTyrePresPredictorFutureWet = null;
             _ = Task.Run(() => {
-                _updatingPresPredictorFutureWet = true;
+                this._updatingPresPredictorFutureWet = true;
 
                 var futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_WET;
                 if (rawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_THUNDERSTORM) {
                     futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_FLOODED;
                 } else if (rawData.NewData.Graphics.rainIntensityIn30min == ACC_RAIN_INTENSITY.ACC_DRIZZLE
-                    && (   rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
+                    && (rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_NO_RAIN
                         || rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_DRIZZLE
                         || rawData.NewData.Graphics.rainIntensity == ACC_RAIN_INTENSITY.ACC_LIGHT_RAIN
                     )
@@ -473,8 +477,8 @@ namespace KLPlugins.RaceEngineer.Car {
                     futureTrackGrip = ACC_TRACK_GRIP_STATUS.ACC_DAMP;
                 }
 
-                InputTyrePresPredictorFutureWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensityIn30min, $"({(int)futureTrackGrip})", db);
-                _updatingPresPredictorFutureWet = false;
+                this.InputTyrePresPredictorFutureWet = new InputTyrePresPredictor(trackName, carName, brakeDucts, "wet_compound", rawData.NewData.Graphics.rainIntensityIn30min, $"({(int)futureTrackGrip})", db);
+                this._updatingPresPredictorFutureWet = false;
             });
             RaceEngineerPlugin.LogInfo("Started building future wet tyre pres models.");
         }
@@ -482,24 +486,24 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void ResetColors() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
-            PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
-            PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
-            TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
-            TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            this.PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            this.PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            this.TempColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
+            this.TempColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.TyreTempColorDefValues);
         }
 
         private void ResetValues() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetValues()");
-            for (var i = 0; i < 4; i++) { 
-                IdealInputPres[i] = double.NaN;
+            for (var i = 0; i < 4; i++) {
+                this.IdealInputPres[i] = double.NaN;
             }
-            PresOverLap.Reset();
-            TempOverLap.Reset();
-            _presRunning.Reset();
-            _tempRunning.Reset();
-            InputTyrePresPredictorDry = null;
-            InputTyrePresPredictorFutureWet = null;
-            InputTyrePresPredictorNowWet = null;
+            this.PresOverLap.Reset();
+            this.TempOverLap.Reset();
+            this._presRunning.Reset();
+            this._tempRunning.Reset();
+            this.InputTyrePresPredictorDry = null;
+            this.InputTyrePresPredictorFutureWet = null;
+            this.InputTyrePresPredictorNowWet = null;
             //tyreInfo = null;
         }
 
@@ -515,37 +519,37 @@ namespace KLPlugins.RaceEngineer.Car {
         private int[] brakeDucts;
         private string compound;
 
-        public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, ACC_RAIN_INTENSITY rain_intensity, string trackGrip, Database.Database db) { 
+        public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, ACC_RAIN_INTENSITY rain_intensity, string trackGrip, Database.Database db) {
             this.trackName = trackName;
             this.carName = carName;
             this.brakeDucts = brakeDucts;
             this.compound = compound;
 
-            regressors = new ML.RidgeRegression[] {
-                InitRegressor(0, rain_intensity, trackGrip, db), 
-                InitRegressor(1, rain_intensity, trackGrip, db), 
-                InitRegressor(2, rain_intensity, trackGrip, db), 
-                InitRegressor(3, rain_intensity, trackGrip, db)
+            this.regressors = new ML.RidgeRegression[] {
+                this.InitRegressor(0, rain_intensity, trackGrip, db),
+                this.InitRegressor(1, rain_intensity, trackGrip, db),
+                this.InitRegressor(2, rain_intensity, trackGrip, db),
+                this.InitRegressor(3, rain_intensity, trackGrip, db)
             };
 
             RaceEngineerPlugin.LogInfo($"Created InputTyrePresPredictor({trackName}, {carName}, [{brakeDucts[0]}, {brakeDucts[1]}], {compound})");
         }
 
         private ML.RidgeRegression InitRegressor(int tyre, ACC_RAIN_INTENSITY rainIntensity, string trackGrip, Database.Database db) {
-            var data = db.GetInputPresData(tyre, carName, trackName, tyre < 2 ? brakeDucts[0] : brakeDucts[1], compound, trackGrip, rainIntensity);
+            var data = db.GetInputPresData(tyre, this.carName, this.trackName, tyre < 2 ? this.brakeDucts[0] : this.brakeDucts[1], this.compound, trackGrip, rainIntensity);
             if (data.Item2.Count != 0) {
                 return new ML.RidgeRegression(data.Item1, data.Item2);
             } else {
                 return null;
-            }            
+            }
         }
 
         public double[] Predict(double airtemp, double tracktemp, double idealPresFront, double idealPresRear) {
             var res = new double[4];
             for (int i = 0; i < 4; i++) {
-                if (regressors[i] != null && airtemp != 0.0) {
-                    res[i] = regressors[i].Predict(new double[] { i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp });
-                } else { 
+                if (this.regressors[i] != null && airtemp != 0.0) {
+                    res[i] = this.regressors[i].Predict(new double[] { i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp });
+                } else {
                     res[i] = double.NaN;
                 }
             }

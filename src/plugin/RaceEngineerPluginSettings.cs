@@ -1,14 +1,14 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
+
+using Newtonsoft.Json;
 
 namespace KLPlugins.RaceEngineer {
     /// <summary>
     /// Settings class, make sure it can be correctly serialized using JSON.net
     /// </summary>
-    public class RaceEngineerPluginSettings
-    {
+    public class RaceEngineerPluginSettings {
         public int SpeedWarningLevel = 100;
     }
 
@@ -31,12 +31,12 @@ namespace KLPlugins.RaceEngineer {
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
 
-        public StatsFlags PrevLapsStatsFlags => _prevLapsStats;
-        public StatsFlags PrevFuelPerLapStatsFlags => _prevFuelPerLapStats;
-        public StatsFlags RemainingStatsFlags => _remainingStats;
-        public WheelFlags TyrePresFlags => _tyrePresFlags;
-        public WheelFlags TyreTempFlags => _tyreTempFlags;
-        public WheelFlags BrakeTempFlags => _brakeTempFlags;
+        public StatsFlags PrevLapsStatsFlags => this._prevLapsStats;
+        public StatsFlags PrevFuelPerLapStatsFlags => this._prevFuelPerLapStats;
+        public StatsFlags RemainingStatsFlags => this._remainingStats;
+        public WheelFlags TyrePresFlags => this._tyrePresFlags;
+        public WheelFlags TyreTempFlags => this._tyreTempFlags;
+        public WheelFlags BrakeTempFlags => this._brakeTempFlags;
 
         private StatsFlags _prevLapsStats;
         private StatsFlags _prevFuelPerLapStats;
@@ -59,29 +59,29 @@ namespace KLPlugins.RaceEngineer {
                 File.WriteAllText(SETTINGS_PATH, txt);
             }
 
-            NumPreviousValuesStored = s.NumPreviousValuesStored;
-            DataLocation = s.DataLocation;
-            AccDataLocation = s.AccDataLocation;
-            TempColor = s.TempColor;
-            TyreTempColorDefValues = s.TyrePresColorDefValues;
-            BrakeTempColorDefValues = s.BrakeTempColorDefValues;
-            PresColor = s.PresColor;
-            TyrePresColorDefValues = s.TyrePresColorDefValues;
-            TimeColor = s.TimeColor;
-            TimeGraphColor = s.TimeGraphColor;
-            TimeColorDeltaValues = s.TimeColorDeltaValues;
-            FuelGraphColor = s.FuelGraphColor;
-            FuelGraphColorValues = s.FuelGraphColorValues;
-            Log = s.Log;
-            ShowAllLaps = s.ShowAllLaps;
+            this.NumPreviousValuesStored = s.NumPreviousValuesStored;
+            this.DataLocation = s.DataLocation;
+            this.AccDataLocation = s.AccDataLocation;
+            this.TempColor = s.TempColor;
+            this.TyreTempColorDefValues = s.TyrePresColorDefValues;
+            this.BrakeTempColorDefValues = s.BrakeTempColorDefValues;
+            this.PresColor = s.PresColor;
+            this.TyrePresColorDefValues = s.TyrePresColorDefValues;
+            this.TimeColor = s.TimeColor;
+            this.TimeGraphColor = s.TimeGraphColor;
+            this.TimeColorDeltaValues = s.TimeColorDeltaValues;
+            this.FuelGraphColor = s.FuelGraphColor;
+            this.FuelGraphColorValues = s.FuelGraphColorValues;
+            this.Log = s.Log;
+            this.ShowAllLaps = s.ShowAllLaps;
 
 
-            ParseLapFlags(s.PrevLapsInfo, ref _prevLapsStats, "PrevLapsInfo");
-            ParseStatsFlags(s.PrevFuelPerLapInfo, ref _prevFuelPerLapStats, "PrevFuelPerLapInfo");
-            ParseRemainingStatsFlags(s.RemainingInfo, ref _remainingStats, "RemainingInfo");
-            ParseWheelFlags(s.TyrePresInfo, ref _tyrePresFlags, "TyrePresInfo");
-            ParseWheelFlags(s.TyreTempInfo, ref _tyreTempFlags, "TyreTempInfo");
-            ParseWheelFlags(s.BrakeTempInfo, ref _brakeTempFlags, "BrakeTempInfo");
+            this.ParseLapFlags(s.PrevLapsInfo, ref this._prevLapsStats, "PrevLapsInfo");
+            this.ParseStatsFlags(s.PrevFuelPerLapInfo, ref this._prevFuelPerLapStats, "PrevFuelPerLapInfo");
+            this.ParseRemainingStatsFlags(s.RemainingInfo, ref this._remainingStats, "RemainingInfo");
+            this.ParseWheelFlags(s.TyrePresInfo, ref this._tyrePresFlags, "TyrePresInfo");
+            this.ParseWheelFlags(s.TyreTempInfo, ref this._tyreTempFlags, "TyreTempInfo");
+            this.ParseWheelFlags(s.BrakeTempInfo, ref this._brakeTempFlags, "BrakeTempInfo");
 
         }
 
@@ -91,7 +91,7 @@ namespace KLPlugins.RaceEngineer {
                     statsFlags |= newVariant;
                 } else {
                     RaceEngineerPlugin.LogWarn($"Found unknown setting '{v}' in {varName}");
-                }           
+                }
             }
         }
 
@@ -126,7 +126,7 @@ namespace KLPlugins.RaceEngineer {
         }
     }
 
-   
+
     [Flags]
     public enum StatsFlags {
         None = 0,
@@ -185,27 +185,27 @@ namespace KLPlugins.RaceEngineer {
 
 
         public SettingsInternal() {
-            NumPreviousValuesStored = 10;
-            DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
-            AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
-            TempColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
-            TyreTempColorDefValues = new double[] { 70.0, 80.0, 90.0, 100.0 };
-            BrakeTempColorDefValues = new double[] { 200.0, 300.0, 500.0, 700.0 };
-            PresColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
-            TyrePresColorDefValues = new double[] { 26.5, 27.25, 27.75, 28.5 };
-            TimeColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            TimeGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            TimeColorDeltaValues = new double[] { -1.0, 0.0, 1.0 };
-            FuelGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
-            FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
-            Log = true;
-            ShowAllLaps = false;
-            PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3"};
-            PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
-            TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            BrakeTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
-            RemainingInfo = new string[] { "Min", "Max", "Avg" };
+            this.NumPreviousValuesStored = 10;
+            this.DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
+            this.AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
+            this.TempColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
+            this.TyreTempColorDefValues = new double[] { 70.0, 80.0, 90.0, 100.0 };
+            this.BrakeTempColorDefValues = new double[] { 200.0, 300.0, 500.0, 700.0 };
+            this.PresColor = new string[] { "#87cefa", "#00ff7f", "#00ff7f", "#e60000" };
+            this.TyrePresColorDefValues = new double[] { 26.5, 27.25, 27.75, 28.5 };
+            this.TimeColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
+            this.TimeGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
+            this.TimeColorDeltaValues = new double[] { -1.0, 0.0, 1.0 };
+            this.FuelGraphColor = new string[] { "#00ff7f", "#F8F8FF", "#e60000" };
+            this.FuelGraphColorValues = new double[] { -1.0, 0.0, 1.0 };
+            this.Log = true;
+            this.ShowAllLaps = false;
+            this.PrevLapsInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
+            this.PrevFuelPerLapInfo = new string[] { "Min", "Max", "Avg", "Std", "Q1", "Median", "Q3" };
+            this.TyrePresInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            this.TyreTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            this.BrakeTempInfo = new string[] { "Min", "Max", "Avg", "Std", "MinColor", "MaxColor", "AvgColor", "Color" };
+            this.RemainingInfo = new string[] { "Min", "Max", "Avg" };
         }
     }
 }
