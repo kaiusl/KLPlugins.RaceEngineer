@@ -78,11 +78,18 @@ namespace KLPlugins.RaceEngineer {
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
             this.SaveCommonSettings("GeneralSettings", this.ShSettings);
-            this._values.Dispose();
-            _logWriter.Dispose();
-            _logFile.Dispose();
-            _logWriter = null;
-            _logFile = null;
+            if (this._values != null) {
+                this._values.Dispose();
+            }
+            if (_logWriter != null) {
+                _logWriter.Dispose();
+                _logWriter = null;
+            }
+
+            if (_logFile != null) {
+                _logFile.Dispose();
+                _logFile = null;
+            }
         }
 
         /// <summary>
