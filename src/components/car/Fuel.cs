@@ -79,7 +79,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
                 var sessType = v.Session.RaceSessionType;
                 // In race/hotstint take fuel start at the line, when the session timer starts running. Otherwise when we first start moving.
-                if (RaceEngineerPlugin.Game.IsAcc && sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint) {
+                if (RaceEngineerPlugin.Game.IsAcc && (sessType == RaceSessionType.Race || sessType == RaceSessionType.Hotstint)) {
                     var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
 
                     var sessPhase = rawDataNew.Realtime?.Phase;
