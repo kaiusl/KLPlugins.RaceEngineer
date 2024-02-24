@@ -168,7 +168,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
                 this.Tyres.OnSetupChange();
             } catch (IOException e) {
-                RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
+                //RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 this.Setup = null;
             }
         }
