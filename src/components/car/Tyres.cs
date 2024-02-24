@@ -325,10 +325,20 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        private const double PRESS_LOSS_THRESHOLD = 0.1;
         private void CheckPresChange(GameData data, Booleans.Booleans booleans) {
             if (booleans.NewData.IsInMenu) {
                 return;
+            }
+
+            double press_loss_threshold;
+            if (RaceEngineerPlugin.Game.IsAcc || RaceEngineerPlugin.Game.IsAc) {
+                press_loss_threshold = 0.1;
+            } else if (RaceEngineerPlugin.Game.IsRf2) {
+                // in rf2 the tyre pressures jump around a lot when one goes off road
+                press_loss_threshold = 1.0;
+            } else {
+                // be careful for other games as well
+                press_loss_threshold = 1.0;
             }
 
             var presDelta = new double[4] {
@@ -338,8 +348,9 @@ namespace KLPlugins.RaceEngineer.Car {
                  data.NewData.TyrePressureRearRight - data.OldData.TyrePressureRearRight
             };
 
-            if (data.NewData.SpeedKmh < 10) {
-                Func<double, bool> pred = v => Math.Abs(v) > PRESS_LOSS_THRESHOLD;
+            if (booleans.NewData.IsInPitBox && data.NewData.SpeedKmh < 10) {
+                // If tyre pressure changed suddenly while in pit box, it's probably a tyre change and we need to take new input pressures
+                static bool pred(double v) => Math.Abs(v) > 0.1;
                 if (pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
                     this.CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
                     this.CurrentInputPres[1] = Math.Ceiling(data.NewData.TyrePressureFrontRight * 10.0) / 10.0;
@@ -348,11 +359,10 @@ namespace KLPlugins.RaceEngineer.Car {
 
                     RaceEngineerPlugin.LogInfo($"Current input tyre pressures updated to [{this.CurrentInputPres[0]}, {this.CurrentInputPres[1]}, {this.CurrentInputPres[2]}, {this.CurrentInputPres[3]}].");
                     this.ResetPressureLoss();
-
                 }
             } else {
                 for (int i = 0; i < 4; i++) {
-                    if (presDelta[i] < -PRESS_LOSS_THRESHOLD) {
+                    if (presDelta[i] < -press_loss_threshold) {
                         this.PresLoss[i] += presDelta[i];
                         this.PresLossLap[i] = true;
                         RaceEngineerPlugin.LogInfo($"Pressure loss on {Names[i]} by {presDelta[i]}.");
