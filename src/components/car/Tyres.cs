@@ -20,6 +20,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public double[] PredictedIdealInputPresNowWet { get; }
         public double[] PredictedIdealInputPresFutureWet { get; }
         public double[] CurrentInputPres { get; }
+        public double[] PressDeltaToIdeal { get; }
         public double[] PresLoss { get; }
         public bool[] PresLossLap { get; }
 
@@ -68,6 +69,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this.PredictedIdealInputPresNowWet = [double.NaN, double.NaN, double.NaN, double.NaN];
             this.PredictedIdealInputPresFutureWet = [double.NaN, double.NaN, double.NaN, double.NaN];
             this.CurrentInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
+            this.PressDeltaToIdeal = [double.NaN, double.NaN, double.NaN, double.NaN];
             this.PresLoss = [0.0, 0.0, 0.0, 0.0];
             this.PresLossLap = [false, false, false, false];
             this.SetLaps = [];
@@ -92,6 +94,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.PredictedIdealInputPresNowWet[i] = double.NaN;
                 this.PredictedIdealInputPresFutureWet[i] = double.NaN;
                 this.CurrentInputPres[i] = double.NaN;
+                this.PressDeltaToIdeal[i] = double.NaN;
                 this.PresLoss[i] = 0.0;
                 this.PresLossLap[i] = false;
                 var defColor = RaceEngineerPlugin.Settings.DefColor;
@@ -168,6 +171,14 @@ namespace KLPlugins.RaceEngineer.Car {
 
             this.PresOverLap.Update(this._presRunning);
             this.TempOverLap.Update(this._tempRunning);
+
+            if (this._tyreInfo?.IdealPres != null) {
+                for (int i = 0; i < 2; i++) {
+                    this.PressDeltaToIdeal[i] = this.PresOverLap[i].Avg - this._tyreInfo.IdealPres.F;
+                    this.PressDeltaToIdeal[i + 2] = this.PresOverLap[i + 2].Avg - this._tyreInfo.IdealPres.R;
+                }
+            }
+
             this.UpdateIdealInputPressures(v.Weather.AirTemp, v.Weather.TrackTemp);
             this.UpdateOverLapColors(v);
             this._presRunning.Reset();
@@ -544,6 +555,7 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Tyres.ResetValues()");
             for (var i = 0; i < 4; i++) {
                 this.IdealInputPres[i] = double.NaN;
+                this.PressDeltaToIdeal[i] = double.NaN;
             }
             this.PresOverLap.Reset();
             this.TempOverLap.Reset();

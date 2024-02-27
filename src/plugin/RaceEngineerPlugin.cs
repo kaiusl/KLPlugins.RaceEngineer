@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -231,6 +231,7 @@ namespace KLPlugins.RaceEngineer {
             addTyres("Tyres.PredictedIdealInputPresIn30MinWet", this._values.Car.Tyres.PredictedIdealInputPresFutureWet);
             addTyres("Tyres.CurrentInputPres", this._values.Car.Tyres.CurrentInputPres);
             addTyres("Tyres.PresLoss", this._values.Car.Tyres.PresLoss);
+            addTyres("Tyres.PresAvgDeltaToIdeal", this._values.Car.Tyres.PressDeltaToIdeal);
 
             void addTyresColor(string name, string[] values, WheelFlags flag) {
                 if ((WheelFlags.Color & flag) != 0) {
