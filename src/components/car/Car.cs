@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Windows.Input;
 
 using GameReaderCommon;
 
 using Newtonsoft.Json;
 
 namespace KLPlugins.RaceEngineer.Car {
-    public class FrontRear {
-        public double F { get; set; }
-        public double R { get; set; }
+    public class FrontRear(double f, double r) {
+        public double F { get; set; } = f;
+        public double R { get; set; } = r;
 
         public double this[int key] {
             get {
@@ -175,5 +178,166 @@ namespace KLPlugins.RaceEngineer.Car {
 
         #endregion
 
+    }
+
+    internal class ACTyreInfo(string name, string shortName, ACLut wearCurveF, ACLut wearCurveR, ACLut tempCurveF, ACLut tempCurveR, FrontRear idealPres) {
+        public string Name { get; private set; } = name;
+        public string ShortName { get; private set; } = shortName;
+        public ACLut WearCurveF { get; private set; } = wearCurveF;
+        public ACLut WearCurveR { get; private set; } = wearCurveR;
+
+        public FrontRear IdealPres { get; private set; } = idealPres;
+
+        public ACLut TempCurveF { get; private set; } = tempCurveF;
+        public ACLut TempCurveR { get; private set; } = tempCurveR;
+    }
+
+    internal class ACCarInfo {
+        enum FrontOrRear { F, R }
+        internal class ACTyreInfoPartial {
+            public string? Name { get; set; }
+            public string? ShortName { get; set; }
+            public ACLut? WearCurveF { get; set; }
+            public ACLut? WearCurveR { get; set; }
+
+            public double? IdealPresF { get; set; }
+            public double? IdealPresR { get; set; }
+
+            public ACLut? TempCurveF { get; set; }
+            public ACLut? TempCurveR { get; set; }
+
+            public ACTyreInfo Build() {
+                return new ACTyreInfo(this.Name!, this.ShortName!, this.WearCurveF!, this.WearCurveR!, this.TempCurveF!, this.TempCurveR!, new FrontRear((double)this.IdealPresF!, (double)this.IdealPresR!));
+            }
+        }
+
+        public Dictionary<string, ACTyreInfo> Tyres { get; private set; } = [];
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"> Path to a folder containing the tyres.ini file and other LUTs.</param>
+        /// <returns></returns>
+        public static ACCarInfo FromFile(string path) {
+            var info = new ACCarInfo();
+            Dictionary<int, ACTyreInfoPartial> results = [];
+
+            var folder_path = path + "\\";
+            var tyresini_path = folder_path + "tyres.ini";
+            var txt = File.ReadAllText(tyresini_path);
+
+            FrontOrRear? frontOrRear = null;
+            int index = -1;
+
+            foreach (var l in txt.Split('\n')) {
+                var line = l.Trim();
+                var line_lower = l.ToLower();
+                if (line == "" || line.StartsWith(";")) continue;
+
+                if (line.StartsWith("[")) {
+                    if (line_lower.StartsWith("[front") || line_lower.StartsWith("[thermal_front")) {
+                        frontOrRear = FrontOrRear.F;
+                    } else if (line_lower.StartsWith("[rear") || line_lower.StartsWith("[thermal_rear")) {
+                        frontOrRear = FrontOrRear.R;
+                    } else {
+                        continue;
+                    }
+
+                    var splits = line.Split('_');
+                    try {
+                        // this fails for [front], [thermal_front], index is 0 then, otherwise [front_2], [thermal_front_3] have indexes
+                        var indexStr = splits.Last().Split(']')[0];
+                        SimHub.Logging.Current.Info(indexStr);
+                        index = Convert.ToInt32(indexStr);
+                    } catch {
+                        index = 0;
+                    }
+
+                    if (!results.ContainsKey(index)) {
+                        results[index] = new ACTyreInfoPartial();
+                    }
+                    continue;
+                }
+
+                var parts = line.Split('=');
+                var key = parts[0].Trim();
+                var value = parts[1].Split(';')[0].Trim(); // remove trailing comments and spaces
+
+                switch (key.ToLower()) {
+                    case "name":
+                        results[index].Name = value;
+                        break;
+                    case "short_name":
+                        results[index].ShortName = value;
+                        break;
+                    case "wear_curve":
+                        switch (frontOrRear) {
+                            case FrontOrRear.F:
+                                results[index].WearCurveF = ACLut.FromFile(folder_path + value);
+                                break;
+                            case FrontOrRear.R:
+                                results[index].WearCurveR = ACLut.FromFile(folder_path + value);
+                                break;
+                        }
+                        break;
+                    case "pressure_ideal":
+                        switch (frontOrRear) {
+                            case FrontOrRear.F:
+                                results[index].IdealPresF = Convert.ToDouble(value);
+                                break;
+                            case FrontOrRear.R:
+                                results[index].IdealPresR = Convert.ToDouble(value);
+                                break;
+                        }
+                        break;
+                    case "performance_curve":
+                        switch (frontOrRear) {
+                            case FrontOrRear.F:
+                                results[index].TempCurveF = ACLut.FromFile(folder_path + value);
+                                break;
+                            case FrontOrRear.R:
+                                results[index].TempCurveR = ACLut.FromFile(folder_path + value);
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+
+            foreach (var r in results.Values) {
+                if (r.Name != null) {
+                    info.Tyres[r.Name] = r.Build();
+                }
+            }
+
+            return info;
+        }
+    }
+
+    internal class ACLut {
+        public List<Tuple<double, double>> Values { get; private set; } = new();
+
+        public static ACLut FromFile(string path) {
+            var lut = new ACLut();
+
+            var txt = File.ReadAllText(path);
+
+            // each line is: from|to
+            // optionally there are comment that start with ;
+            foreach (var l in txt.Split('\n')) {
+                var line = l.Trim();
+                if (line == "" || line.StartsWith(";")) continue;
+
+                var parts = line.Split('|');
+                var from = Convert.ToDouble(parts[0].Trim());
+                var to = Convert.ToDouble(parts[1].Split(';')[0].Trim());
+
+                lut.Values.Add(new Tuple<double, double>(from, to));
+            }
+
+            return lut;
+        }
     }
 }
