@@ -421,9 +421,17 @@ namespace KLPlugins.RaceEngineer.Car {
                  data.NewData.TyrePressureRearRight - data.OldData.TyrePressureRearRight
             };
 
-            var areInputPressuresNotSet = double.IsNaN(this.CurrentInputPres[0]);
-            if (data.NewData.SpeedKmh < 10 && (booleans.NewData.IsInPitBox || (areInputPressuresNotSet && data.NewData.TyrePressureFrontLeft > 0.0))) {
-                // If tyre pressure changed suddenly while in pit box, it's probably a tyre change and we need to take new input pressures
+            if (data.NewData.SpeedKmh > 10) {
+                for (int i = 0; i < 4; i++) {
+                    if (presDelta[i] < -press_loss_threshold) {
+                        this.PresLoss[i] += presDelta[i];
+                        this.PresLossLap[i] = true;
+                        RaceEngineerPlugin.LogInfo($"Pressure loss on {Names[i]} by {presDelta[i]}.");
+                    }
+                }
+            } else {
+                var areInputPressuresNotSet = double.IsNaN(this.CurrentInputPres[0]);
+                // If tyre pressure changed suddenly while not moving, it's probably a tyre change and we need to take new input pressures
                 static bool pred(double v) => Math.Abs(v) > 0.1;
                 if (areInputPressuresNotSet || pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
                     this.CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
@@ -433,14 +441,6 @@ namespace KLPlugins.RaceEngineer.Car {
 
                     RaceEngineerPlugin.LogInfo($"Current input tyre pressures updated to [{this.CurrentInputPres[0]}, {this.CurrentInputPres[1]}, {this.CurrentInputPres[2]}, {this.CurrentInputPres[3]}].");
                     this.ResetPressureLoss();
-                }
-            } else {
-                for (int i = 0; i < 4; i++) {
-                    if (presDelta[i] < -press_loss_threshold) {
-                        this.PresLoss[i] += presDelta[i];
-                        this.PresLossLap[i] = true;
-                        RaceEngineerPlugin.LogInfo($"Pressure loss on {Names[i]} by {presDelta[i]}.");
-                    }
                 }
             }
         }
