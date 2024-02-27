@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 
 using Newtonsoft.Json;
 
@@ -24,6 +25,8 @@ namespace KLPlugins.RaceEngineer {
         public double[] TyrePresColorDefValues { get; set; }
         public string[] TimeColor { get; set; }
         public string[] TimeGraphColor { get; set; }
+
+        public string DefColor { get; set; }
 
         public double[] TimeColorDeltaValues { get; set; }
         public string[] FuelGraphColor { get; set; }
@@ -79,6 +82,7 @@ namespace KLPlugins.RaceEngineer {
             this.FuelGraphColorValues = s.FuelGraphColorValues;
             this.Log = s.Log;
             this.ShowAllLaps = s.ShowAllLaps;
+            this.DefColor = s.DefColor;
 
 
             this.ParseLapFlags(s.PrevLapsInfo, ref this._prevLapsStats, "PrevLapsInfo");
@@ -173,6 +177,8 @@ namespace KLPlugins.RaceEngineer {
         public string[] TimeColor { get; set; }
         public string[] TimeGraphColor { get; set; }
 
+        public string DefColor { get; set; }
+
         public double[] TimeColorDeltaValues { get; set; }
         public string[] FuelGraphColor { get; set; }
         public double[] FuelGraphColorValues { get; set; }
@@ -202,6 +208,7 @@ namespace KLPlugins.RaceEngineer {
             this.TimeGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
             this.TimeColorDeltaValues = [-1.0, 0.0, 1.0];
             this.FuelGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            this.DefColor = "#555555";
             this.FuelGraphColorValues = [-1.0, 0.0, 1.0];
             this.Log = true;
             this.ShowAllLaps = false;

@@ -44,7 +44,7 @@ namespace KLPlugins.RaceEngineer.Color {
         private double[] _values;
         private readonly LinearColorInterpolator[] _interpolators;
 
-        private static readonly HSV DefColor = new(RaceEngineerPlugin.DefColor);
+        private static readonly HSV DefColor = new(RaceEngineerPlugin.Settings.DefColor);
 
 
         /// <summary>

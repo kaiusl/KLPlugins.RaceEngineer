@@ -38,7 +38,6 @@ namespace KLPlugins.RaceEngineer {
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
-        public static string DefColor = "#555555";
 
         private static FileStream? _logFile;
         private static StreamWriter? _logWriter;
