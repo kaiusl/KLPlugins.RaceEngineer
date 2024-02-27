@@ -25,7 +25,7 @@ namespace KLPlugins.RaceEngineer.Remaining {
                 this.Laps.Max = timeLeft / v.Laps.PrevTimes.Min;
                 this.Laps.Avg = timeLeft / v.Laps.PrevTimes.Avg;
             } else if (v.Booleans.NewData.IsLapLimitedSession) {
-                var lapsLeft = data.NewData.RemainingLaps;
+                var lapsLeft = data.NewData.RemainingLaps - data.NewData.TrackPositionPercent;
                 this.Laps.Set(lapsLeft);
                 this.Time.Min = lapsLeft * v.Laps.PrevTimes.Min;
                 this.Time.Max = lapsLeft * v.Laps.PrevTimes.Max;
