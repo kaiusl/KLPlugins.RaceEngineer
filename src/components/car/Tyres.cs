@@ -362,7 +362,14 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             if (v.Car.Info?.Tyres != null) {
-                this._tyreInfo = v.Car.Info.Tyres?[this.Name];
+                if (v.Car.Info.Tyres.ContainsKey(this.Name)) {
+                    this._tyreInfo = v.Car.Info.Tyres[this.Name];
+                } else if (v.Car.Info.Tyres.ContainsKey("def")) {
+                    this._tyreInfo = v.Car.Info.Tyres["def"];
+                } else {
+                    this._tyreInfo = null;
+                }
+
                 if (this._tyreInfo != null) {
                     if (this._tyreInfo.IdealPres?.F != null && this._tyreInfo.IdealPresRange?.F != null) {
                         this.PresColorF?.UpdateInterpolation(this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPresRange.F);
