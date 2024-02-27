@@ -129,7 +129,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public int GetCurrentSetLaps() {
-            if (!RaceEngineerPlugin.Game.IsAcc || this.Name == null) return -1;
+            if (this.Name == null) return -1;
 
             if (this.SetLaps.ContainsKey(this.Name) && this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
                 return this.SetLaps[this.Name][this.CurrentTyreSet];
@@ -149,18 +149,21 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public void OnNewStint() {
-            if (RaceEngineerPlugin.Game.IsAcc) {
-                if (this.Name == null) return;
+            if (this.Name == null) return;
 
-                if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
-                    this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
-                }
+            if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
             }
         }
 
         public void OnLapFinished(Values v) {
-            if (RaceEngineerPlugin.Game.IsAcc && this.Name != null) {
+            if (this.Name != null) {
+                if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                    this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
+                }
+
                 this.SetLaps[this.Name][this.CurrentTyreSet] += 1;
+
             }
 
             this.PresOverLap.Update(this._presRunning);
@@ -280,13 +283,16 @@ namespace KLPlugins.RaceEngineer.Car {
                 } else {
                     this.CurrentTyreSet = rawDataNew.Graphics.currentTyreSet;
                 }
+            } else if (RaceEngineerPlugin.Game.IsAc) {
+                var rawDataNew = (ACSharedMemory.Reader.ACRawData)data.NewData.GetRawDataObject();
+                newTyreName = rawDataNew.Graphics.TyreCompound;
+                // we assume every pit stop changes a tyre set too, not necessarily true
+                this.CurrentTyreSet += 1;
             } else {
                 // TODO: figure out other games
                 newTyreName = "unknown";
-                this.CurrentTyreSet = -1;
+                this.CurrentTyreSet += 1;
             }
-
-
 
             if (newTyreName == null || newTyreName == this.Name) return;
             RaceEngineerPlugin.LogInfo($"Tyres changed from '{this.Name}' to '{newTyreName}'.");
