@@ -24,22 +24,24 @@ namespace KLPlugins.RaceEngineer.Car {
             this.LapsNr = 0;
             this.TempOverLap = new();
             this.TempColorCalculator = new(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
-            this.TempColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorMin = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorMax = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorAvg = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            var defColor = RaceEngineerPlugin.Settings.DefColor;
+            this.TempColor = [defColor, defColor, defColor, defColor];
+            this.TempColor = [defColor, defColor, defColor, defColor];
+            this.TempColorMin = [defColor, defColor, defColor, defColor];
+            this.TempColorMax = [defColor, defColor, defColor, defColor];
+            this.TempColorAvg = [defColor, defColor, defColor, defColor];
         }
 
         public void Reset() {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap.Reset();
+            var defColor = RaceEngineerPlugin.Settings.DefColor;
             for (int i = 0; i < 4; i++) {
-                this.TempColor[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorMin[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorMax[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorAvg[i] = RaceEngineerPlugin.DefColor;
+                this.TempColor[i] = defColor;
+                this.TempColorMin[i] = defColor;
+                this.TempColorMax[i] = defColor;
+                this.TempColorAvg[i] = defColor;
             }
             this.TempColorCalculator.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             this._tempRunning.Reset();

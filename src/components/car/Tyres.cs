@@ -71,14 +71,15 @@ namespace KLPlugins.RaceEngineer.Car {
             this.PresLoss = [0.0, 0.0, 0.0, 0.0];
             this.PresLossLap = [false, false, false, false];
             this.SetLaps = [];
-            this.PresColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.PresColorMin = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.PresColorMax = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.PresColorAvg = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColor = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorMin = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorMax = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
-            this.TempColorAvg = [RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor, RaceEngineerPlugin.DefColor];
+            var defColor = RaceEngineerPlugin.Settings.DefColor;
+            this.PresColor = [defColor, defColor, defColor, defColor];
+            this.PresColorMin = [defColor, defColor, defColor, defColor];
+            this.PresColorMax = [defColor, defColor, defColor, defColor];
+            this.PresColorAvg = [defColor, defColor, defColor, defColor];
+            this.TempColor = [defColor, defColor, defColor, defColor];
+            this.TempColorMin = [defColor, defColor, defColor, defColor];
+            this.TempColorMax = [defColor, defColor, defColor, defColor];
+            this.TempColorAvg = [defColor, defColor, defColor, defColor];
             this.Reset();
         }
 
@@ -93,14 +94,15 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.CurrentInputPres[i] = double.NaN;
                 this.PresLoss[i] = 0.0;
                 this.PresLossLap[i] = false;
-                this.PresColor[i] = RaceEngineerPlugin.DefColor;
-                this.PresColorMin[i] = RaceEngineerPlugin.DefColor;
-                this.PresColorMax[i] = RaceEngineerPlugin.DefColor;
-                this.PresColorAvg[i] = RaceEngineerPlugin.DefColor;
-                this.TempColor[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorMin[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorMax[i] = RaceEngineerPlugin.DefColor;
-                this.TempColorAvg[i] = RaceEngineerPlugin.DefColor;
+                var defColor = RaceEngineerPlugin.Settings.DefColor;
+                this.PresColor[i] = defColor;
+                this.PresColorMin[i] = defColor;
+                this.PresColorMax[i] = defColor;
+                this.PresColorAvg[i] = defColor;
+                this.TempColor[i] = defColor;
+                this.TempColorMin[i] = defColor;
+                this.TempColorMax[i] = defColor;
+                this.TempColorAvg[i] = defColor;
             }
 
             this.PresOverLap.Reset();
