@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -291,6 +291,25 @@ namespace KLPlugins.RaceEngineer {
             addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, this._values.Car.Tyres.TempColorMin, this._values.Car.Tyres.TempColorMax, this._values.Car.Tyres.TempColorAvg, Settings.TyreTempFlags);
             addTyresStats("Brakes.TempOverLap", this._values.Car.Brakes.TempOverLap, this._values.Car.Brakes.TempColorMin, this._values.Car.Brakes.TempColorMax, this._values.Car.Brakes.TempColorAvg, Settings.BrakeTempFlags);
 
+            void addTyresStatsOnlyAvg(string name, Stats.WheelsStats values, string[] avgC, WheelFlags flags) {
+                void _addStats(string n, Stats.Stats v) {
+                    if ((WheelFlags.Avg & flags) != 0) {
+                        this.AttachDelegate(n + "Avg", () => v.Avg);
+                    }
+                }
+                _addStats(name + Car.Tyres.Names[0], values[0]);
+                _addStats(name + Car.Tyres.Names[1], values[1]);
+                _addStats(name + Car.Tyres.Names[2], values[2]);
+                _addStats(name + Car.Tyres.Names[3], values[3]);
+
+                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsColors(name, avgC, "Avg");
+                }
+            }
+
+            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempOverLapInner, this._values.Car.Tyres.TempInnerColorAvg, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempOverLapMiddle, this._values.Car.Tyres.TempMiddleColorAvg, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOverLapOuter, this._values.Car.Tyres.TempOuterColorAvg, Settings.TyreTempFlags);
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in

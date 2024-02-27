@@ -34,10 +34,18 @@ namespace KLPlugins.RaceEngineer.Car {
         public string[] TempColorMax { get; private set; }
         public string[] TempColorAvg { get; private set; }
 
+        public string[] TempInnerColorAvg { get; private set; }
+        public string[] TempMiddleColorAvg { get; private set; }
+        public string[] TempOuterColorAvg { get; private set; }
+
         public int CurrentTyreSet { get; private set; }
 
         public WheelsStats PresOverLap { get; }
         public WheelsStats TempOverLap { get; }
+        public WheelsStats TempOverLapInner { get; }
+        public WheelsStats TempOverLapMiddle { get; }
+        public WheelsStats TempOverLapOuter { get; }
+
 
         public Color.ColorCalculator? PresColorF { get; private set; }
         public Color.ColorCalculator? PresColorR { get; private set; }
@@ -56,6 +64,9 @@ namespace KLPlugins.RaceEngineer.Car {
         private volatile bool _updatingPresPredictorFutureWet = false;
         private readonly WheelsRunningStats _presRunning = new();
         private readonly WheelsRunningStats _tempRunning = new();
+        private readonly WheelsRunningStats _tempInnerRunning = new();
+        private readonly WheelsRunningStats _tempMiddleRunning = new();
+        private readonly WheelsRunningStats _tempOuterRunning = new();
         private TyreInfo? _tyreInfo = null;
         private double _lastSampleTimeSec = DateTime.Now.Second;
         private int _wetSet = 0;
@@ -64,6 +75,9 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Created new Tyres");
             this.PresOverLap = new WheelsStats();
             this.TempOverLap = new WheelsStats();
+            this.TempOverLapInner = new WheelsStats();
+            this.TempOverLapMiddle = new WheelsStats();
+            this.TempOverLapOuter = new WheelsStats();
             this.IdealInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
             this.PredictedIdealInputPresDry = [double.NaN, double.NaN, double.NaN, double.NaN];
             this.PredictedIdealInputPresNowWet = [double.NaN, double.NaN, double.NaN, double.NaN];
@@ -82,6 +96,9 @@ namespace KLPlugins.RaceEngineer.Car {
             this.TempColorMin = [defColor, defColor, defColor, defColor];
             this.TempColorMax = [defColor, defColor, defColor, defColor];
             this.TempColorAvg = [defColor, defColor, defColor, defColor];
+            this.TempInnerColorAvg = [defColor, defColor, defColor, defColor];
+            this.TempMiddleColorAvg = [defColor, defColor, defColor, defColor];
+            this.TempOuterColorAvg = [defColor, defColor, defColor, defColor];
             this.Reset();
         }
 
@@ -106,10 +123,16 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.TempColorMin[i] = defColor;
                 this.TempColorMax[i] = defColor;
                 this.TempColorAvg[i] = defColor;
+                this.TempInnerColorAvg[i] = defColor;
+                this.TempMiddleColorAvg[i] = defColor;
+                this.TempOuterColorAvg[i] = defColor;
             }
 
             this.PresOverLap.Reset();
             this.TempOverLap.Reset();
+            this.TempOverLapInner.Reset();
+            this.TempOverLapMiddle.Reset();
+            this.TempOverLapOuter.Reset();
 
             this.PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
             this.PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
@@ -126,6 +149,9 @@ namespace KLPlugins.RaceEngineer.Car {
             this._updatingPresPredictorFutureWet = false;
             this._presRunning.Reset();
             this._tempRunning.Reset();
+            this._tempInnerRunning.Reset();
+            this._tempMiddleRunning.Reset();
+            this._tempOuterRunning.Reset();
             this._tyreInfo = null;
             this._wetSet = 0;
             this.CurrentTyreSet = 0;
@@ -171,6 +197,9 @@ namespace KLPlugins.RaceEngineer.Car {
 
             this.PresOverLap.Update(this._presRunning);
             this.TempOverLap.Update(this._tempRunning);
+            this.TempOverLapInner.Update(this._tempInnerRunning);
+            this.TempOverLapMiddle.Update(this._tempMiddleRunning);
+            this.TempOverLapOuter.Update(this._tempOuterRunning);
 
             if (this._tyreInfo?.IdealPres != null) {
                 for (int i = 0; i < 2; i++) {
@@ -183,6 +212,11 @@ namespace KLPlugins.RaceEngineer.Car {
             this.UpdateOverLapColors(v);
             this._presRunning.Reset();
             this._tempRunning.Reset();
+            this._tempInnerRunning.Reset();
+            this._tempMiddleRunning.Reset();
+            this._tempOuterRunning.Reset();
+
+
         }
 
         public void OnLapFinishedAfterInsert() {
@@ -197,8 +231,6 @@ namespace KLPlugins.RaceEngineer.Car {
             this.UpdateOverLapData(data, v.Booleans);
             this.PredictIdealInputPressures(data, v);
             this.UpdateColors(data, v.Booleans.NewData.IsInMenu);
-
-
         }
 
         #endregion
@@ -260,6 +292,21 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.TempColorAvg[1] = this.TempColorF.GetColor(this.TempOverLap[1].Avg).ToHEX();
                 this.TempColorAvg[2] = this.TempColorF.GetColor(this.TempOverLap[2].Avg).ToHEX();
                 this.TempColorAvg[3] = this.TempColorF.GetColor(this.TempOverLap[3].Avg).ToHEX();
+
+                this.TempInnerColorAvg[0] = this.TempColorF.GetColor(this.TempOverLapInner[0].Avg).ToHEX();
+                this.TempInnerColorAvg[1] = this.TempColorF.GetColor(this.TempOverLapInner[1].Avg).ToHEX();
+                this.TempInnerColorAvg[2] = this.TempColorF.GetColor(this.TempOverLapInner[2].Avg).ToHEX();
+                this.TempInnerColorAvg[3] = this.TempColorF.GetColor(this.TempOverLapInner[3].Avg).ToHEX();
+
+                this.TempMiddleColorAvg[0] = this.TempColorF.GetColor(this.TempOverLapMiddle[0].Avg).ToHEX();
+                this.TempMiddleColorAvg[1] = this.TempColorF.GetColor(this.TempOverLapMiddle[1].Avg).ToHEX();
+                this.TempMiddleColorAvg[2] = this.TempColorF.GetColor(this.TempOverLapMiddle[2].Avg).ToHEX();
+                this.TempMiddleColorAvg[3] = this.TempColorF.GetColor(this.TempOverLapMiddle[3].Avg).ToHEX();
+
+                this.TempOuterColorAvg[0] = this.TempColorF.GetColor(this.TempOverLapOuter[0].Avg).ToHEX();
+                this.TempOuterColorAvg[1] = this.TempColorF.GetColor(this.TempOverLapOuter[1].Avg).ToHEX();
+                this.TempOuterColorAvg[2] = this.TempColorF.GetColor(this.TempOverLapOuter[2].Avg).ToHEX();
+                this.TempOuterColorAvg[3] = this.TempColorF.GetColor(this.TempOverLapOuter[3].Avg).ToHEX();
             }
 
         }
@@ -412,6 +459,30 @@ namespace KLPlugins.RaceEngineer.Car {
                 this._presRunning.Update(currentPres);
                 this._tempRunning.Update(currentTemp);
 
+                double[] currentInnerTemp = [
+                    data.NewData.TyreTemperatureFrontLeftInner,
+                    data.NewData.TyreTemperatureFrontRightInner,
+                    data.NewData.TyreTemperatureRearLeftInner,
+                    data.NewData.TyreTemperatureRearRightInner
+                ];
+                this._tempInnerRunning.Update(currentInnerTemp);
+
+                double[] currentMiddleTemp = [
+                    data.NewData.TyreTemperatureFrontLeftMiddle,
+                    data.NewData.TyreTemperatureFrontRightMiddle,
+                    data.NewData.TyreTemperatureRearLeftMiddle,
+                    data.NewData.TyreTemperatureRearRightMiddle
+                ];
+                this._tempMiddleRunning.Update(currentMiddleTemp);
+
+                double[] currentOuterTemp = [
+                    data.NewData.TyreTemperatureFrontLeftOuter,
+                    data.NewData.TyreTemperatureFrontRightOuter,
+                    data.NewData.TyreTemperatureRearLeftOuter,
+                    data.NewData.TyreTemperatureRearRightOuter
+                ];
+                this._tempOuterRunning.Update(currentOuterTemp);
+
                 this._lastSampleTimeSec = now;
             }
         }
@@ -560,8 +631,14 @@ namespace KLPlugins.RaceEngineer.Car {
             }
             this.PresOverLap.Reset();
             this.TempOverLap.Reset();
+            this.TempOverLapInner.Reset();
+            this.TempOverLapMiddle.Reset();
+            this.TempOverLapOuter.Reset();
             this._presRunning.Reset();
             this._tempRunning.Reset();
+            this._tempInnerRunning.Reset();
+            this._tempMiddleRunning.Reset();
+            this._tempOuterRunning.Reset();
             this.InputTyrePresPredictorDry = null;
             this.InputTyrePresPredictorFutureWet = null;
             this.InputTyrePresPredictorNowWet = null;
