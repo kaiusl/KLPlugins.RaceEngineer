@@ -367,10 +367,11 @@ namespace KLPlugins.RaceEngineer.Car {
                  data.NewData.TyrePressureRearRight - data.OldData.TyrePressureRearRight
             };
 
-            if (booleans.NewData.IsInPitBox && data.NewData.SpeedKmh < 10) {
+            var areInputPressuresNotSet = double.IsNaN(this.CurrentInputPres[0]);
+            if (data.NewData.SpeedKmh < 10 && (booleans.NewData.IsInPitBox || (areInputPressuresNotSet && data.NewData.TyrePressureFrontLeft > 0.0))) {
                 // If tyre pressure changed suddenly while in pit box, it's probably a tyre change and we need to take new input pressures
                 static bool pred(double v) => Math.Abs(v) > 0.1;
-                if (pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
+                if (areInputPressuresNotSet || pred(presDelta[0]) || pred(presDelta[1]) || pred(presDelta[2]) || pred(presDelta[3])) {
                     this.CurrentInputPres[0] = Math.Ceiling(data.NewData.TyrePressureFrontLeft * 10.0) / 10.0;
                     this.CurrentInputPres[1] = Math.Ceiling(data.NewData.TyrePressureFrontRight * 10.0) / 10.0;
                     this.CurrentInputPres[2] = Math.Ceiling(data.NewData.TyrePressureRearLeft * 10.0) / 10.0;
