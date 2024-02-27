@@ -135,8 +135,9 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this.IsLapFinished = data.OldData.CompletedLaps < data.NewData.CompletedLaps;
             if (!this._isSessionLimitSet) {
                 // Need to set once as at the end of the session SessionTimeLeft == 0 and this will confuse plugin
-                this.IsTimeLimitedSession = data.NewData.SessionTimeLeft.TotalSeconds != 0;
-                this.IsLapLimitedSession = data.NewData.RemainingLaps != 0;
+                this.IsLapLimitedSession = data.NewData.RemainingLaps > 0;
+                this.IsTimeLimitedSession = !this.IsLapLimitedSession;
+
             }
 
             if (this.IsValidFuelLap && this.IsInPitLane) {
