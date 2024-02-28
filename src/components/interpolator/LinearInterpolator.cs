@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using KLPlugins.RaceEngineer.Car;
 
-namespace KLPlugins.RaceEngineer.Color {
+namespace KLPlugins.RaceEngineer.Interpolator {
     /// <summary>
     /// Linear interpolator between to points
     /// </summary>

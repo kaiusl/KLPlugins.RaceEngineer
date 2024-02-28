@@ -120,7 +120,7 @@
     <Compile Include="src\components\car\CarSetup.cs" />
     <Compile Include="src\components\Session.cs" />
     <Compile Include="src\components\Weather.cs" />
-    <Compile Include="src\components\color\ColorCalculator.cs" />
+    <Compile Include="src\components\interpolator\LinearInterpolator.cs" />
     <Compile Include="src\components\Database.cs" />
     <Compile Include="src\components\FixedSizeDeque.cs" />
     <Compile Include="src\components\car\Fuel.cs" />

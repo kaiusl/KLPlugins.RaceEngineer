@@ -2,7 +2,7 @@ using System;
 
 using GameReaderCommon;
 
-using KLPlugins.RaceEngineer.Color;
+using KLPlugins.RaceEngineer.Interpolator;
 using KLPlugins.RaceEngineer.Stats;
 
 namespace KLPlugins.RaceEngineer.Car {
