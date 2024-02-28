@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -594,7 +595,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    public class Lut {
+    public class Lut : IEnumerable<(double, double)> {
         public List<double> X { get; private set; }
         public List<double> Y { get; private set; }
 
@@ -646,6 +647,16 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public int Length() {
             return this.X.Count;
+        }
+
+        public IEnumerator<(double, double)> GetEnumerator() {
+            for (int i = 0; i < this.Length(); i++) {
+                yield return (this.X[i], this.Y[i]);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return this.GetEnumerator();
         }
     }
 
