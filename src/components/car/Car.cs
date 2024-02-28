@@ -22,26 +22,46 @@ namespace KLPlugins.RaceEngineer.Car {
 
 
         public static TyreInfo Default() {
-            var settings = RaceEngineerPlugin.Settings;
-            return new TyreInfo(new FrontRear<double>(settings.IdealPres),
-                new FrontRear<Lut>(settings.TyrePresNormalizationLut),
-                new FrontRear<Lut>(settings.TyreTempNormalizationLut)
-            );
+            return FromPartial(new TyreInfoPartial());
+        }
+
+        internal static TyreInfo FromPartial(TyreInfoPartial partial) {
+            var idealPres = partial.IdealPres?.Build() ?? new(RaceEngineerPlugin.Settings.IdealPres);
+            var idealPresCurve = partial.IdealPresCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            var idealTempCurve = partial.IdealTempCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+
+            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
         }
 
         internal static TyreInfo FromACTyreInfo(ACTyreInfo acTyreInfo) {
+            return new TyreInfo(
+                acTyreInfo.IdealPres,
+                PresCurvesFromACTyreInfo(acTyreInfo),
+                TempCurvesFromACTyreInfo(acTyreInfo)
+            );
+        }
+
+        internal static TyreInfo FromPartialAndACTyreInfo(TyreInfoPartial partial, ACTyreInfo acTyreInfo) {
+            // FromAcTyreInfo does some data modification to proper format
+            var idealPres = partial.IdealPres?.Build() ?? acTyreInfo.IdealPres;
+            var idealPresCurve = partial.IdealPresCurve?.Build() ?? PresCurvesFromACTyreInfo(acTyreInfo);
+            var idealTempCurve = partial.IdealTempCurve?.Build() ?? TempCurvesFromACTyreInfo(acTyreInfo);
+
+            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
+        }
+
+        private static FrontRear<Lut> PresCurvesFromACTyreInfo(ACTyreInfo acTyreInfo) {
             var idealPres = acTyreInfo.IdealPres;
 
             var presCurveF = new Lut([(idealPres.F - 1.0, 0.0), (idealPres.F - 0.25, 1.0), (idealPres.F + 0.25, 1.0), (idealPres.F + 1.0, 0.0)]);
             var presCurveR = new Lut([(idealPres.R - 1.0, 0.0), (idealPres.R - 0.25, 1.0), (idealPres.R + 0.25, 1.0), (idealPres.R + 1.0, 0.0)]);
 
-            // TODO: correctly normalize temp curves
+            return new FrontRear<Lut>(presCurveF, presCurveR);
+        }
 
-            return new TyreInfo(
-                idealPres,
-                new FrontRear<Lut>(presCurveF, presCurveR),
-                new FrontRear<Lut>(acTyreInfo.TempCurveF, acTyreInfo.TempCurveR)
-            );
+        private static FrontRear<Lut> TempCurvesFromACTyreInfo(ACTyreInfo acTyreInfo) {
+            // TODO: correctly normalize temp curves
+            return new FrontRear<Lut>(acTyreInfo.TempCurveF, acTyreInfo.TempCurveR);
         }
     }
 
@@ -64,6 +84,41 @@ namespace KLPlugins.RaceEngineer.Car {
 
         internal void Reset() {
             this.Tyres.Clear();
+        }
+
+        internal static CarInfo FromPartial(CarInfoPartial partial) {
+            var result = new CarInfo([]);
+            if (partial.Tyres == null) return result;
+
+            foreach (var tyre in partial.Tyres!) {
+                result.Tyres[tyre.Key] = TyreInfo.FromPartial(tyre.Value);
+            }
+
+            return result;
+        }
+
+        internal static CarInfo FromPartialAndACData(CarInfoPartial partial, ACCarInfo acCarInfo) {
+            var result = new CarInfo([]);
+
+            // Check for existing tyres and fill their gaps
+            if (partial.Tyres != null) {
+                foreach (var tyre in partial.Tyres!) {
+                    if (acCarInfo.Tyres.ContainsKey(tyre.Key)) {
+                        result.Tyres[tyre.Key] = TyreInfo.FromPartialAndACTyreInfo(tyre.Value, acCarInfo.Tyres[tyre.Key]);
+                    } else {
+                        result.Tyres[tyre.Key] = TyreInfo.FromPartial(tyre.Value);
+                    }
+                }
+            }
+
+            // Add tyres that were not present
+            foreach (var tyre in acCarInfo.Tyres) {
+                if (!result.Tyres.ContainsKey(tyre.Key)) {
+                    result.Tyres[tyre.Key] = TyreInfo.FromACTyreInfo(tyre.Value);
+                }
+            }
+
+            return result;
         }
 
         internal static CarInfo FromACCarInfo(ACCarInfo acCarInfo) {
@@ -99,27 +154,39 @@ namespace KLPlugins.RaceEngineer.Car {
         public FrontRearPartial<Lut>? IdealPresCurve { get; set; }
         public FrontRearPartial<Lut>? IdealTempCurve { get; set; }
 
-        public TyreInfo Build() {
-            var idealPres = this.IdealPres?.Build() ?? new(RaceEngineerPlugin.Settings.IdealPres);
-            var idealPresCurve = this.IdealPresCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            var idealTempCurve = this.IdealTempCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+        public void FillGaps(TyreInfoPartial other) {
+            this.IdealPres ??= other.IdealPres;
+            this.IdealPresCurve ??= other.IdealPresCurve;
+            this.IdealTempCurve ??= other.IdealTempCurve;
+        }
 
-            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
+        public bool IsFullyInitialized() {
+            return this.IdealPres != null && this.IdealPresCurve != null && this.IdealTempCurve != null;
         }
     }
 
     class CarInfoPartial {
         public Dictionary<string, TyreInfoPartial>? Tyres { get; set; }
 
-        public CarInfo Build() {
-            var result = new CarInfo([]);
-            if (this.Tyres != null) {
-                foreach (var tyre in this.Tyres!) {
-                    result.Tyres[tyre.Key] = tyre.Value.Build();
-                }
+        public void FillGaps(CarInfoPartial other) {
+            if (other.Tyres == null) return;
+
+            if (this.Tyres == null) {
+                this.Tyres = [];
             }
 
-            return result;
+            // Add tyres that were not present
+            foreach (var tyre in other.Tyres) {
+                if (!this.Tyres.ContainsKey(tyre.Key)) {
+                    this.Tyres[tyre.Key] = tyre.Value;
+                } else {
+                    this.Tyres[tyre.Key].FillGaps(tyre.Value);
+                }
+            }
+        }
+
+        public bool IsFullyInitialized() {
+            return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitialized());
         }
     }
 
@@ -218,6 +285,11 @@ namespace KLPlugins.RaceEngineer.Car {
         private void ReadInfo(GameData data) {
             if (this.Name == null) return;
 
+            if (RaceEngineerPlugin.Game.IsAc) {
+                this.ReadInfoAC(data);
+                return;
+            }
+
             string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             if (!File.Exists(fname)) {
                 if (RaceEngineerPlugin.Game.IsAcc) {
@@ -231,41 +303,82 @@ namespace KLPlugins.RaceEngineer.Car {
                 }
             }
 
+            this.Info.Reset();
             try {
                 var partial = JsonConvert.DeserializeObject<CarInfoPartial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
-
                 if (partial != null) {
-                    this.Info = partial.Build();
-                } else {
-                    this.Info = new([]);
+                    this.Info = CarInfo.FromPartial(partial);
                 }
 
                 RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
             } catch (IOException) {
-                //RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
-                if (RaceEngineerPlugin.Game.IsAc) {
-                    var carid = data.NewData.CarId;
-                    string dataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
-                    try {
-                        var acinfo = ACCarInfo.FromFile(dataPath);
-                        this.Info = CarInfo.FromACCarInfo(acinfo);
-
-                        string fnameCar = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
-                        if (!File.Exists(fnameCar)) {
-                            File.WriteAllText(fnameCar, JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter()));
-                        }
-
-                        RaceEngineerPlugin.LogInfo($"Car changed. Read info from AC files: {JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter())}");
-
-                    } catch (IOException e) {
-                        RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
-                        this.Info.Reset();
-                    }
-                } else {
-                    this.Info.Reset();
-                }
-
+                //
             }
+        }
+
+        private void ReadInfoAC(GameData data) {
+            if (this.Name == null) return;
+            if (!RaceEngineerPlugin.Game.IsAc) throw new Exception("ReadInfoAC called when not AC game");
+
+            var carid = data.NewData.CarId;
+            string pluginsCarDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
+            string ACRawDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
+
+            CarInfoPartial partialInfo = new();
+
+            // 1. Try to read car specific data file
+            try {
+                var txt = File.ReadAllText(pluginsCarDataPath).Replace("\"", "'");
+                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(txt, new LutJsonConverter());
+
+                if (partial != null) {
+                    partialInfo = partial;
+                }
+            } catch (IOException) {
+                //
+            }
+
+            if (partialInfo.IsFullyInitialized()) {
+                RaceEngineerPlugin.LogInfo($"Read complete car info from '{pluginsCarDataPath}'");
+
+                // got all the date we need
+                this.Info = CarInfo.FromPartial(partialInfo);
+                return;
+            }
+
+            // 2. Car specific file was not present or partially initialized. Try reading the AC's raw data files
+            try {
+                var acinfo = ACCarInfo.FromFile(ACRawDataPath);
+                // if we didn't throw then acinfo does contain all required data
+                this.Info = CarInfo.FromPartialAndACData(partialInfo, acinfo);
+
+                // Write the data out, so that we don't need to go through it next time
+                var json = JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter());
+                File.WriteAllText(pluginsCarDataPath, json);
+
+                RaceEngineerPlugin.LogInfo($"Read partial car info from '{pluginsCarDataPath}'. Filled the gaps from AC's raw files. Wrote out '{pluginsCarDataPath}'.");
+
+                return;
+            } catch (IOException) {
+                //
+            }
+
+            // 3. Didn't find AC raw data files, try to read def.json to fill in the gaps
+            var defDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
+            try {
+                var txt = File.ReadAllText(defDataPath).Replace("\"", "'");
+                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(txt, new LutJsonConverter());
+
+                if (partial != null) {
+                    RaceEngineerPlugin.LogInfo($"Read car info from '{pluginsCarDataPath}'. Filled the gaps from def file '{defDataPath}'.");
+                    partialInfo.FillGaps(partial);
+                }
+            } catch (IOException) {
+                //
+            }
+
+            // 4. Fill the remaining gaps with default settings
+            this.Info = CarInfo.FromPartial(partialInfo);
         }
 
         private void UpdateSetup(string trackName) {
@@ -275,7 +388,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
                 RaceEngineerPlugin.LogInfo($"Setup changed. Read new setup from '{fname}'.");
                 this.Tyres.OnSetupChange();
-            } catch (IOException e) {
+            } catch (IOException) {
                 //RaceEngineerPlugin.LogInfo($"Setup changed. But cannot read new setup. Error: {e}");
                 this.Setup = null;
             }
