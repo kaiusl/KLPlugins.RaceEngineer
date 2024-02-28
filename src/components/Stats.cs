@@ -72,10 +72,10 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// </summary>
     public class WheelsStats {
         public Stats[] Data { get; }
-        public Stats Fl => this.Data[0];
-        public Stats Fr => this.Data[1];
-        public Stats Rl => this.Data[2];
-        public Stats Rr => this.Data[3];
+        public Stats FL => this.Data[0];
+        public Stats FR => this.Data[1];
+        public Stats RL => this.Data[2];
+        public Stats RR => this.Data[3];
 
         private const int _size = 4;
 
