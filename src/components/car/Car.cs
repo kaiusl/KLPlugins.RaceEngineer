@@ -62,9 +62,28 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         private static FrontRear<Lut> TempCurvesFromACTyreInfo(ACTyreInfo acTyreInfo) {
-            // TODO: correctly normalize temp curves
-            return new FrontRear<Lut>(acTyreInfo.TempCurveF, acTyreInfo.TempCurveR);
+            static Lut NormalizeTempCurve(Lut curve) {
+                // Normalize to [-1, 1]
+                var overIdeal = false;
+                for (int i = 0; i < curve.Length(); i++) {
+                    // Make over ideal values be over 1.0
+                    if (curve.Y[i] == 1.0) {
+                        overIdeal = true;
+                    } else if (overIdeal && curve.Y[i] < 1.0) {
+                        curve.Y[i] = 2.0 - curve.Y[i];
+                    }
+
+                    // Shift and scale values such that ideal is at 0.0, and AC's 0.95 is at +-1.0
+                    curve.Y[i] = Math.Round((curve.Y[i] - 1.0) * 20.0 * 100.0) / 100.0;
+                }
+
+                return curve;
+            }
+
+            return new FrontRear<Lut>(NormalizeTempCurve(acTyreInfo.TempCurveF), NormalizeTempCurve(acTyreInfo.TempCurveR));
         }
+
+
     }
 
 
@@ -599,7 +618,6 @@ namespace KLPlugins.RaceEngineer.Car {
             this.Y = ys;
         }
 
-
         public static Lut FromFileAC(string path) {
             return FromFile(path);
         }
@@ -624,6 +642,10 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             return lut;
+        }
+
+        public int Length() {
+            return this.X.Count;
         }
     }
 
