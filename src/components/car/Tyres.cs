@@ -202,8 +202,8 @@ namespace KLPlugins.RaceEngineer.Car {
 
             for (int iFront = 0; iFront < 2; iFront++) {
                 var iRear = iFront + 2;
-                this.PressDeltaToIdeal[iFront] = this.PresOverLap[iFront].Avg - this.Info.IdealPres.F;
-                this.PressDeltaToIdeal[iRear] = this.PresOverLap[iRear].Avg - this.Info.IdealPres.R;
+                this.PressDeltaToIdeal[iFront] = this.PresOverLap[iFront].Avg - this.Info.IdealPresRange.F.Avg;
+                this.PressDeltaToIdeal[iRear] = this.PresOverLap[iRear].Avg - this.Info.IdealPresRange.R.Avg;
             }
 
 
@@ -491,8 +491,8 @@ namespace KLPlugins.RaceEngineer.Car {
         private void UpdateIdealInputPressures(double airtemp, double tracktemp) {
             for (int iFront = 0; iFront < 2; iFront++) {
                 var iRear = iFront + 2;
-                this.IdealInputPres[iFront] = this.CurrentInputPres[iFront] + (this.Info.IdealPres.F - this.PresOverLap[iFront].Avg);
-                this.IdealInputPres[iRear] = this.CurrentInputPres[iRear] + (this.Info.IdealPres.R - this.PresOverLap[iRear].Avg);
+                this.IdealInputPres[iFront] = this.CurrentInputPres[iFront] + (this.Info.IdealPresRange.F.Avg - this.PresOverLap[iFront].Avg);
+                this.IdealInputPres[iRear] = this.CurrentInputPres[iRear] + (this.Info.IdealPresRange.R.Avg - this.PresOverLap[iRear].Avg);
             }
         }
 
@@ -518,7 +518,12 @@ namespace KLPlugins.RaceEngineer.Car {
                     )
                 ) {
                     if (this.InputTyrePresPredictorDry != null) {
-                        var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorDry.Predict(
+                            v.Weather.AirTemp,
+                            v.Weather.TrackTemp,
+                            this.Info.IdealPresRange.F.Avg,
+                            this.Info.IdealPresRange.R.Avg
+                        );
                         preds.CopyTo(this.PredictedIdealInputPresDry, 0);
                     } else {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
@@ -540,7 +545,12 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.PredictedIdealInputPresNowWet[i] = double.NaN;
                         }
                     } else {
-                        var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorNowWet.Predict(
+                            v.Weather.AirTemp,
+                            v.Weather.TrackTemp,
+                            this.Info.IdealPresRange.F.Avg,
+                            this.Info.IdealPresRange.R.Avg
+                        );
                         preds.CopyTo(this.PredictedIdealInputPresNowWet, 0);
                     }
                 }
@@ -554,7 +564,12 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.PredictedIdealInputPresFutureWet[i] = double.NaN;
                         }
                     } else {
-                        var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorFutureWet.Predict(
+                            v.Weather.AirTemp,
+                            v.Weather.TrackTemp,
+                            this.Info.IdealPresRange.F.Avg,
+                            this.Info.IdealPresRange.R.Avg
+                        );
                         preds.CopyTo(this.PredictedIdealInputPresFutureWet, 0);
                     }
                 }
