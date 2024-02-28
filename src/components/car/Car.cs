@@ -55,8 +55,8 @@ namespace KLPlugins.RaceEngineer.Car {
         private static FrontRear<Lut> PresCurvesFromACTyreInfo(ACTyreInfo acTyreInfo) {
             var idealPres = acTyreInfo.IdealPres;
 
-            var presCurveF = new Lut([(idealPres.F - 1.0, 0.0), (idealPres.F - 0.25, 1.0), (idealPres.F + 0.25, 1.0), (idealPres.F + 1.0, 0.0)]);
-            var presCurveR = new Lut([(idealPres.R - 1.0, 0.0), (idealPres.R - 0.25, 1.0), (idealPres.R + 0.25, 1.0), (idealPres.R + 1.0, 0.0)]);
+            var presCurveF = new Lut([(idealPres.F - 1.0, -1.0), (idealPres.F - 0.25, 0.0), (idealPres.F + 0.25, 0.0), (idealPres.F + 1.0, 1.0)]);
+            var presCurveR = new Lut([(idealPres.R - 1.0, -1.0), (idealPres.R - 0.25, 0.0), (idealPres.R + 0.25, 0.0), (idealPres.R + 1.0, 1.0)]);
 
             return new FrontRear<Lut>(presCurveF, presCurveR);
         }

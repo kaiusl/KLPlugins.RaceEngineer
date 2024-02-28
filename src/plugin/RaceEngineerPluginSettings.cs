@@ -180,9 +180,9 @@ namespace KLPlugins.RaceEngineer {
             this.NumPreviousValuesStored = 10;
             this.DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
             this.AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
-            this.BrakeTempNormalizationLut = new Lut([(200, 0.0), (300, 1.0), (500, 1.0), (700, 0.0)]);
-            this.TyreTempNormalizationLut = new Lut([(70.0, 0.0), (80.0, 1.0), (90.0, 1.0), (100.0, 0.0)]);
-            this.TyrePresNormalizationLut = new Lut([(26.5, 0.0), (27.25, 1.0), (27.75, 1.0), (28.5, 0.0)]);
+            this.BrakeTempNormalizationLut = new Lut([(200, -1.0), (300, 0.0), (500, 0.0), (700, 1.0)]);
+            this.TyreTempNormalizationLut = new Lut([(70.0, -1.0), (80.0, 0.0), (90.0, 0.0), (100.0, 1.0)]);
+            this.TyrePresNormalizationLut = new Lut([(26.5, -1.0), (27.25, 0.0), (27.75, 0.0), (28.5, 1.0)]);
             this.IdealPres = 27.5;
 
             //  this.TempColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
