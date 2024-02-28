@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -16,11 +16,25 @@ namespace KLPlugins.RaceEngineer.Car {
         public FrontRear(T one) : this(one, one) { }
     }
 
-    public class TyreInfo(FrontRear<double> idealPres, FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve, string? shortName = null) {
-        public FrontRear<double> IdealPres { get; set; } = idealPres;
-        public FrontRear<Lut> IdealPresCurve { get; set; } = idealPresCurve;
-        public FrontRear<Lut> IdealTempCurve { get; set; } = idealTempCurve;
-        public string? ShortName { get; set; } = shortName;
+    public class FrontRearJsonConverter<T> : JsonConverter<FrontRear<T>> where T : IEquatable<T> {
+        public override void WriteJson(JsonWriter writer, FrontRear<T> value, JsonSerializer serializer) {
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("F");
+            serializer.Serialize(writer, value.F);
+
+            if (!value.R.Equals(value.F)) {
+                writer.WritePropertyName("R");
+                serializer.Serialize(writer, value.R);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        public override FrontRear<T> ReadJson(JsonReader reader, Type objectType, FrontRear<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            throw new NotImplementedException("FrontRear should never be deserialized into. Use FrontRearPartial for it.");
+        }
+    }
 
 
         public static TyreInfo Default() {
@@ -385,7 +399,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Info = CarInfo.FromPartialAndACData(partialInfo, acinfo);
 
                 // Write the data out, so that we don't need to go through it next time
-                var json = JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter());
+                var json = JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter(), new FrontRearJsonConverter<double>(), new FrontRearJsonConverter<Lut>());
                 File.WriteAllText(pluginsCarDataPath, json);
 
                 RaceEngineerPlugin.LogInfo($"Read partial car info from '{pluginsCarDataPath}'. Filled the gaps from AC's raw files. Wrote out '{pluginsCarDataPath}'.");
@@ -595,7 +609,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    public class Lut : IEnumerable<(double, double)> {
+    public class Lut : IEnumerable<(double, double)>, IEquatable<Lut> {
         public List<double> X { get; private set; }
         public List<double> Y { get; private set; }
 
@@ -657,6 +671,10 @@ namespace KLPlugins.RaceEngineer.Car {
 
         IEnumerator IEnumerable.GetEnumerator() {
             return this.GetEnumerator();
+        }
+
+        public bool Equals(Lut other) {
+            return this.X.SequenceEqual(other.X) && this.Y.SequenceEqual(other.Y);
         }
     }
 
