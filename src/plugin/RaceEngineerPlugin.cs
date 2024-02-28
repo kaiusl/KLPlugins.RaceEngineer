@@ -311,7 +311,7 @@ namespace KLPlugins.RaceEngineer {
                 Settings.BrakeTempFlags
             );
 
-            void addTyresStatsOnlyAvg(string name, Stats.WheelsStats values, WheelFlags flags) {
+            void addTyresStatsOnlyAvg<T>(string name, Stats.WheelsStats values, WheelsData<T> avg, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Avg & flags) != 0) {
                         this.AttachDelegate(n + "Avg", () => v.Avg);
@@ -322,14 +322,14 @@ namespace KLPlugins.RaceEngineer {
                 _addStats(name + Car.Tyres.Names[2], values[2]);
                 _addStats(name + Car.Tyres.Names[3], values[3]);
 
-                // if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
-                //     addTyreStatsColors(name, avgC, "Avg");
-                // }
+                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsNormalized(name, avg, "Avg");
+                }
             }
 
-            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempOverLapInner, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempOverLapMiddle, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOverLapOuter, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempInnerOverLap, this._values.Car.Tyres.TempInnerAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempMiddleOverLap, this._values.Car.Tyres.TempMiddleAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOuterOverLap, this._values.Car.Tyres.TempOuterAvgNormalized, Settings.TyreTempFlags);
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
