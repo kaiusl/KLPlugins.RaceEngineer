@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -413,6 +413,56 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             return lut;
+        }
+    }
+
+    public class LutJsonConverter : JsonConverter<Lut> {
+        public override void WriteJson(JsonWriter writer, Lut value, JsonSerializer serializer) {
+            writer.WriteStartArray();
+
+            for (int i = 0; i < value.X.Count; i++) {
+                writer.WriteStartArray();
+                writer.WriteValue(value.X[i]);
+                writer.WriteValue(value.Y[i]);
+                writer.WriteEndArray();
+            }
+
+            writer.WriteEndArray();
+        }
+
+        public override Lut ReadJson(JsonReader reader, Type objectType, Lut existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            var lut = new Lut();
+
+            if (reader.TokenType != JsonToken.StartArray) {
+                throw new Exception("Invalid JSON");
+            }
+
+            double ReadNumber(JsonReader reader) {
+                reader.Read();
+                return Convert.ToDouble(reader.Value);
+            }
+
+            while (reader.Read()) {
+                if (reader.TokenType == JsonToken.StartArray) {
+                    var x = ReadNumber(reader);
+                    var y = ReadNumber(reader);
+
+                    lut.X.Add((double)x!);
+                    lut.Y.Add((double)y!);
+
+                    reader.Read(); // eat array end
+                    if (reader.TokenType != JsonToken.EndArray) {
+                        throw new Exception("Invalid JSON");
+                    }
+                    continue;
+                }
+
+                if (reader.TokenType == JsonToken.EndArray) break;
+            }
+
+            return lut;
+
+
         }
     }
 }

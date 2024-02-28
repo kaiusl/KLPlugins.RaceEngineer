@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
@@ -48,14 +48,14 @@ namespace KLPlugins.RaceEngineer {
             SettingsInternal s = new SettingsInternal();
             if (File.Exists(SETTINGS_PATH)) {
                 var text = File.ReadAllText(SETTINGS_PATH).Replace("\"", "'");
-                var sTmp = JsonConvert.DeserializeObject<SettingsInternal>(text);
+                var sTmp = JsonConvert.DeserializeObject<SettingsInternal>(text, new LutJsonConverter());
                 if (sTmp != null) {
                     s = sTmp;
                 } else {
                     SimHub.Logging.Current.Error("Error deserializing settings file: " + SETTINGS_PATH);
                 }
             } else {
-                string txt = JsonConvert.SerializeObject(s, Formatting.Indented);
+                string txt = JsonConvert.SerializeObject(s, Formatting.Indented, new LutJsonConverter());
                 Directory.CreateDirectory(Path.GetDirectoryName(SETTINGS_PATH));
                 File.WriteAllText(SETTINGS_PATH, txt);
             }
