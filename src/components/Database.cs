@@ -82,12 +82,12 @@ namespace KLPlugins.RaceEngineer.Database {
 
                 this.BrakePadFront = rawDataNew.Physics.frontBrakeCompound + 1;
                 this.BrakePadRear = rawDataNew.Physics.rearBrakeCompound + 1;
-                this.TyreSet = v.Car.Tyres.CurrentTyreSet;
             } else {
                 this.BrakePadFront = -1;
                 this.BrakePadRear = -1;
-                this.TyreSet = -1;
             }
+
+            this.TyreSet = v.Car.Tyres.CurrentTyreSet;
 
             this.BrakePadNr = v.Car.Brakes.SetNr;
 
@@ -184,11 +184,7 @@ namespace KLPlugins.RaceEngineer.Database {
             this.StintId = stint_id;
             this.SessionLapNr = data.NewData.CompletedLaps;
             this.StintLapNr = v.Laps.StintLaps;
-            if (RaceEngineerPlugin.Game.IsAcc) {
-                this.TyresetLapNr = v.Car.Tyres.GetCurrentSetLaps();
-            } else {
-                this.TyresetLapNr = 0;
-            }
+            this.TyresetLapNr = v.Car.Tyres.GetCurrentSetLaps();
             this.BrakesLapNr = v.Car.Brakes.LapsNr;
             this.AirTemp = data.NewData.AirTemperature;
             this.AirTempDelta = Math.Round(data.NewData.AirTemperature - v.Weather.AirTempAtLapStart, 2);
