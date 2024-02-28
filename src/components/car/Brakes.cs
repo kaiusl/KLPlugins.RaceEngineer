@@ -6,36 +6,6 @@ using KLPlugins.RaceEngineer.Color;
 using KLPlugins.RaceEngineer.Stats;
 
 namespace KLPlugins.RaceEngineer.Car {
-    public class WheelsData<T> {
-        private Func<T> _defGenerator { get; set; }
-        private T[] _data { get; set; } = new T[4];
-
-        public WheelsData(Func<T> defGenerator) {
-            this._defGenerator = defGenerator;
-            for (int i = 0; i < 4; i++) {
-                this._data[i] = this._defGenerator();
-            }
-        }
-
-        public WheelsData(T def) : this(() => def) { }
-
-        public void Reset() {
-            for (int i = 0; i < 4; i++) {
-                this._data[i] = this._defGenerator();
-            }
-        }
-
-        public T FL { get => this._data[0]; set => this._data[0] = value; }
-        public T FR { get => this._data[1]; set => this._data[1] = value; }
-        public T RL { get => this._data[2]; set => this._data[2] = value; }
-        public T RR { get => this._data[3]; set => this._data[3] = value; }
-
-        public T this[int index] {
-            get => this._data[index];
-            set => this._data[index] = value;
-        }
-    }
-
     public class Brakes {
         public int LapsNr { get; private set; }
         public int SetNr { get; private set; }
