@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Policy;
 
+using KLPlugins.RaceEngineer.Car;
+
 using Newtonsoft.Json;
 
 namespace KLPlugins.RaceEngineer {
@@ -18,19 +20,10 @@ namespace KLPlugins.RaceEngineer {
         public string DataLocation { get; set; }
         public string AccDataLocation { get; set; }
 
-        public string[] TempColor { get; set; }
-        public double[] TyreTempColorDefValues { get; set; }
-        public double[] BrakeTempColorDefValues { get; set; }
-        public string[] PresColor { get; set; }
-        public double[] TyrePresColorDefValues { get; set; }
-        public string[] TimeColor { get; set; }
-        public string[] TimeGraphColor { get; set; }
+        public Lut BrakeTempNormalizationLut { get; set; }
+        public Lut TyreTempNormalizationLut { get; set; }
+        public Lut TyrePresNormalizationLut { get; set; }
 
-        public string DefColor { get; set; }
-
-        public double[] TimeColorDeltaValues { get; set; }
-        public string[] FuelGraphColor { get; set; }
-        public double[] FuelGraphColorValues { get; set; }
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
 
@@ -70,20 +63,12 @@ namespace KLPlugins.RaceEngineer {
             this.NumPreviousValuesStored = s.NumPreviousValuesStored;
             this.DataLocation = s.DataLocation;
             this.AccDataLocation = s.AccDataLocation;
-            this.TempColor = s.TempColor;
-            this.TyreTempColorDefValues = s.TyrePresColorDefValues;
-            this.BrakeTempColorDefValues = s.BrakeTempColorDefValues;
-            this.PresColor = s.PresColor;
-            this.TyrePresColorDefValues = s.TyrePresColorDefValues;
-            this.TimeColor = s.TimeColor;
-            this.TimeGraphColor = s.TimeGraphColor;
-            this.TimeColorDeltaValues = s.TimeColorDeltaValues;
-            this.FuelGraphColor = s.FuelGraphColor;
-            this.FuelGraphColorValues = s.FuelGraphColorValues;
             this.Log = s.Log;
             this.ShowAllLaps = s.ShowAllLaps;
-            this.DefColor = s.DefColor;
 
+            this.BrakeTempNormalizationLut = s.BrakeTempNormalizationLut;
+            this.TyreTempNormalizationLut = s.TyrePresNormalizationLut;
+            this.TyrePresNormalizationLut = s.TyrePresNormalizationLut;
 
             this.ParseLapFlags(s.PrevLapsInfo, ref this._prevLapsStats, "PrevLapsInfo");
             this.ParseStatsFlags(s.PrevFuelPerLapInfo, ref this._prevFuelPerLapStats, "PrevFuelPerLapInfo");
@@ -169,19 +154,11 @@ namespace KLPlugins.RaceEngineer {
         public string DataLocation { get; set; }
         public string AccDataLocation { get; set; }
 
-        public string[] TempColor { get; set; }
-        public double[] TyreTempColorDefValues { get; set; }
-        public double[] BrakeTempColorDefValues { get; set; }
-        public string[] PresColor { get; set; }
-        public double[] TyrePresColorDefValues { get; set; }
-        public string[] TimeColor { get; set; }
-        public string[] TimeGraphColor { get; set; }
 
-        public string DefColor { get; set; }
+        public Lut BrakeTempNormalizationLut { get; set; }
+        public Lut TyreTempNormalizationLut { get; set; }
+        public Lut TyrePresNormalizationLut { get; set; }
 
-        public double[] TimeColorDeltaValues { get; set; }
-        public string[] FuelGraphColor { get; set; }
-        public double[] FuelGraphColorValues { get; set; }
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
 
@@ -199,17 +176,21 @@ namespace KLPlugins.RaceEngineer {
             this.NumPreviousValuesStored = 10;
             this.DataLocation = "PluginsData\\KLPlugins\\RaceEngineer";
             this.AccDataLocation = "C:\\Users\\" + Environment.UserName + "\\Documents\\Assetto Corsa Competizione";
-            this.TempColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
-            this.TyreTempColorDefValues = [70.0, 80.0, 90.0, 100.0];
-            this.BrakeTempColorDefValues = [200.0, 300.0, 500.0, 700.0];
-            this.PresColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
-            this.TyrePresColorDefValues = [26.5, 27.25, 27.75, 28.5];
-            this.TimeColor = ["#00ff7f", "#F8F8FF", "#e60000"];
-            this.TimeGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
-            this.TimeColorDeltaValues = [-1.0, 0.0, 1.0];
-            this.FuelGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
-            this.DefColor = "#555555";
-            this.FuelGraphColorValues = [-1.0, 0.0, 1.0];
+            this.BrakeTempNormalizationLut = new Lut([(200, 0.95), (300, 1.0), (500, 1.0), (700, 0.95)]);
+            this.TyreTempNormalizationLut = new Lut([(70.0, 0.95), (80.0, 1.0), (90.0, 1.0), (100.0, 0.95)]);
+            this.TyrePresNormalizationLut = new Lut([(26.5, 0.95), (27.25, 1.0), (27.75, 1.0), (28.5, 0.95)]);
+
+            //  this.TempColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
+            // this.TyreTempColorDefValues = [70.0, 80.0, 90.0, 100.0];
+            // this.BrakeTempColorDefValues = [200.0, 300.0, 500.0, 700.0];
+            // this.PresColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
+            // this.TyrePresColorDefValues = [26.5, 27.25, 27.75, 28.5];
+            // this.TimeColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            // this.TimeGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            // this.TimeColorDeltaValues = [-1.0, 0.0, 1.0];
+            // this.FuelGraphColor = ["#00ff7f", "#F8F8FF", "#e60000"];
+            // this.DefColor = "#555555";
+            // this.FuelGraphColorValues = [-1.0, 0.0, 1.0];
             this.Log = true;
             this.ShowAllLaps = false;
             this.PrevLapsInfo = ["Min", "Max", "Avg", "Std", "Q1", "Median", "Q3"];
