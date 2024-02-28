@@ -13,118 +13,93 @@ namespace KLPlugins.RaceEngineer.Color {
         public double Interpolate(double x) {
             return this._intersection + (x - this._x0) * this._slope;
         }
-
-    }
-
-
-    /// <summary>
-    /// Linear interpolator between two colors in HSV color space.
-    /// </summary>
-    public class LinearColorInterpolator(double min, HSV minc, double max, HSV maxc) {
-        private readonly LinearInterpolator _interH = new(min, minc.H, max, maxc.H);
-        private readonly LinearInterpolator _interS = new(min, minc.S, max, maxc.S);
-        private readonly LinearInterpolator _interV = new(min, minc.V, max, maxc.V);
-
-        public HSV Interpolate(double x) {
-            return new HSV(
-                    (int)Math.Round(this._interH.Interpolate(x)),
-                    this._interS.Interpolate(x),
-                    this._interV.Interpolate(x)
-                );
-        }
     }
 
     /// <summary>
     /// Color interpolator between any number of colors.
     /// </summary>
-    public class ColorCalculator {
-        public int NumColor;
+    public class MultiPointLinearInterpolator {
+        public int NumPoints;
 
-        private readonly HSV[] _colors;
-        private double[] _values;
-        private readonly LinearColorInterpolator[] _interpolators;
-
-        private static readonly HSV DefColor = new(RaceEngineerPlugin.Settings.DefColor);
-
+        private readonly double[] _xs;
+        private double[] _ys;
+        private readonly LinearInterpolator[] _interpolators;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="colors">Colors in HEX.</param>
-        /// <param name="values">Numerical values each color corresponds to.</param>
+        /// <param name="x">Colors in HEX.</param>
+        /// <param name="y">Numerical values each color corresponds to.</param>
         /// <exception cref="Exception"></exception>
-        public ColorCalculator(string[] colors, double[] values) {
-            if (colors.Length != values.Length) {
+        public MultiPointLinearInterpolator(double[] x, double[] y) {
+            if (x.Length != y.Length) {
                 throw new Exception("There must be same number of colors and values.");
             }
 
-            this.NumColor = colors.Length;
-            this._colors = new HSV[this.NumColor];
-            this._values = values;
+            this.NumPoints = x.Length;
+            this._xs = x;
+            this._ys = y;
 
-            for (int i = 0; i < this.NumColor; i++) {
-                this._colors[i] = new HSV(colors[i]);
-            }
-            this._interpolators = new LinearColorInterpolator[this.NumColor];
+            this._interpolators = new LinearInterpolator[this.NumPoints];
             this.UpdateInterpolators();
         }
 
-        public void UpdateInterpolation(double[] values) {
-            if (this.NumColor != values.Length) {
-                throw new Exception("There must be same number of colors and values.");
-            }
+        // public void UpdateInterpolation(double[] values) {
+        //     if (this.NumPoints != values.Length) {
+        //         throw new Exception("There must be same number of colors and values.");
+        //     }
 
-            this._values = values;
+        //     this._ys = values;
 
-            this.UpdateInterpolators();
-        }
+        //     this.UpdateInterpolators();
+        // }
 
-        public void UpdateInterpolation(double ideal, double delta) {
-            bool even = this.NumColor % 2 == 0;
-            int half_num = this.NumColor / 2;
+        // public void UpdateInterpolation(double ideal, double delta) {
+        //     bool even = this.NumPoints % 2 == 0;
+        //     int half_num = this.NumPoints / 2;
 
-            double[] vals = new double[this.NumColor];
-            if (!even) {
-                for (int i = -half_num; i <= half_num; i++) {
-                    vals[i + half_num] = ideal + i * delta;
-                }
-            } else {
-                for (int i = -half_num; i < half_num; i++) {
-                    if (i < 0) {
-                        vals[i + half_num] = ideal + i * delta;
-                    } else {
-                        vals[i + half_num] = ideal + (i + 1) * delta;
-                    }
-                }
-            }
+        //     double[] vals = new double[this.NumPoints];
+        //     if (!even) {
+        //         for (int i = -half_num; i <= half_num; i++) {
+        //             vals[i + half_num] = ideal + i * delta;
+        //         }
+        //     } else {
+        //         for (int i = -half_num; i < half_num; i++) {
+        //             if (i < 0) {
+        //                 vals[i + half_num] = ideal + i * delta;
+        //             } else {
+        //                 vals[i + half_num] = ideal + (i + 1) * delta;
+        //             }
+        //         }
+        //     }
 
-            this.UpdateInterpolation(vals);
-        }
+        //     this.UpdateInterpolation(vals);
+        // }
 
         private void UpdateInterpolators() {
-            for (var i = 0; i < this.NumColor - 1; i++) {
-                this._interpolators[i] = new LinearColorInterpolator(this._values[i], this._colors[i], this._values[i + 1], this._colors[i + 1]);
+            for (var i = 0; i < this.NumPoints - 1; i++) {
+                this._interpolators[i] = new LinearInterpolator(this._ys[i], this._xs[i], this._ys[i + 1], this._xs[i + 1]);
             }
         }
 
-        public HSV GetColor(double value) {
-            if (double.IsNaN(value)) return DefColor;
+        public double Interpolate(double value) {
+            if (double.IsNaN(value)) return 0;
 
-            if (value <= this._values[0]) {
-                return this._colors[0];
+            if (value <= this._ys[0]) {
+                return this._xs[0];
             }
 
-            if (value >= this._values[this.NumColor - 1]) {
-                return this._colors[this.NumColor - 1];
+            if (value >= this._ys[this.NumPoints - 1]) {
+                return this._xs[this.NumPoints - 1];
             }
 
 
-            for (var i = 0; i < this.NumColor - 1; i++) {
-                if (value <= this._values[i + 1]) {
+            for (var i = 0; i < this.NumPoints - 1; i++) {
+                if (value <= this._ys[i + 1]) {
                     return this._interpolators[i].Interpolate(value);
                 }
             }
-            return new HSV(0, 0, 0);//Cannot be actually reached
+            return 0;//Cannot be actually reached
         }
     }
 }
