@@ -12,10 +12,12 @@ namespace KLPlugins.RaceEngineer.Car {
         public WheelsStats TempOverLap { get; }
 
         public MultiPointLinearInterpolator TempNormalizer { get; private set; }
-        public WheelsData<double> TempNormalized { get; } = new(0.0);
-        public WheelsData<double> TempMinNormalized { get; } = new(0.0);
-        public WheelsData<double> TempMaxNormalized { get; } = new(0.0);
-        public WheelsData<double> TempAvgNormalized { get; } = new(0.0);
+
+        private const double NORMALIZED_TEMP_DEF_VALUE = -1.0;
+        public WheelsData<double> TempNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        public WheelsData<double> TempMinNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        public WheelsData<double> TempMaxNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        public WheelsData<double> TempAvgNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
 
         private readonly WheelsRunningStats _tempRunning = new();
         private DateTime _lastSampleTimeSec = DateTime.Now;

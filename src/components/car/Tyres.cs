@@ -27,21 +27,23 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public MultiPointLinearInterpolator TempNormalizerF { get; private set; }
         public MultiPointLinearInterpolator TempNormalizerR { get; private set; }
-        public WheelsData<double> TempNormalized { get; } = new(0.0);
-        public WheelsData<double> TempMinNormalized { get; } = new(0.0);
-        public WheelsData<double> TempMaxNormalized { get; } = new(0.0);
-        public WheelsData<double> TempAvgNormalized { get; } = new(0.0);
 
-        public WheelsData<double> TempInnerAvgNormalized { get; } = new(0.0);
-        public WheelsData<double> TempMiddleAvgNormalized { get; } = new(0.0);
-        public WheelsData<double> TempOuterAvgNormalized { get; } = new(0.0);
+        private const double NORMALIZED_DATA_DEF_VALUE = -1.0;
+        public WheelsData<double> TempNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> TempMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> TempMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> TempAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+
+        public WheelsData<double> TempInnerAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> TempMiddleAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> TempOuterAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
 
         public MultiPointLinearInterpolator PresNormalizerF { get; private set; }
         public MultiPointLinearInterpolator PresNormalizerR { get; private set; }
-        public WheelsData<double> PresNormalized { get; } = new(0.0);
-        public WheelsData<double> PresMinNormalized { get; } = new(0.0);
-        public WheelsData<double> PresMaxNormalized { get; } = new(0.0);
-        public WheelsData<double> PresAvgNormalized { get; } = new(0.0);
+        public WheelsData<double> PresNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> PresMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> PresMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
+        public WheelsData<double> PresAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
 
         public int CurrentTyreSet { get; private set; }
 
