@@ -198,16 +198,46 @@ namespace KLPlugins.RaceEngineer.Car {
 
     }
 
-    internal class ACTyreInfo(string name, string shortName, ACLut wearCurveF, ACLut wearCurveR, ACLut tempCurveF, ACLut tempCurveR, FrontRear idealPres) {
+    public class WheelsData<T> {
+        private Func<T> _defGenerator { get; set; }
+        private T[] _data { get; set; } = new T[4];
+
+        public WheelsData(Func<T> defGenerator) {
+            this._defGenerator = defGenerator;
+            for (int i = 0; i < 4; i++) {
+                this._data[i] = this._defGenerator();
+            }
+        }
+
+        public WheelsData(T def) : this(() => def) { }
+
+        public void Reset() {
+            for (int i = 0; i < 4; i++) {
+                this._data[i] = this._defGenerator();
+            }
+        }
+
+        public T FL { get => this._data[0]; set => this._data[0] = value; }
+        public T FR { get => this._data[1]; set => this._data[1] = value; }
+        public T RL { get => this._data[2]; set => this._data[2] = value; }
+        public T RR { get => this._data[3]; set => this._data[3] = value; }
+
+        public T this[int index] {
+            get => this._data[index];
+            set => this._data[index] = value;
+        }
+    }
+
+    internal class ACTyreInfo(string name, string shortName, Lut wearCurveF, Lut wearCurveR, Lut tempCurveF, Lut tempCurveR, FrontRear idealPres) {
         public string Name { get; private set; } = name;
         public string ShortName { get; private set; } = shortName;
-        public ACLut WearCurveF { get; private set; } = wearCurveF;
-        public ACLut WearCurveR { get; private set; } = wearCurveR;
+        public Lut WearCurveF { get; private set; } = wearCurveF;
+        public Lut WearCurveR { get; private set; } = wearCurveR;
 
         public FrontRear IdealPres { get; private set; } = idealPres;
 
-        public ACLut TempCurveF { get; private set; } = tempCurveF;
-        public ACLut TempCurveR { get; private set; } = tempCurveR;
+        public Lut TempCurveF { get; private set; } = tempCurveF;
+        public Lut TempCurveR { get; private set; } = tempCurveR;
     }
 
     internal class ACCarInfo {
@@ -215,14 +245,14 @@ namespace KLPlugins.RaceEngineer.Car {
         internal class ACTyreInfoPartial {
             public string? Name { get; set; }
             public string? ShortName { get; set; }
-            public ACLut? WearCurveF { get; set; }
-            public ACLut? WearCurveR { get; set; }
+            public Lut? WearCurveF { get; set; }
+            public Lut? WearCurveR { get; set; }
 
             public double? IdealPresF { get; set; }
             public double? IdealPresR { get; set; }
 
-            public ACLut? TempCurveF { get; set; }
-            public ACLut? TempCurveR { get; set; }
+            public Lut? TempCurveF { get; set; }
+            public Lut? TempCurveR { get; set; }
 
             public ACTyreInfo Build() {
                 return new ACTyreInfo(this.Name!, this.ShortName!, this.WearCurveF!, this.WearCurveR!, this.TempCurveF!, this.TempCurveR!, new FrontRear((double)this.IdealPresF!, (double)this.IdealPresR!));
@@ -291,10 +321,10 @@ namespace KLPlugins.RaceEngineer.Car {
                     case "wear_curve":
                         switch (frontOrRear) {
                             case FrontOrRear.F:
-                                results[index].WearCurveF = ACLut.FromFile(folder_path + value);
+                                results[index].WearCurveF = Lut.FromFileAC(folder_path + value);
                                 break;
                             case FrontOrRear.R:
-                                results[index].WearCurveR = ACLut.FromFile(folder_path + value);
+                                results[index].WearCurveR = Lut.FromFileAC(folder_path + value);
                                 break;
                         }
                         break;
@@ -311,10 +341,10 @@ namespace KLPlugins.RaceEngineer.Car {
                     case "performance_curve":
                         switch (frontOrRear) {
                             case FrontOrRear.F:
-                                results[index].TempCurveF = ACLut.FromFile(folder_path + value);
+                                results[index].TempCurveF = Lut.FromFileAC(folder_path + value);
                                 break;
                             case FrontOrRear.R:
-                                results[index].TempCurveR = ACLut.FromFile(folder_path + value);
+                                results[index].TempCurveR = Lut.FromFileAC(folder_path + value);
                                 break;
                         }
                         break;
@@ -334,11 +364,37 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    internal class ACLut {
-        public List<Tuple<double, double>> Values { get; private set; } = new();
+    public class Lut {
+        public List<double> X { get; private set; }
+        public List<double> Y { get; private set; }
 
-        public static ACLut FromFile(string path) {
-            var lut = new ACLut();
+        public Lut() {
+            this.X = [];
+            this.Y = [];
+        }
+
+        public Lut((double, double)[] values) : this() {
+            for (int i = 0; i < values.Length; i++) {
+                this.X.Add(values[i].Item1);
+                this.Y.Add(values[i].Item2);
+            }
+        }
+
+        public Lut(List<double> xs, List<double> ys) : this() {
+            if (xs.Count != ys.Count) {
+                throw new Exception("There must be same number of x and y values.");
+            }
+            this.X = xs;
+            this.Y = ys;
+        }
+
+
+        public static Lut FromFileAC(string path) {
+            return FromFile(path);
+        }
+
+        public static Lut FromFile(string path) {
+            var lut = new Lut();
 
             var txt = File.ReadAllText(path);
 
@@ -349,10 +405,11 @@ namespace KLPlugins.RaceEngineer.Car {
                 if (line == "" || line.StartsWith(";")) continue;
 
                 var parts = line.Split('|');
-                var from = Convert.ToDouble(parts[0].Trim());
-                var to = Convert.ToDouble(parts[1].Split(';')[0].Trim());
+                var x = Convert.ToDouble(parts[0].Trim());
+                var y = Convert.ToDouble(parts[1].Split(';')[0].Trim());
 
-                lut.Values.Add(new Tuple<double, double>(from, to));
+                lut.X.Add(x);
+                lut.Y.Add(y);
             }
 
             return lut;
