@@ -60,6 +60,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public InputTyrePresPredictor? InputTyrePresPredictorNowWet { get; private set; }
         public InputTyrePresPredictor? InputTyrePresPredictorFutureWet { get; private set; }
 
+        public TyreInfo Info { get; private set; } = TyreInfo.Default();
 
         private volatile bool _updatingPresPredictorDry = false;
         private volatile bool _updatingPresPredictorNowWet = false;
@@ -69,7 +70,6 @@ namespace KLPlugins.RaceEngineer.Car {
         private readonly WheelsRunningStats _tempInnerRunning = new();
         private readonly WheelsRunningStats _tempMiddleRunning = new();
         private readonly WheelsRunningStats _tempOuterRunning = new();
-        private TyreInfo _tyreInfo = TyreInfo.Default();
         private double _lastSampleTimeSec = DateTime.Now.Second;
         private int _wetSet = 0;
 
@@ -150,7 +150,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this._tempInnerRunning.Reset();
             this._tempMiddleRunning.Reset();
             this._tempOuterRunning.Reset();
-            this._tyreInfo = TyreInfo.Default();
+            this.Info = TyreInfo.Default();
             this._wetSet = 0;
             this.CurrentTyreSet = 0;
         }
@@ -202,8 +202,8 @@ namespace KLPlugins.RaceEngineer.Car {
 
             for (int iFront = 0; iFront < 2; iFront++) {
                 var iRear = iFront + 2;
-                this.PressDeltaToIdeal[iFront] = this.PresOverLap[iFront].Avg - this._tyreInfo.IdealPres.F;
-                this.PressDeltaToIdeal[iRear] = this.PresOverLap[iRear].Avg - this._tyreInfo.IdealPres.R;
+                this.PressDeltaToIdeal[iFront] = this.PresOverLap[iFront].Avg - this.Info.IdealPres.F;
+                this.PressDeltaToIdeal[iRear] = this.PresOverLap[iRear].Avg - this.Info.IdealPres.R;
             }
 
 
@@ -362,19 +362,19 @@ namespace KLPlugins.RaceEngineer.Car {
 
             if (v.Car.Info.Tyres.ContainsKey(this.Name)) {
                 RaceEngineerPlugin.LogInfo($"Tyre info found for '{this.Name}'.");
-                this._tyreInfo = v.Car.Info.Tyres[this.Name];
+                this.Info = v.Car.Info.Tyres[this.Name];
             } else if (v.Car.Info.Tyres.ContainsKey("def")) {
                 RaceEngineerPlugin.LogInfo($"Tyre info not found for '{this.Name}'. Using `def` values.");
-                this._tyreInfo = v.Car.Info.Tyres["def"];
+                this.Info = v.Car.Info.Tyres["def"];
             } else {
                 RaceEngineerPlugin.LogInfo($"Tyre info not found for '{this.Name}'. Using `TyreInfo.Default()`.");
-                this._tyreInfo = TyreInfo.Default();
+                this.Info = TyreInfo.Default();
             }
 
-            this.PresNormalizerF = new(this._tyreInfo.IdealPresCurve.F);
-            this.PresNormalizerR = new(this._tyreInfo.IdealPresCurve.R);
-            this.TempNormalizerF = new(this._tyreInfo.IdealTempCurve.F);
-            this.TempNormalizerR = new(this._tyreInfo.IdealTempCurve.R);
+            this.PresNormalizerF = new(this.Info.IdealPresCurve.F);
+            this.PresNormalizerR = new(this.Info.IdealPresCurve.R);
+            this.TempNormalizerF = new(this.Info.IdealTempCurve.F);
+            this.TempNormalizerR = new(this.Info.IdealTempCurve.R);
         }
 
         static MultiPointLinearInterpolator DefPresNormalizer() {
@@ -491,8 +491,8 @@ namespace KLPlugins.RaceEngineer.Car {
         private void UpdateIdealInputPressures(double airtemp, double tracktemp) {
             for (int iFront = 0; iFront < 2; iFront++) {
                 var iRear = iFront + 2;
-                this.IdealInputPres[iFront] = this.CurrentInputPres[iFront] + (this._tyreInfo.IdealPres.F - this.PresOverLap[iFront].Avg);
-                this.IdealInputPres[iRear] = this.CurrentInputPres[iRear] + (this._tyreInfo.IdealPres.R - this.PresOverLap[iRear].Avg);
+                this.IdealInputPres[iFront] = this.CurrentInputPres[iFront] + (this.Info.IdealPres.F - this.PresOverLap[iFront].Avg);
+                this.IdealInputPres[iRear] = this.CurrentInputPres[iRear] + (this.Info.IdealPres.R - this.PresOverLap[iRear].Avg);
             }
         }
 
@@ -518,7 +518,7 @@ namespace KLPlugins.RaceEngineer.Car {
                     )
                 ) {
                     if (this.InputTyrePresPredictorDry != null) {
-                        var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorDry.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
                         preds.CopyTo(this.PredictedIdealInputPresDry, 0);
                     } else {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
@@ -540,7 +540,7 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.PredictedIdealInputPresNowWet[i] = double.NaN;
                         }
                     } else {
-                        var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorNowWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
                         preds.CopyTo(this.PredictedIdealInputPresNowWet, 0);
                     }
                 }
@@ -554,7 +554,7 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.PredictedIdealInputPresFutureWet[i] = double.NaN;
                         }
                     } else {
-                        var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPres.R);
+                        var preds = this.InputTyrePresPredictorFutureWet.Predict(v.Weather.AirTemp, v.Weather.TrackTemp, this.Info.IdealPres.F, this.Info.IdealPres.R);
                         preds.CopyTo(this.PredictedIdealInputPresFutureWet, 0);
                     }
                 }

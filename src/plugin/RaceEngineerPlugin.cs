@@ -11,6 +11,7 @@ using SimHub.Plugins;
 using KLPlugins.RaceEngineer.Deque;
 using ksBroadcastingNetwork;
 using KLPlugins.RaceEngineer.Car;
+using System.Linq;
 
 namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -145,12 +146,32 @@ namespace KLPlugins.RaceEngineer {
 
             #region ADD DELEGATES
 
+            const string NORMALIZED_KEYWORD = "Norm";
+            const string MIN_KEYWORD = "Min";
+            const string AVG_KEYWORD = "Avg";
+            const string MAX_KEYWORD = "Max";
+            const string STD_KEYWORD = "Std";
+
             this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this._values.Session.TimeOfDay));
             this.AttachDelegate("Session.TimeMultiplier", () => this._values.Session.TimeMultiplier);
             this.AttachDelegate("Session.Type", () => this._values.Session.RaceSessionType);
 
             this.AttachDelegate("Tyres.CurrentSet", () => this._values.Car.Tyres.CurrentTyreSet);
             this.AttachDelegate("Tyres.CurrentSetLaps", () => this._values.Car.Tyres.GetCurrentSetLaps());
+
+
+            void addIdealRange<T>(string name, MinMaxAvg<T> value) {
+                this.AttachDelegate(name + '.' + MIN_KEYWORD, () => value.Min);
+                this.AttachDelegate(name + '.' + AVG_KEYWORD, () => value.Avg);
+                this.AttachDelegate(name + '.' + MAX_KEYWORD, () => value.Max);
+            }
+
+            addIdealRange("Tyres.Pres.Ideal.Front", this._values.Car.Tyres.Info.IdealPresRange.F);
+            addIdealRange("Tyres.Pres.Ideal.Rear", this._values.Car.Tyres.Info.IdealPresRange.R);
+            addIdealRange("Tyres.Temp.Ideal.Front", this._values.Car.Tyres.Info.IdealTempRange.F);
+            addIdealRange("Tyres.Temp.Ideal.Rear", this._values.Car.Tyres.Info.IdealTempRange.R);
+
+            this.AttachDelegate("Tyres.ShortName", () => this._values.Car.Tyres.Info.ShortName);
 
             this.AttachDelegate("Weather.Report", () => this._values.Weather.WeatherSummary);
             this.AttachDelegate("Weather.AirTemp", () => this._values.Weather.AirTemp);
@@ -182,12 +203,6 @@ namespace KLPlugins.RaceEngineer {
 
             this.AttachDelegate("Fuel.Remaining", () => this._values.Car.Fuel.Remaining);
             this.AttachDelegate("Fuel.RemainingAtLapStart", () => this._values.Car.Fuel.RemainingAtLapStart);
-
-            const string NORMALIZED_KEYWORD = "Norm";
-            const string MIN_KEYWORD = "Min";
-            const string AVG_KEYWORD = "Avg";
-            const string MAX_KEYWORD = "Max";
-            const string STD_KEYWORD = "Std";
 
             void addStats(string name, Stats.Stats values, StatsFlags settings) {
                 if ((StatsFlags.Min & settings) != 0) {
@@ -335,9 +350,9 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempInnerOverLap, this._values.Car.Tyres.TempInnerAvgNormalized, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempMiddleOverLap, this._values.Car.Tyres.TempMiddleAvgNormalized, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOuterOverLap, this._values.Car.Tyres.TempOuterAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Inner", this._values.Car.Tyres.TempInnerOverLap, this._values.Car.Tyres.TempInnerAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Middle", this._values.Car.Tyres.TempMiddleOverLap, this._values.Car.Tyres.TempMiddleAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Outer", this._values.Car.Tyres.TempOuterOverLap, this._values.Car.Tyres.TempOuterAvgNormalized, Settings.TyreTempFlags);
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
