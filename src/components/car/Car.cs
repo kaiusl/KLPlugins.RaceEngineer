@@ -495,7 +495,6 @@ namespace KLPlugins.RaceEngineer.Car {
                     try {
                         // this fails for [front], [thermal_front], index is 0 then, otherwise [front_2], [thermal_front_3] have indexes
                         var indexStr = splits.Last().Split(']')[0];
-                        SimHub.Logging.Current.Info(indexStr);
                         index = Convert.ToInt32(indexStr);
                     } catch {
                         index = 0;
