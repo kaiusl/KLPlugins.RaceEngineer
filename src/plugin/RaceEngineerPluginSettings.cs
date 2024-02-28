@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
@@ -23,6 +23,7 @@ namespace KLPlugins.RaceEngineer {
         public Lut BrakeTempNormalizationLut { get; set; }
         public Lut TyreTempNormalizationLut { get; set; }
         public Lut TyrePresNormalizationLut { get; set; }
+        public double IdealPres { get; set; }
 
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
@@ -69,6 +70,8 @@ namespace KLPlugins.RaceEngineer {
             this.BrakeTempNormalizationLut = s.BrakeTempNormalizationLut;
             this.TyreTempNormalizationLut = s.TyreTempNormalizationLut;
             this.TyrePresNormalizationLut = s.TyrePresNormalizationLut;
+
+            this.IdealPres = s.IdealPres;
 
             this.ParseLapFlags(s.PrevLapsInfo, ref this._prevLapsStats, "PrevLapsInfo");
             this.ParseStatsFlags(s.PrevFuelPerLapInfo, ref this._prevFuelPerLapStats, "PrevFuelPerLapInfo");
@@ -158,6 +161,7 @@ namespace KLPlugins.RaceEngineer {
         public Lut BrakeTempNormalizationLut { get; set; }
         public Lut TyreTempNormalizationLut { get; set; }
         public Lut TyrePresNormalizationLut { get; set; }
+        public double IdealPres { get; set; }
 
         public bool Log { get; set; }
         public bool ShowAllLaps { get; set; }
@@ -179,6 +183,7 @@ namespace KLPlugins.RaceEngineer {
             this.BrakeTempNormalizationLut = new Lut([(200, 0.0), (300, 1.0), (500, 1.0), (700, 0.0)]);
             this.TyreTempNormalizationLut = new Lut([(70.0, 0.0), (80.0, 1.0), (90.0, 1.0), (100.0, 0.0)]);
             this.TyrePresNormalizationLut = new Lut([(26.5, 0.0), (27.25, 1.0), (27.75, 1.0), (28.5, 0.0)]);
+            this.IdealPres = 27.5;
 
             //  this.TempColor = ["#87cefa", "#00ff7f", "#00ff7f", "#e60000"];
             // this.TyreTempColorDefValues = [70.0, 80.0, 90.0, 100.0];
