@@ -8,15 +8,9 @@ using GameReaderCommon;
 using Newtonsoft.Json;
 
 namespace KLPlugins.RaceEngineer.Car {
-    public class FrontRear<T> {
-        public T F { get; set; }
-        public T R { get; set; }
-
-        [JsonConstructor]
-        public FrontRear(T f, T r) {
-            this.F = f;
-            this.R = r;
-        }
+    public class FrontRear<T>(T f, T r) {
+        public T F { get; set; } = f;
+        public T R { get; set; } = r;
 
         public FrontRear(T one) : this(one, one) { }
     }
@@ -83,18 +77,34 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
+    class FrontRearPartial<T>(T f, T r) {
+        public T? F { get; set; } = f;
+        public T? R { get; set; } = r;
+
+        public FrontRear<T> Build() {
+            if (this.F != null && this.R != null) {
+                return new(this.F, this.R);
+            } else if (this.R != null) {
+                return new(this.R);
+            } else if (this.F != null) {
+                return new(this.F);
+            } else {
+                throw new Exception("Invalid JSON");
+            }
+        }
+    }
 
     class TyreInfoPartial {
-        public FrontRear<double>? IdealPres { get; set; }
-        public FrontRear<Lut>? IdealPresCurve { get; set; }
-        public FrontRear<Lut>? IdealTempCurve { get; set; }
+        public FrontRearPartial<double>? IdealPres { get; set; }
+        public FrontRearPartial<Lut>? IdealPresCurve { get; set; }
+        public FrontRearPartial<Lut>? IdealTempCurve { get; set; }
 
         public TyreInfo Build() {
-            this.IdealPres ??= new FrontRear<double>(RaceEngineerPlugin.Settings.IdealPres);
-            this.IdealPresCurve ??= new FrontRear<Lut>(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            this.IdealTempCurve ??= new FrontRear<Lut>(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            var idealPres = this.IdealPres?.Build() ?? new(RaceEngineerPlugin.Settings.IdealPres);
+            var idealPresCurve = this.IdealPresCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            var idealTempCurve = this.IdealTempCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
 
-            return new TyreInfo(this.IdealPres!, this.IdealPresCurve!, this.IdealTempCurve!);
+            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
         }
     }
 
