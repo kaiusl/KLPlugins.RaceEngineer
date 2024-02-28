@@ -72,8 +72,7 @@ namespace KLPlugins.RaceEngineer.Car {
         private readonly WheelsRunningStats _tempInnerRunning = new();
         private readonly WheelsRunningStats _tempMiddleRunning = new();
         private readonly WheelsRunningStats _tempOuterRunning = new();
-        private TyreInfo? _tyreInfo = null;
-        private ACTyreInfo? _aCTyreInfo = null;
+        private TyreInfo _tyreInfo = TyreInfo.Default();
         private double _lastSampleTimeSec = DateTime.Now.Second;
         private int _wetSet = 0;
 
@@ -94,11 +93,12 @@ namespace KLPlugins.RaceEngineer.Car {
             this.PresLossLap = [false, false, false, false];
             this.SetLaps = [];
 
-            this.TempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
-            this.TempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this.TempNormalizerF = DefTempNormalizer();
+            this.TempNormalizerR = DefTempNormalizer();
 
-            this.PresNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            this.PresNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this.PresNormalizerF = DefPresNormalizer();
+            this.PresNormalizerR = DefPresNormalizer();
+
 
             this.Reset();
         }
@@ -131,15 +131,15 @@ namespace KLPlugins.RaceEngineer.Car {
             this.InputTyrePresPredictorNowWet = null;
             this.InputTyrePresPredictorFutureWet = null;
 
-            this.TempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
-            this.TempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this.TempNormalizerF = DefTempNormalizer();
+            this.TempNormalizerR = DefTempNormalizer();
             this.TempNormalized.Reset();
             this.TempMinNormalized.Reset();
             this.TempMaxNormalized.Reset();
             this.TempAvgNormalized.Reset();
 
-            this.PresNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            this.PresNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this.PresNormalizerF = DefPresNormalizer();
+            this.PresNormalizerR = DefPresNormalizer();
             this.PresNormalized.Reset();
             this.PresMinNormalized.Reset();
             this.PresAvgNormalized.Reset();
@@ -153,8 +153,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this._tempInnerRunning.Reset();
             this._tempMiddleRunning.Reset();
             this._tempOuterRunning.Reset();
-            this._tyreInfo = null;
-            this._aCTyreInfo = null;
+            this._tyreInfo = TyreInfo.Default();
             this._wetSet = 0;
             this.CurrentTyreSet = 0;
         }
@@ -203,10 +202,11 @@ namespace KLPlugins.RaceEngineer.Car {
             this.TempMiddleOverLap.Update(this._tempMiddleRunning);
             this.TempOuterOverLap.Update(this._tempOuterRunning);
 
-            if (this._tyreInfo?.IdealPres != null) {
-                for (int i = 0; i < 2; i++) {
-                    this.PressDeltaToIdeal[i] = this.PresOverLap[i].Avg - this._tyreInfo.IdealPres.F;
-                    this.PressDeltaToIdeal[i + 2] = this.PresOverLap[i + 2].Avg - this._tyreInfo.IdealPres.R;
+            if (this._tyreInfo.IdealPres != null) {
+                for (int iFront = 0; iFront < 2; iFront++) {
+                    var iRear = iFront + 2;
+                    this.PressDeltaToIdeal[iFront] = this.PresOverLap[iFront].Avg - this._tyreInfo.IdealPres.F;
+                    this.PressDeltaToIdeal[iRear] = this.PresOverLap[iRear].Avg - this._tyreInfo.IdealPres.R;
                 }
             }
 
@@ -369,30 +369,38 @@ namespace KLPlugins.RaceEngineer.Car {
                 } else if (v.Car.Info.Tyres.ContainsKey("def")) {
                     this._tyreInfo = v.Car.Info.Tyres["def"];
                 } else {
-                    this._tyreInfo = null;
+                    this._tyreInfo = TyreInfo.Default();
                 }
 
-                if (this._tyreInfo != null) {
-                    // if (this._tyreInfo.IdealPres?.F != null && this._tyreInfo.IdealPresRange?.F != null) {
-                    //     this.PresColorF?.UpdateInterpolation(this._tyreInfo.IdealPres.F, this._tyreInfo.IdealPresRange.F);
-                    // }
-                    // if (this._tyreInfo.IdealPres?.R != null && this._tyreInfo.IdealPresRange?.R != null) {
-                    //     this.PresColorR?.UpdateInterpolation(this._tyreInfo.IdealPres.R, this._tyreInfo.IdealPresRange.R);
-                    // }
-                    // if (this._tyreInfo.IdealTemp?.F != null && this._tyreInfo.IdealTempRange?.F != null) {
-                    //     this.TempColorF?.UpdateInterpolation(this._tyreInfo.IdealTemp.F, this._tyreInfo.IdealTempRange.F);
-                    // }
-                    // if (this._tyreInfo.IdealTemp?.R != null && this._tyreInfo.IdealTempRange?.R != null) {
-                    //     this.TempColorR?.UpdateInterpolation(this._tyreInfo.IdealTemp.R, this._tyreInfo.IdealTempRange.R);
-                    // }
 
+                if (this._tyreInfo.IdealPresCurve != null) {
+                    this.PresNormalizerF = new(this._tyreInfo.IdealPresCurve.F);
+                    this.PresNormalizerR = new(this._tyreInfo.IdealPresCurve.R);
                 } else {
-                    this.ResetNormalizers();
+                    this.PresNormalizerF = DefPresNormalizer();
+                    this.PresNormalizerR = DefPresNormalizer();
+                }
+
+                if (this._tyreInfo.IdealTempCurve != null) {
+                    this.TempNormalizerF = new(this._tyreInfo.IdealTempCurve.F);
+                    this.TempNormalizerR = new(this._tyreInfo.IdealTempCurve.R);
+                } else {
+                    this.TempNormalizerF = DefTempNormalizer();
+                    this.TempNormalizerR = DefTempNormalizer();
                 }
             } else {
                 RaceEngineerPlugin.LogInfo($"Current CarInfo '{v.Car.Name}' doesn't have specs for tyres. Resetting to defaults.");
             }
         }
+
+        static MultiPointLinearInterpolator DefPresNormalizer() {
+            return new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+        }
+
+        static MultiPointLinearInterpolator DefTempNormalizer() {
+            return new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+        }
+
 
         private void ResetPressureLoss() {
             for (int i = 0; i < 4; i++) {
@@ -498,8 +506,10 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void UpdateIdealInputPressures(double airtemp, double tracktemp) {
             if (this._tyreInfo?.IdealPres != null) {
-                for (int i = 0; i < 4; i++) {
-                    this.IdealInputPres[i] = this.CurrentInputPres[i] + (this._tyreInfo.IdealPres[i] - this.PresOverLap[i].Avg);
+                for (int iFront = 0; iFront < 2; iFront++) {
+                    this.IdealInputPres[iFront] = this.CurrentInputPres[iFront] + (this._tyreInfo.IdealPres.F - this.PresOverLap[iFront].Avg);
+                    var iRear = iFront + 2;
+                    this.IdealInputPres[iRear] = this.CurrentInputPres[iRear] + (this._tyreInfo.IdealPres.R - this.PresOverLap[iRear].Avg);
                 }
             } else {
                 RaceEngineerPlugin.LogInfo($"Couldn't update ideal tyre pressures as 'tyreInfo == null'");
@@ -628,9 +638,8 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
             this.TempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
             this.TempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
-
-            // this.PresColorF = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
-            // this.PresColorR = new Color.ColorCalculator(RaceEngineerPlugin.Settings.PresColor, RaceEngineerPlugin.Settings.TyrePresColorDefValues);
+            this.PresNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this.PresNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
         }
 
         private void ResetValues() {

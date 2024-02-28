@@ -1,35 +1,57 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Input;
 
 using GameReaderCommon;
 
 using Newtonsoft.Json;
 
 namespace KLPlugins.RaceEngineer.Car {
-    public class FrontRear(double f, double r) {
-        public double F { get; set; } = f;
-        public double R { get; set; } = r;
+    public class FrontRear<T> {
+        public T F { get; set; }
+        public T R { get; set; }
 
-        public double this[int key] {
-            get {
-                if (key < 2) {
-                    return this.F;
-                } else {
-                    return this.R;
-                }
-            }
+        [JsonConstructor]
+        public FrontRear(T f, T r) {
+            this.F = f;
+            this.R = r;
+        }
+
+        public FrontRear(T one) : this(one, one) { }
+    }
+
+    public class TyreInfo(FrontRear<double> idealPres, FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve) {
+        public FrontRear<double> IdealPres { get; set; } = idealPres;
+        public FrontRear<Lut> IdealPresCurve { get; set; } = idealPresCurve;
+        public FrontRear<Lut> IdealTempCurve { get; set; } = idealTempCurve;
+
+
+        public static TyreInfo Default() {
+            var settings = RaceEngineerPlugin.Settings;
+            return new TyreInfo(new FrontRear<double>(settings.IdealPres),
+                new FrontRear<Lut>(settings.TyrePresNormalizationLut),
+                new FrontRear<Lut>(settings.TyreTempNormalizationLut)
+            );
+        }
+
+        internal static TyreInfo FromACTyreInfo(ACTyreInfo acTyreInfo) {
+            var idealPres = acTyreInfo.IdealPres;
+
+            var presCurveF = new Lut([(idealPres.F - 1.0, 0.0), (idealPres.F - 0.25, 1.0), (idealPres.F + 0.25, 1.0), (idealPres.F + 1.0, 0.0)]);
+            var presCurveR = new Lut([(idealPres.R - 1.0, 0.0), (idealPres.R - 0.25, 1.0), (idealPres.R + 0.25, 1.0), (idealPres.R + 1.0, 0.0)]);
+
+            // TODO: correctly normalize temp curves
+
+            return new TyreInfo(
+                idealPres,
+                new FrontRear<Lut>(presCurveF, presCurveR),
+                new FrontRear<Lut>(acTyreInfo.TempCurveF, acTyreInfo.TempCurveR)
+            );
         }
     }
 
-    public class TyreInfo {
-        public FrontRear? IdealPres { get; set; }
-        public FrontRear? IdealPresRange { get; set; }
-        public FrontRear? IdealTemp { get; set; }
-        public FrontRear? IdealTempRange { get; set; }
-    }
+
 
     /// <summary>
     /// Class for storing information about car. Currently about tyres but can hold more.
@@ -43,8 +65,52 @@ namespace KLPlugins.RaceEngineer.Car {
     /// </example>
     /// 
     /// </summary>
-    public class CarInfo {
-        public Dictionary<string, TyreInfo>? Tyres { get; set; }
+    public class CarInfo(Dictionary<string, TyreInfo> tyres) {
+        public Dictionary<string, TyreInfo> Tyres { get; set; } = tyres;
+
+        internal void Reset() {
+            this.Tyres.Clear();
+        }
+
+        internal static CarInfo FromACCarInfo(ACCarInfo acCarInfo) {
+            var result = new CarInfo([]);
+
+            foreach (var tyre in acCarInfo.Tyres) {
+                result.Tyres[tyre.Key] = TyreInfo.FromACTyreInfo(tyre.Value);
+            }
+
+            return result;
+        }
+    }
+
+
+    class TyreInfoPartial {
+        public FrontRear<double>? IdealPres { get; set; }
+        public FrontRear<Lut>? IdealPresCurve { get; set; }
+        public FrontRear<Lut>? IdealTempCurve { get; set; }
+
+        public TyreInfo Build() {
+            this.IdealPres ??= new FrontRear<double>(RaceEngineerPlugin.Settings.IdealPres);
+            this.IdealPresCurve ??= new FrontRear<Lut>(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this.IdealTempCurve ??= new FrontRear<Lut>(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+
+            return new TyreInfo(this.IdealPres!, this.IdealPresCurve!, this.IdealTempCurve!);
+        }
+    }
+
+    class CarInfoPartial {
+        public Dictionary<string, TyreInfoPartial>? Tyres { get; set; }
+
+        public CarInfo Build() {
+            var result = new CarInfo([]);
+            if (this.Tyres != null) {
+                foreach (var tyre in this.Tyres!) {
+                    result.Tyres[tyre.Key] = tyre.Value.Build();
+                }
+            }
+
+            return result;
+        }
     }
 
     /// <summary>
@@ -52,8 +118,7 @@ namespace KLPlugins.RaceEngineer.Car {
     /// </summary>
     public class Car {
         public string? Name { get; private set; }
-        public CarInfo? Info { get; private set; }
-        internal ACCarInfo? ACInfo { get; private set; }
+        public CarInfo Info { get; private set; }
         public CarSetup? Setup { get; private set; }
         public Tyres Tyres { get; private set; }
         public Brakes Brakes { get; private set; }
@@ -62,8 +127,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public Car() {
             RaceEngineerPlugin.LogInfo("Created new Car");
             this.Name = null;
-            this.Info = null;
-            this.ACInfo = null;
+            this.Info = new([]);
             this.Setup = null;
             this.Tyres = new Tyres();
             this.Brakes = new Brakes();
@@ -73,8 +137,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public void Reset() {
             RaceEngineerPlugin.LogInfo("Car.Reset()");
             this.Name = null;
-            this.Info = null;
-            this.ACInfo = null;
+            this.Info.Reset();
             this.Setup = null;
             this.Tyres.Reset();
             this.Brakes.Reset();
@@ -159,7 +222,14 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             try {
-                this.Info = JsonConvert.DeserializeObject<CarInfo>(File.ReadAllText(fname).Replace("\"", "'"));
+                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
+
+                if (partial != null) {
+                    this.Info = partial.Build();
+                } else {
+                    this.Info = new([]);
+                }
+
                 RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
             } catch (IOException) {
                 //RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
@@ -167,15 +237,22 @@ namespace KLPlugins.RaceEngineer.Car {
                     var carid = data.NewData.CarId;
                     string dataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
                     try {
-                        this.ACInfo = ACCarInfo.FromFile(dataPath);
+                        var acinfo = ACCarInfo.FromFile(dataPath);
+                        this.Info = CarInfo.FromACCarInfo(acinfo);
+
+                        string fnameCar = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
+                        if (!File.Exists(fnameCar)) {
+                            File.WriteAllText(fnameCar, JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter()));
+                        }
+
+                        RaceEngineerPlugin.LogInfo($"Car changed. Read info from AC files: {JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter())}");
+
                     } catch (IOException e) {
                         RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
-                        this.Info = null;
-                        this.ACInfo = null;
+                        this.Info.Reset();
                     }
                 } else {
-                    this.Info = null;
-                    this.ACInfo = null;
+                    this.Info.Reset();
                 }
 
             }
@@ -228,13 +305,13 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    internal class ACTyreInfo(string name, string shortName, Lut wearCurveF, Lut wearCurveR, Lut tempCurveF, Lut tempCurveR, FrontRear idealPres) {
+    internal class ACTyreInfo(string name, string shortName, Lut wearCurveF, Lut wearCurveR, Lut tempCurveF, Lut tempCurveR, FrontRear<double> idealPres) {
         public string Name { get; private set; } = name;
         public string ShortName { get; private set; } = shortName;
         public Lut WearCurveF { get; private set; } = wearCurveF;
         public Lut WearCurveR { get; private set; } = wearCurveR;
 
-        public FrontRear IdealPres { get; private set; } = idealPres;
+        public FrontRear<double> IdealPres { get; private set; } = idealPres;
 
         public Lut TempCurveF { get; private set; } = tempCurveF;
         public Lut TempCurveR { get; private set; } = tempCurveR;
@@ -255,7 +332,7 @@ namespace KLPlugins.RaceEngineer.Car {
             public Lut? TempCurveR { get; set; }
 
             public ACTyreInfo Build() {
-                return new ACTyreInfo(this.Name!, this.ShortName!, this.WearCurveF!, this.WearCurveR!, this.TempCurveF!, this.TempCurveR!, new FrontRear((double)this.IdealPresF!, (double)this.IdealPresR!));
+                return new ACTyreInfo(this.Name!, this.ShortName!, this.WearCurveF!, this.WearCurveR!, this.TempCurveF!, this.TempCurveR!, new FrontRear<double>((double)this.IdealPresF!, (double)this.IdealPresR!));
             }
         }
 
