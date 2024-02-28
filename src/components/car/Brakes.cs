@@ -10,11 +10,11 @@ namespace KLPlugins.RaceEngineer.Car {
         public int LapsNr { get; private set; }
         public int SetNr { get; private set; }
         public WheelsStats TempOverLap { get; }
-        public ColorCalculator TempColorCalculator { get; private set; }
-        public string[] TempColor { get; private set; }
-        public string[] TempColorMin { get; private set; }
-        public string[] TempColorMax { get; private set; }
-        public string[] TempColorAvg { get; private set; }
+        //public MultiPointLinearInterpolator TempColorCalculator { get; private set; }
+        // public string[] TempColor { get; private set; }
+        // public string[] TempColorMin { get; private set; }
+        // public string[] TempColorMax { get; private set; }
+        // public string[] TempColorAvg { get; private set; }
 
         private readonly WheelsRunningStats _tempRunning = new();
         private DateTime _lastSampleTimeSec = DateTime.Now;
@@ -23,27 +23,27 @@ namespace KLPlugins.RaceEngineer.Car {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap = new();
-            this.TempColorCalculator = new(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
-            var defColor = RaceEngineerPlugin.Settings.DefColor;
-            this.TempColor = [defColor, defColor, defColor, defColor];
-            this.TempColor = [defColor, defColor, defColor, defColor];
-            this.TempColorMin = [defColor, defColor, defColor, defColor];
-            this.TempColorMax = [defColor, defColor, defColor, defColor];
-            this.TempColorAvg = [defColor, defColor, defColor, defColor];
+            // this.TempColorCalculator = new(RaceEngineerPlugin.Settings.TempColor, RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
+           // var defColor = RaceEngineerPlugin.Settings.DefColor;
+            // this.TempColor = [defColor, defColor, defColor, defColor];
+            // this.TempColor = [defColor, defColor, defColor, defColor];
+            // this.TempColorMin = [defColor, defColor, defColor, defColor];
+            // this.TempColorMax = [defColor, defColor, defColor, defColor];
+            // this.TempColorAvg = [defColor, defColor, defColor, defColor];
         }
 
         public void Reset() {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap.Reset();
-            var defColor = RaceEngineerPlugin.Settings.DefColor;
-            for (int i = 0; i < 4; i++) {
-                this.TempColor[i] = defColor;
-                this.TempColorMin[i] = defColor;
-                this.TempColorMax[i] = defColor;
-                this.TempColorAvg[i] = defColor;
-            }
-            this.TempColorCalculator.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
+            // var defColor = RaceEngineerPlugin.Settings.DefColor;
+            // for (int i = 0; i < 4; i++) {
+            //     this.TempColor[i] = defColor;
+            //     this.TempColorMin[i] = defColor;
+            //     this.TempColorMax[i] = defColor;
+            //     this.TempColorAvg[i] = defColor;
+            // }
+            //this.TempColorCalculator.UpdateInterpolation(RaceEngineerPlugin.Settings.BrakeTempColorDefValues);
             this._tempRunning.Reset();
         }
 
@@ -53,13 +53,13 @@ namespace KLPlugins.RaceEngineer.Car {
             this.LapsNr += 1;
             this.TempOverLap.Update(this._tempRunning);
             this._tempRunning.Reset();
-            this.UpdateOverLapColors(v);
+            // this.UpdateOverLapColors(v);
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
             this.CheckPadChange(data, v);
             this.UpdateOverLapData(data, v);
-            this.UpdateColors(data, v);
+            //this.UpdateColors(data, v);
 
         }
 
@@ -102,36 +102,36 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        private void UpdateColors(GameData data, Values v) {
-            if (!v.Booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
-                this.TempColor[0] = this.TempColorCalculator.GetColor(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
-                this.TempColor[1] = this.TempColorCalculator.GetColor(data.NewData.BrakeTemperatureFrontRight).ToHEX();
-                this.TempColor[2] = this.TempColorCalculator.GetColor(data.NewData.BrakeTemperatureRearLeft).ToHEX();
-                this.TempColor[3] = this.TempColorCalculator.GetColor(data.NewData.BrakeTemperatureRearRight).ToHEX();
-            }
-        }
+        // private void UpdateColors(GameData data, Values v) {
+        //     if (!v.Booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+        //         this.TempColor[0] = this.TempColorCalculator.Interpolate(data.NewData.BrakeTemperatureFrontLeft).ToHEX();
+        //         this.TempColor[1] = this.TempColorCalculator.Interpolate(data.NewData.BrakeTemperatureFrontRight).ToHEX();
+        //         this.TempColor[2] = this.TempColorCalculator.Interpolate(data.NewData.BrakeTemperatureRearLeft).ToHEX();
+        //         this.TempColor[3] = this.TempColorCalculator.Interpolate(data.NewData.BrakeTemperatureRearRight).ToHEX();
+        //     }
+        // }
 
-        private void UpdateOverLapColors(Values v) {
-            if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
-                this.TempColorMin[0] = this.TempColorCalculator.GetColor(this.TempOverLap[0].Min).ToHEX();
-                this.TempColorMin[1] = this.TempColorCalculator.GetColor(this.TempOverLap[1].Min).ToHEX();
-                this.TempColorMin[2] = this.TempColorCalculator.GetColor(this.TempOverLap[2].Min).ToHEX();
-                this.TempColorMin[3] = this.TempColorCalculator.GetColor(this.TempOverLap[3].Min).ToHEX();
-            }
-            if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
-                this.TempColorMax[0] = this.TempColorCalculator.GetColor(this.TempOverLap[0].Max).ToHEX();
-                this.TempColorMax[1] = this.TempColorCalculator.GetColor(this.TempOverLap[1].Max).ToHEX();
-                this.TempColorMax[2] = this.TempColorCalculator.GetColor(this.TempOverLap[2].Max).ToHEX();
-                this.TempColorMax[3] = this.TempColorCalculator.GetColor(this.TempOverLap[3].Max).ToHEX();
-            }
-            if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
-                this.TempColorAvg[0] = this.TempColorCalculator.GetColor(this.TempOverLap[0].Avg).ToHEX();
-                this.TempColorAvg[1] = this.TempColorCalculator.GetColor(this.TempOverLap[1].Avg).ToHEX();
-                this.TempColorAvg[2] = this.TempColorCalculator.GetColor(this.TempOverLap[2].Avg).ToHEX();
-                this.TempColorAvg[3] = this.TempColorCalculator.GetColor(this.TempOverLap[3].Avg).ToHEX();
-            }
+        // private void UpdateOverLapColors(Values v) {
+        //     if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+        //         this.TempColorMin[0] = this.TempColorCalculator.Interpolate(this.TempOverLap[0].Min).ToHEX();
+        //         this.TempColorMin[1] = this.TempColorCalculator.Interpolate(this.TempOverLap[1].Min).ToHEX();
+        //         this.TempColorMin[2] = this.TempColorCalculator.Interpolate(this.TempOverLap[2].Min).ToHEX();
+        //         this.TempColorMin[3] = this.TempColorCalculator.Interpolate(this.TempOverLap[3].Min).ToHEX();
+        //     }
+        //     if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+        //         this.TempColorMax[0] = this.TempColorCalculator.Interpolate(this.TempOverLap[0].Max).ToHEX();
+        //         this.TempColorMax[1] = this.TempColorCalculator.Interpolate(this.TempOverLap[1].Max).ToHEX();
+        //         this.TempColorMax[2] = this.TempColorCalculator.Interpolate(this.TempOverLap[2].Max).ToHEX();
+        //         this.TempColorMax[3] = this.TempColorCalculator.Interpolate(this.TempOverLap[3].Max).ToHEX();
+        //     }
+        //     if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
+        //         this.TempColorAvg[0] = this.TempColorCalculator.Interpolate(this.TempOverLap[0].Avg).ToHEX();
+        //         this.TempColorAvg[1] = this.TempColorCalculator.Interpolate(this.TempOverLap[1].Avg).ToHEX();
+        //         this.TempColorAvg[2] = this.TempColorCalculator.Interpolate(this.TempOverLap[2].Avg).ToHEX();
+        //         this.TempColorAvg[3] = this.TempColorCalculator.Interpolate(this.TempOverLap[3].Avg).ToHEX();
+        //     }
 
-        }
+        // }
 
         #endregion
 

@@ -233,27 +233,27 @@ namespace KLPlugins.RaceEngineer {
             addTyres("Tyres.PresLoss", this._values.Car.Tyres.PresLoss);
             addTyres("Tyres.PresAvgDeltaToIdeal", this._values.Car.Tyres.PressDeltaToIdeal);
 
-            void addTyresColor(string name, string[] values, WheelFlags flag) {
-                if ((WheelFlags.Color & flag) != 0) {
-                    this.AttachDelegate(name + Car.Tyres.Names[0] + "Color", () => values[0]);
-                    this.AttachDelegate(name + Car.Tyres.Names[1] + "Color", () => values[1]);
-                    this.AttachDelegate(name + Car.Tyres.Names[2] + "Color", () => values[2]);
-                    this.AttachDelegate(name + Car.Tyres.Names[3] + "Color", () => values[3]);
-                }
-            }
+            // void addTyresColor(string name, string[] values, WheelFlags flag) {
+            //     if ((WheelFlags.Color & flag) != 0) {
+            //         this.AttachDelegate(name + Car.Tyres.Names[0] + "Color", () => values[0]);
+            //         this.AttachDelegate(name + Car.Tyres.Names[1] + "Color", () => values[1]);
+            //         this.AttachDelegate(name + Car.Tyres.Names[2] + "Color", () => values[2]);
+            //         this.AttachDelegate(name + Car.Tyres.Names[3] + "Color", () => values[3]);
+            //     }
+            // }
 
-            addTyresColor("Tyres.Pres", this._values.Car.Tyres.PresColor, Settings.TyrePresFlags);
-            addTyresColor("Tyres.Temp", this._values.Car.Tyres.TempColor, Settings.TyreTempFlags);
-            addTyresColor("Brakes.Temp", this._values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
+            // addTyresColor("Tyres.Pres", this._values.Car.Tyres.PresColor, Settings.TyrePresFlags);
+            // addTyresColor("Tyres.Temp", this._values.Car.Tyres.TempColor, Settings.TyreTempFlags);
+            // addTyresColor("Brakes.Temp", this._values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
 
-            void addTyreStatsColors(string name, string[] values, string statname) {
-                this.AttachDelegate(name + Car.Tyres.Names[0] + statname + "Color", () => values[0]);
-                this.AttachDelegate(name + Car.Tyres.Names[1] + statname + "Color", () => values[1]);
-                this.AttachDelegate(name + Car.Tyres.Names[2] + statname + "Color", () => values[2]);
-                this.AttachDelegate(name + Car.Tyres.Names[3] + statname + "Color", () => values[3]);
-            }
+            // void addTyreStatsColors(string name, string[] values, string statname) {
+            //     this.AttachDelegate(name + Car.Tyres.Names[0] + statname + "Color", () => values[0]);
+            //     this.AttachDelegate(name + Car.Tyres.Names[1] + statname + "Color", () => values[1]);
+            //     this.AttachDelegate(name + Car.Tyres.Names[2] + statname + "Color", () => values[2]);
+            //     this.AttachDelegate(name + Car.Tyres.Names[3] + statname + "Color", () => values[3]);
+            // }
 
-            void addTyresStats(string name, Stats.WheelsStats values, string[] minC, string[] maxC, string[] avgC, WheelFlags flags) {
+            void addTyresStats(string name, Stats.WheelsStats values, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Min & flags) != 0) {
                         this.AttachDelegate(n + "Min", () => v.Min);
@@ -273,25 +273,25 @@ namespace KLPlugins.RaceEngineer {
                 _addStats(name + Car.Tyres.Names[2], values[2]);
                 _addStats(name + Car.Tyres.Names[3], values[3]);
 
-                if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
-                    addTyreStatsColors(name, minC, "Min");
-                }
+                // if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
+                //     addTyreStatsColors(name, minC, "Min");
+                // }
 
-                if ((WheelFlags.MaxColor & Settings.TyrePresFlags) != 0) {
-                    addTyreStatsColors(name, maxC, "Max");
-                }
+                // if ((WheelFlags.MaxColor & Settings.TyrePresFlags) != 0) {
+                //     addTyreStatsColors(name, maxC, "Max");
+                // }
 
-                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
-                    addTyreStatsColors(name, avgC, "Avg");
-                }
+                // if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                //     addTyreStatsColors(name, avgC, "Avg");
+                // }
 
             }
 
-            addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, this._values.Car.Tyres.PresColorMin, this._values.Car.Tyres.PresColorMax, this._values.Car.Tyres.PresColorAvg, Settings.TyrePresFlags);
-            addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, this._values.Car.Tyres.TempColorMin, this._values.Car.Tyres.TempColorMax, this._values.Car.Tyres.TempColorAvg, Settings.TyreTempFlags);
-            addTyresStats("Brakes.TempOverLap", this._values.Car.Brakes.TempOverLap, this._values.Car.Brakes.TempColorMin, this._values.Car.Brakes.TempColorMax, this._values.Car.Brakes.TempColorAvg, Settings.BrakeTempFlags);
+            addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, Settings.TyrePresFlags);
+            addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, Settings.TyreTempFlags);
+            addTyresStats("Brakes.TempOverLap", this._values.Car.Brakes.TempOverLap, Settings.BrakeTempFlags);
 
-            void addTyresStatsOnlyAvg(string name, Stats.WheelsStats values, string[] avgC, WheelFlags flags) {
+            void addTyresStatsOnlyAvg(string name, Stats.WheelsStats values, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Avg & flags) != 0) {
                         this.AttachDelegate(n + "Avg", () => v.Avg);
@@ -302,14 +302,14 @@ namespace KLPlugins.RaceEngineer {
                 _addStats(name + Car.Tyres.Names[2], values[2]);
                 _addStats(name + Car.Tyres.Names[3], values[3]);
 
-                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
-                    addTyreStatsColors(name, avgC, "Avg");
-                }
+                // if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                //     addTyreStatsColors(name, avgC, "Avg");
+                // }
             }
 
-            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempOverLapInner, this._values.Car.Tyres.TempInnerColorAvg, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempOverLapMiddle, this._values.Car.Tyres.TempMiddleColorAvg, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOverLapOuter, this._values.Car.Tyres.TempOuterColorAvg, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempInnerOverLap", this._values.Car.Tyres.TempOverLapInner, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempMiddleOverLap", this._values.Car.Tyres.TempOverLapMiddle, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.TempOuterOverLap", this._values.Car.Tyres.TempOverLapOuter, Settings.TyreTempFlags);
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
