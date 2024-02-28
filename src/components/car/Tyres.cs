@@ -25,11 +25,6 @@ namespace KLPlugins.RaceEngineer.Car {
         public double[] PresLoss { get; }
         public bool[] PresLossLap { get; }
 
-        // public string[] PresColor { get; private set; }
-        // public string[] PresColorMin { get; private set; }
-        // public string[] PresColorMax { get; private set; }
-        // public string[] PresColorAvg { get; private set; }
-
         public MultiPointLinearInterpolator TempNormalizerF { get; private set; }
         public MultiPointLinearInterpolator TempNormalizerR { get; private set; }
         public WheelsData<double> TempNormalized { get; } = new(0.0);
@@ -364,10 +359,13 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             if (v.Car.Info.Tyres.ContainsKey(this.Name)) {
+                RaceEngineerPlugin.LogInfo($"Tyre info found for '{this.Name}'.");
                 this._tyreInfo = v.Car.Info.Tyres[this.Name];
             } else if (v.Car.Info.Tyres.ContainsKey("def")) {
+                RaceEngineerPlugin.LogInfo($"Tyre info not found for '{this.Name}'. Using `def` values.");
                 this._tyreInfo = v.Car.Info.Tyres["def"];
             } else {
+                RaceEngineerPlugin.LogInfo($"Tyre info not found for '{this.Name}'. Using `TyreInfo.Default()`.");
                 this._tyreInfo = TyreInfo.Default();
             }
 

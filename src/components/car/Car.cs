@@ -315,6 +315,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void ReadInfo(GameData data) {
             if (this.Name == null) return;
+            this.Info.Reset();
 
             if (RaceEngineerPlugin.Game.IsAc) {
                 this.ReadInfoAC(data);
@@ -334,7 +335,6 @@ namespace KLPlugins.RaceEngineer.Car {
                 }
             }
 
-            this.Info.Reset();
             try {
                 var partial = JsonConvert.DeserializeObject<CarInfoPartial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
                 if (partial != null) {
@@ -586,7 +586,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
             foreach (var r in results.Values) {
                 if (r.Name != null) {
-                    info.Tyres[r.Name] = r.Build();
+                    info.Tyres[$"{r.Name} ({r.ShortName})"] = r.Build();
                 }
             }
 
