@@ -68,6 +68,7 @@ namespace KLPlugins.RaceEngineer.Car {
         private readonly WheelsRunningStats _tempMiddleRunning = new();
         private readonly WheelsRunningStats _tempOuterRunning = new();
         private TyreInfo? _tyreInfo = null;
+        private ACTyreInfo? _aCTyreInfo = null;
         private double _lastSampleTimeSec = DateTime.Now.Second;
         private int _wetSet = 0;
 
@@ -153,6 +154,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this._tempMiddleRunning.Reset();
             this._tempOuterRunning.Reset();
             this._tyreInfo = null;
+            this._aCTyreInfo = null;
             this._wetSet = 0;
             this.CurrentTyreSet = 0;
         }

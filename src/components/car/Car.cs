@@ -53,6 +53,7 @@ namespace KLPlugins.RaceEngineer.Car {
     public class Car {
         public string? Name { get; private set; }
         public CarInfo? Info { get; private set; }
+        internal ACCarInfo? ACInfo { get; private set; }
         public CarSetup? Setup { get; private set; }
         public Tyres Tyres { get; private set; }
         public Brakes Brakes { get; private set; }
@@ -62,6 +63,7 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Created new Car");
             this.Name = null;
             this.Info = null;
+            this.ACInfo = null;
             this.Setup = null;
             this.Tyres = new Tyres();
             this.Brakes = new Brakes();
@@ -72,6 +74,7 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Car.Reset()");
             this.Name = null;
             this.Info = null;
+            this.ACInfo = null;
             this.Setup = null;
             this.Tyres.Reset();
             this.Brakes.Reset();
@@ -81,7 +84,7 @@ namespace KLPlugins.RaceEngineer.Car {
         #region On... METHODS
 
         public void OnNewEvent(GameData data, Values v) {
-            this.CheckChange(data.NewData.CarModel);
+            this.CheckChange(data);
             this.Fuel.OnNewEvent(data, v);
         }
 
@@ -104,7 +107,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            this.CheckChange(data.NewData.CarModel);
+            this.CheckChange(data);
 
             if (RaceEngineerPlugin.Game.IsAcc && !v.Booleans.NewData.IsMoving && (this.Setup == null || (v.Booleans.OldData.IsSetupMenuVisible && !v.Booleans.NewData.IsSetupMenuVisible))) {
                 this.UpdateSetup(data.NewData.TrackId);
@@ -124,13 +127,14 @@ namespace KLPlugins.RaceEngineer.Car {
         /// </summary>
         /// <param name="newName"></param>
         /// <returns></returns>
-        private bool CheckChange(string newName) {
+        private bool CheckChange(GameData data) {
+            var newName = data.NewData.CarModel;
             if (newName != null) {
                 var hasChanged = this.Name != newName;
                 if (hasChanged) {
                     RaceEngineerPlugin.LogInfo($"Car changed from '{this.Name}' to '{newName}'");
                     this.Name = newName;
-                    this.ReadInfo();
+                    this.ReadInfo(data);
                 }
 
                 return hasChanged;
@@ -138,9 +142,8 @@ namespace KLPlugins.RaceEngineer.Car {
             return false;
         }
 
-        private void ReadInfo() {
+        private void ReadInfo(GameData data) {
             if (this.Name == null) return;
-
 
             string fname = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             if (!File.Exists(fname)) {
@@ -160,11 +163,26 @@ namespace KLPlugins.RaceEngineer.Car {
                 RaceEngineerPlugin.LogInfo($"Read car info from '{fname}'");
             } catch (IOException) {
                 //RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
-                this.Info = null;
+                if (RaceEngineerPlugin.Game.IsAc) {
+                    var carid = data.NewData.CarId;
+                    string dataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
+                    try {
+                        this.ACInfo = ACCarInfo.FromFile(dataPath);
+                    } catch (IOException e) {
+                        RaceEngineerPlugin.LogInfo($"Car changed. No information file. Error: {e}");
+                        this.Info = null;
+                        this.ACInfo = null;
+                    }
+                } else {
+                    this.Info = null;
+                    this.ACInfo = null;
+                }
+
             }
         }
 
         private void UpdateSetup(string trackName) {
+            // TODO: this should work for other games too, if we implement their setup structure
             string fname = $@"{RaceEngineerPlugin.Settings.AccDataLocation}\Setups\{this.Name}\{trackName}\current.json";
             try {
                 this.Setup = JsonConvert.DeserializeObject<CarSetup>(File.ReadAllText(fname).Replace("\"", "'"));
