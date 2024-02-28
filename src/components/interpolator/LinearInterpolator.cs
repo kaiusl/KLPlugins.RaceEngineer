@@ -23,8 +23,8 @@ namespace KLPlugins.RaceEngineer.Interpolator {
     public class MultiPointLinearInterpolator {
         public int NumPoints;
 
-        private readonly double[] _xs;
-        private double[] _ys;
+        private readonly double[] _ys;
+        private double[] _xs;
         private readonly LinearInterpolator[] _interpolators;
 
         /// <summary>
@@ -35,19 +35,19 @@ namespace KLPlugins.RaceEngineer.Interpolator {
         /// <exception cref="Exception"></exception>
         public MultiPointLinearInterpolator(double[] x, double[] y) {
             if (x.Length != y.Length) {
-                throw new Exception("There must be same number of colors and values.");
+                throw new Exception("There must be same number of x and y points.");
             }
 
             this.NumPoints = x.Length;
-            this._xs = x;
             this._ys = y;
+            this._xs = x;
 
             this._interpolators = new LinearInterpolator[this.NumPoints];
             this.UpdateInterpolators();
         }
 
         public MultiPointLinearInterpolator(Lut lut) : this([.. lut.X], [.. lut.Y]) { }
-        
+
 
         // public void UpdateInterpolation(double[] values) {
         //     if (this.NumPoints != values.Length) {
@@ -83,24 +83,24 @@ namespace KLPlugins.RaceEngineer.Interpolator {
 
         private void UpdateInterpolators() {
             for (var i = 0; i < this.NumPoints - 1; i++) {
-                this._interpolators[i] = new LinearInterpolator(this._ys[i], this._xs[i], this._ys[i + 1], this._xs[i + 1]);
+                this._interpolators[i] = new LinearInterpolator(this._xs[i], this._ys[i], this._xs[i + 1], this._ys[i + 1]);
             }
         }
 
         public double Interpolate(double value) {
             if (double.IsNaN(value)) return 0;
 
-            if (value <= this._ys[0]) {
-                return this._xs[0];
+            if (value <= this._xs[0]) {
+                return this._ys[0];
             }
 
-            if (value >= this._ys[this.NumPoints - 1]) {
-                return this._xs[this.NumPoints - 1];
+            if (value >= this._xs[this.NumPoints - 1]) {
+                return this._ys[this.NumPoints - 1];
             }
 
 
             for (var i = 0; i < this.NumPoints - 1; i++) {
-                if (value <= this._ys[i + 1]) {
+                if (value <= this._xs[i + 1]) {
                     return this._interpolators[i].Interpolate(value);
                 }
             }
