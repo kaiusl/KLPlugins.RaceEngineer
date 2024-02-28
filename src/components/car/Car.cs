@@ -36,6 +36,42 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
+    public class MinMaxAvg<T>(T min, T max, T avg) {
+        public T Min { get; set; } = min;
+        public T Max { get; set; } = max;
+        public T Avg { get; set; } = avg;
+    }
+
+    public class TyreInfo {
+        public FrontRear<double> IdealPres { get; private set; }
+        public FrontRear<Lut> IdealPresCurve { get; private set; }
+        public FrontRear<Lut> IdealTempCurve { get; private set; }
+        public string? ShortName { get; private set; }
+
+        [JsonIgnore]
+        public FrontRear<MinMaxAvg<double>> IdealPresRange { get; private set; }
+        [JsonIgnore]
+        public FrontRear<MinMaxAvg<double>> IdealTempRange { get; private set; }
+
+        public TyreInfo(FrontRear<double> idealPres, FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve, string? shortName = null) {
+            this.IdealPres = idealPres;
+            this.IdealPresCurve = idealPresCurve;
+            this.IdealTempCurve = idealTempCurve;
+            this.ShortName = shortName;
+
+            this.IdealPresRange = new(FindIdealMinMaxAvg(idealPresCurve.F), FindIdealMinMaxAvg(idealPresCurve.R));
+            this.IdealTempRange = new(FindIdealMinMaxAvg(idealTempCurve.F), FindIdealMinMaxAvg(idealTempCurve.R));
+
+        }
+
+        private static MinMaxAvg<double> FindIdealMinMaxAvg(Lut lut) {
+            var ienum = lut.Where(x => x.Item2 == 0.0).Select(x => x.Item1);
+            var min = ienum.First();
+            var max = ienum.Last();
+
+            return new MinMaxAvg<double>(min, max, (min + max) / 2.0);
+        }
+
 
         public static TyreInfo Default() {
             return FromPartial(new TyreInfoPartial());
