@@ -48,39 +48,6 @@ namespace KLPlugins.RaceEngineer.Interpolator {
 
         public MultiPointLinearInterpolator(Lut lut) : this([.. lut.X], [.. lut.Y]) { }
 
-
-        // public void UpdateInterpolation(double[] values) {
-        //     if (this.NumPoints != values.Length) {
-        //         throw new Exception("There must be same number of colors and values.");
-        //     }
-
-        //     this._ys = values;
-
-        //     this.UpdateInterpolators();
-        // }
-
-        // public void UpdateInterpolation(double ideal, double delta) {
-        //     bool even = this.NumPoints % 2 == 0;
-        //     int half_num = this.NumPoints / 2;
-
-        //     double[] vals = new double[this.NumPoints];
-        //     if (!even) {
-        //         for (int i = -half_num; i <= half_num; i++) {
-        //             vals[i + half_num] = ideal + i * delta;
-        //         }
-        //     } else {
-        //         for (int i = -half_num; i < half_num; i++) {
-        //             if (i < 0) {
-        //                 vals[i + half_num] = ideal + i * delta;
-        //             } else {
-        //                 vals[i + half_num] = ideal + (i + 1) * delta;
-        //             }
-        //         }
-        //     }
-
-        //     this.UpdateInterpolation(vals);
-        // }
-
         private void UpdateInterpolators() {
             for (var i = 0; i < this.NumPoints - 1; i++) {
                 this._interpolators[i] = new LinearInterpolator(this._xs[i], this._ys[i], this._xs[i + 1], this._ys[i + 1]);
@@ -91,11 +58,11 @@ namespace KLPlugins.RaceEngineer.Interpolator {
             if (double.IsNaN(value)) return 0;
 
             if (value <= this._xs[0]) {
-                return this._ys[0];
+                return this._interpolators[0].Interpolate(value);
             }
 
             if (value >= this._xs[this.NumPoints - 1]) {
-                return this._ys[this.NumPoints - 1];
+                return this._interpolators[this.NumPoints - 1].Interpolate(value);
             }
 
 
