@@ -67,7 +67,7 @@ namespace KLPlugins.RaceEngineer {
             this.ShowAllLaps = s.ShowAllLaps;
 
             this.BrakeTempNormalizationLut = s.BrakeTempNormalizationLut;
-            this.TyreTempNormalizationLut = s.TyrePresNormalizationLut;
+            this.TyreTempNormalizationLut = s.TyreTempNormalizationLut;
             this.TyrePresNormalizationLut = s.TyrePresNormalizationLut;
 
             this.ParseLapFlags(s.PrevLapsInfo, ref this._prevLapsStats, "PrevLapsInfo");
