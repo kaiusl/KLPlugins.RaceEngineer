@@ -24,14 +24,14 @@ namespace KLPlugins.RaceEngineer.Car {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap = new();
-            this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
         }
 
         public void Reset() {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap.Reset();
-            this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
             this.TempNormalized.Reset();
             this.TempMinNormalized.Reset();
             this.TempMaxNormalized.Reset();
