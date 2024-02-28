@@ -15,10 +15,11 @@ namespace KLPlugins.RaceEngineer.Car {
         public FrontRear(T one) : this(one, one) { }
     }
 
-    public class TyreInfo(FrontRear<double> idealPres, FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve) {
+    public class TyreInfo(FrontRear<double> idealPres, FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve, string? shortName = null) {
         public FrontRear<double> IdealPres { get; set; } = idealPres;
         public FrontRear<Lut> IdealPresCurve { get; set; } = idealPresCurve;
         public FrontRear<Lut> IdealTempCurve { get; set; } = idealTempCurve;
+        public string? ShortName { get; set; } = shortName;
 
 
         public static TyreInfo Default() {
@@ -30,14 +31,15 @@ namespace KLPlugins.RaceEngineer.Car {
             var idealPresCurve = partial.IdealPresCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
             var idealTempCurve = partial.IdealTempCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
 
-            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
+            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve, partial.ShortName);
         }
 
         internal static TyreInfo FromACTyreInfo(ACTyreInfo acTyreInfo) {
             return new TyreInfo(
                 acTyreInfo.IdealPres,
                 PresCurvesFromACTyreInfo(acTyreInfo),
-                TempCurvesFromACTyreInfo(acTyreInfo)
+                TempCurvesFromACTyreInfo(acTyreInfo),
+                acTyreInfo.ShortName
             );
         }
 
@@ -47,7 +49,7 @@ namespace KLPlugins.RaceEngineer.Car {
             var idealPresCurve = partial.IdealPresCurve?.Build() ?? PresCurvesFromACTyreInfo(acTyreInfo);
             var idealTempCurve = partial.IdealTempCurve?.Build() ?? TempCurvesFromACTyreInfo(acTyreInfo);
 
-            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve);
+            return new TyreInfo(idealPres, idealPresCurve, idealTempCurve, partial.ShortName ?? acTyreInfo.ShortName);
         }
 
         private static FrontRear<Lut> PresCurvesFromACTyreInfo(ACTyreInfo acTyreInfo) {
@@ -153,15 +155,21 @@ namespace KLPlugins.RaceEngineer.Car {
         public FrontRearPartial<double>? IdealPres { get; set; }
         public FrontRearPartial<Lut>? IdealPresCurve { get; set; }
         public FrontRearPartial<Lut>? IdealTempCurve { get; set; }
+        public string? ShortName { get; set; }
 
         public void FillGaps(TyreInfoPartial other) {
             this.IdealPres ??= other.IdealPres;
             this.IdealPresCurve ??= other.IdealPresCurve;
             this.IdealTempCurve ??= other.IdealTempCurve;
+            this.ShortName ??= other.ShortName;
         }
 
         public bool IsFullyInitialized() {
             return this.IdealPres != null && this.IdealPresCurve != null && this.IdealTempCurve != null;
+        }
+
+        public bool IsFullyInitializedAC() {
+            return this.IdealPres != null && this.IdealPresCurve != null && this.IdealTempCurve != null && this.ShortName != null;
         }
     }
 
@@ -187,6 +195,10 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public bool IsFullyInitialized() {
             return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitialized());
+        }
+
+        public bool IsFullyInitializedAC() {
+            return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitializedAC());
         }
     }
 
@@ -338,7 +350,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 //
             }
 
-            if (partialInfo.IsFullyInitialized()) {
+            if (partialInfo.IsFullyInitializedAC()) {
                 RaceEngineerPlugin.LogInfo($"Read complete car info from '{pluginsCarDataPath}'");
 
                 // got all the date we need
