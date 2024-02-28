@@ -249,7 +249,7 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            // addTyresColor("Tyres.Pres", this._values.Car.Tyres.PresColor, Settings.TyrePresFlags);
+            addTyresNormalized("Tyres.Pres", this._values.Car.Tyres.PresNormalized, Settings.TyrePresFlags);
             addTyresNormalized("Tyres.Temp", this._values.Car.Tyres.TempNormalized, Settings.TyreTempFlags);
             addTyresNormalized("Brakes.Temp", this._values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
 
@@ -294,14 +294,22 @@ namespace KLPlugins.RaceEngineer {
 
             }
 
-            //addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, Settings.TyrePresFlags);
+            addTyresStats(
+                "Tyres.Pres",
+                this._values.Car.Tyres.PresOverLap,
+                this._values.Car.Tyres.PresMinNormalized,
+                this._values.Car.Tyres.PresAvgNormalized,
+                this._values.Car.Tyres.PresMaxNormalized,
+                Settings.TyrePresFlags
+            );
             addTyresStats(
                 "Tyres.Temp",
                 this._values.Car.Tyres.TempOverLap,
                 this._values.Car.Tyres.TempMinNormalized,
                 this._values.Car.Tyres.TempAvgNormalized,
                 this._values.Car.Tyres.TempMaxNormalized,
-                 Settings.TyreTempFlags);
+                Settings.TyreTempFlags
+            );
             addTyresStats(
                 "Brakes.Temp",
                 this._values.Car.Brakes.TempOverLap,
