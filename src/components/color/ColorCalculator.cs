@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using KLPlugins.RaceEngineer.Car;
+
 namespace KLPlugins.RaceEngineer.Color {
     /// <summary>
     /// Linear interpolator between to points
@@ -43,6 +45,9 @@ namespace KLPlugins.RaceEngineer.Color {
             this._interpolators = new LinearInterpolator[this.NumPoints];
             this.UpdateInterpolators();
         }
+
+        public MultiPointLinearInterpolator(Lut lut) : this([.. lut.X], [.. lut.Y]) { }
+        
 
         // public void UpdateInterpolation(double[] values) {
         //     if (this.NumPoints != values.Length) {

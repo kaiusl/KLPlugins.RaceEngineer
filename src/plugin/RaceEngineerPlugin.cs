@@ -10,6 +10,7 @@ using SimHub.Plugins;
 
 using KLPlugins.RaceEngineer.Deque;
 using ksBroadcastingNetwork;
+using KLPlugins.RaceEngineer.Car;
 
 namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
@@ -182,27 +183,33 @@ namespace KLPlugins.RaceEngineer {
             this.AttachDelegate("Fuel.Remaining", () => this._values.Car.Fuel.Remaining);
             this.AttachDelegate("Fuel.RemainingAtLapStart", () => this._values.Car.Fuel.RemainingAtLapStart);
 
+            const string NORMALIZED_KEYWORD = "Norm";
+            const string MIN_KEYWORD = "Min";
+            const string AVG_KEYWORD = "Avg";
+            const string MAX_KEYWORD = "Max";
+            const string STD_KEYWORD = "Std";
+
             void addStats(string name, Stats.Stats values, StatsFlags settings) {
                 if ((StatsFlags.Min & settings) != 0) {
-                    this.AttachDelegate(name + "Min", () => values.Min);
+                    this.AttachDelegate(name + "." + MIN_KEYWORD, () => values.Min);
                 }
                 if ((StatsFlags.Max & settings) != 0) {
-                    this.AttachDelegate(name + "Max", () => values.Max);
+                    this.AttachDelegate(name + "." + MAX_KEYWORD, () => values.Max);
                 }
                 if ((StatsFlags.Avg & settings) != 0) {
-                    this.AttachDelegate(name + "Avg", () => values.Avg);
+                    this.AttachDelegate(name + "." + AVG_KEYWORD, () => values.Avg);
                 }
                 if ((StatsFlags.Std & settings) != 0) {
-                    this.AttachDelegate(name + "Std", () => values.Std);
+                    this.AttachDelegate(name + "." + STD_KEYWORD, () => values.Std);
                 }
                 if ((StatsFlags.Median & settings) != 0) {
-                    this.AttachDelegate(name + "Median", () => values.Median);
+                    this.AttachDelegate(name + ".Median", () => values.Median);
                 }
                 if ((StatsFlags.Q1 & settings) != 0) {
-                    this.AttachDelegate(name + "Q1", () => values.Q1);
+                    this.AttachDelegate(name + ".Q1", () => values.Q1);
                 }
                 if ((StatsFlags.Q3 & settings) != 0) {
-                    this.AttachDelegate(name + "Q3", () => values.Q3);
+                    this.AttachDelegate(name + ".Q3", () => values.Q3);
                 }
             }
 
@@ -219,10 +226,10 @@ namespace KLPlugins.RaceEngineer {
 
 
             void addTyres(string name, double[] values) {
-                this.AttachDelegate(name + Car.Tyres.Names[0], () => values[0]);
-                this.AttachDelegate(name + Car.Tyres.Names[1], () => values[1]);
-                this.AttachDelegate(name + Car.Tyres.Names[2], () => values[2]);
-                this.AttachDelegate(name + Car.Tyres.Names[3], () => values[3]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[0], () => values[0]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[1], () => values[1]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[2], () => values[2]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[3], () => values[3]);
             }
 
             addTyres("Tyres.IdealInputPres", this._values.Car.Tyres.IdealInputPres);
@@ -233,63 +240,70 @@ namespace KLPlugins.RaceEngineer {
             addTyres("Tyres.PresLoss", this._values.Car.Tyres.PresLoss);
             addTyres("Tyres.PresAvgDeltaToIdeal", this._values.Car.Tyres.PressDeltaToIdeal);
 
-            // void addTyresColor(string name, string[] values, WheelFlags flag) {
-            //     if ((WheelFlags.Color & flag) != 0) {
-            //         this.AttachDelegate(name + Car.Tyres.Names[0] + "Color", () => values[0]);
-            //         this.AttachDelegate(name + Car.Tyres.Names[1] + "Color", () => values[1]);
-            //         this.AttachDelegate(name + Car.Tyres.Names[2] + "Color", () => values[2]);
-            //         this.AttachDelegate(name + Car.Tyres.Names[3] + "Color", () => values[3]);
-            //     }
-            // }
+            void addTyresNormalized<T>(string name, WheelsData<T> values, WheelFlags flag) {
+                if ((WheelFlags.Color & flag) != 0) {
+                    this.AttachDelegate(name + "." + Car.Tyres.Names[0] + "." + NORMALIZED_KEYWORD, () => values[0]);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names[1] + "." + NORMALIZED_KEYWORD, () => values[1]);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names[2] + "." + NORMALIZED_KEYWORD, () => values[2]);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names[3] + "." + NORMALIZED_KEYWORD, () => values[3]);
+                }
+            }
 
             // addTyresColor("Tyres.Pres", this._values.Car.Tyres.PresColor, Settings.TyrePresFlags);
             // addTyresColor("Tyres.Temp", this._values.Car.Tyres.TempColor, Settings.TyreTempFlags);
-            // addTyresColor("Brakes.Temp", this._values.Car.Brakes.TempColor, Settings.BrakeTempFlags);
+            addTyresNormalized("Brakes.Temp", this._values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
 
-            // void addTyreStatsColors(string name, string[] values, string statname) {
-            //     this.AttachDelegate(name + Car.Tyres.Names[0] + statname + "Color", () => values[0]);
-            //     this.AttachDelegate(name + Car.Tyres.Names[1] + statname + "Color", () => values[1]);
-            //     this.AttachDelegate(name + Car.Tyres.Names[2] + statname + "Color", () => values[2]);
-            //     this.AttachDelegate(name + Car.Tyres.Names[3] + statname + "Color", () => values[3]);
-            // }
+            void addTyreStatsNormalized<T>(string name, WheelsData<T> values, string statname) {
+                this.AttachDelegate(name + "." + Car.Tyres.Names[0] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[0]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[1] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[1]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[2] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[2]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names[3] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[3]);
+            }
 
-            void addTyresStats(string name, Stats.WheelsStats values, WheelFlags flags) {
+            void addTyresStats<T>(string name, Stats.WheelsStats values, WheelsData<T> min, WheelsData<T> avg, WheelsData<T> max, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Min & flags) != 0) {
-                        this.AttachDelegate(n + "Min", () => v.Min);
+                        this.AttachDelegate(n + "." + MIN_KEYWORD, () => v.Min);
                     }
                     if ((WheelFlags.Max & flags) != 0) {
-                        this.AttachDelegate(n + "Max", () => v.Max);
+                        this.AttachDelegate(n + "." + MAX_KEYWORD, () => v.Max);
                     }
                     if ((WheelFlags.Avg & flags) != 0) {
-                        this.AttachDelegate(n + "Avg", () => v.Avg);
+                        this.AttachDelegate(n + "." + AVG_KEYWORD, () => v.Avg);
                     }
                     if ((WheelFlags.Std & flags) != 0) {
-                        this.AttachDelegate(n + "Std", () => v.Std);
+                        this.AttachDelegate(n + "." + STD_KEYWORD, () => v.Std);
                     }
                 }
-                _addStats(name + Car.Tyres.Names[0], values[0]);
-                _addStats(name + Car.Tyres.Names[1], values[1]);
-                _addStats(name + Car.Tyres.Names[2], values[2]);
-                _addStats(name + Car.Tyres.Names[3], values[3]);
+                _addStats(name + "." + Car.Tyres.Names[0], values[0]);
+                _addStats(name + "." + Car.Tyres.Names[1], values[1]);
+                _addStats(name + "." + Car.Tyres.Names[2], values[2]);
+                _addStats(name + "." + Car.Tyres.Names[3], values[3]);
 
-                // if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
-                //     addTyreStatsColors(name, minC, "Min");
-                // }
+                if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsNormalized(name, min, "Min");
+                }
 
-                // if ((WheelFlags.MaxColor & Settings.TyrePresFlags) != 0) {
-                //     addTyreStatsColors(name, maxC, "Max");
-                // }
+                if ((WheelFlags.MaxColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsNormalized(name, max, "Max");
+                }
 
-                // if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
-                //     addTyreStatsColors(name, avgC, "Avg");
-                // }
+                if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
+                    addTyreStatsNormalized(name, avg, "Avg");
+                }
 
             }
 
-            addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, Settings.TyrePresFlags);
-            addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, Settings.TyreTempFlags);
-            addTyresStats("Brakes.TempOverLap", this._values.Car.Brakes.TempOverLap, Settings.BrakeTempFlags);
+            //addTyresStats("Tyres.PresOverLap", this._values.Car.Tyres.PresOverLap, Settings.TyrePresFlags);
+            // addTyresStats("Tyres.TempOverLap", this._values.Car.Tyres.TempOverLap, Settings.TyreTempFlags);
+            addTyresStats(
+                "Brakes.Temp",
+                this._values.Car.Brakes.TempOverLap,
+                this._values.Car.Brakes.TempMinNormalized,
+                this._values.Car.Brakes.TempAvgNormalized,
+                this._values.Car.Brakes.TempMaxNormalized,
+                Settings.BrakeTempFlags
+            );
 
             void addTyresStatsOnlyAvg(string name, Stats.WheelsStats values, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
