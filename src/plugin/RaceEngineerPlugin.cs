@@ -47,7 +47,7 @@ namespace KLPlugins.RaceEngineer {
 
         // these are set in Init method
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private Values _values;
+        public Values Values;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace KLPlugins.RaceEngineer {
             if (data.GameRunning && data.OldData != null && data.NewData != null) {
                 //var swatch = Stopwatch.StartNew();
 
-                this._values.OnDataUpdate(data);
+                this.Values.OnDataUpdate(data);
 
                 //swatch.Stop();
                 //TimeSpan ts = swatch.Elapsed;
@@ -84,7 +84,7 @@ namespace KLPlugins.RaceEngineer {
         /// <param name="pluginManager"></param>
         public void End(PluginManager pluginManager) {
             this.SaveCommonSettings("GeneralSettings", this.ShSettings);
-            this._values?.Dispose();
+            this.Values?.Dispose();
             if (_logWriter != null) {
                 _logWriter.Dispose();
                 _logWriter = null;
@@ -131,9 +131,9 @@ namespace KLPlugins.RaceEngineer {
 
 
             GameDataPath = $@"{Settings.DataLocation}\{gameName}";
-            this._values = new Values();
+            this.Values = new Values();
 
-            pluginManager.GameStateChanged += this._values.OnGameStateChanged;
+            pluginManager.GameStateChanged += this.Values.OnGameStateChanged;
             pluginManager.GameStateChanged += (bool running, PluginManager _) => {
                 LogInfo($"GameStateChanged to {running}");
                 if (!running) {
@@ -152,12 +152,12 @@ namespace KLPlugins.RaceEngineer {
             const string MAX_KEYWORD = "Max";
             const string STD_KEYWORD = "Std";
 
-            this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this._values.Session.TimeOfDay));
-            this.AttachDelegate("Session.TimeMultiplier", () => this._values.Session.TimeMultiplier);
-            this.AttachDelegate("Session.Type", () => this._values.Session.RaceSessionType);
+            this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this.Values.Session.TimeOfDay));
+            this.AttachDelegate("Session.TimeMultiplier", () => this.Values.Session.TimeMultiplier);
+            this.AttachDelegate("Session.Type", () => this.Values.Session.RaceSessionType);
 
-            this.AttachDelegate("Tyres.CurrentSet", () => this._values.Car.Tyres.CurrentTyreSet);
-            this.AttachDelegate("Tyres.CurrentSetLaps", () => this._values.Car.Tyres.GetCurrentSetLaps());
+            this.AttachDelegate("Tyres.CurrentSet", () => this.Values.Car.Tyres.CurrentTyreSet);
+            this.AttachDelegate("Tyres.CurrentSetLaps", () => this.Values.Car.Tyres.GetCurrentSetLaps());
 
 
             void addIdealRange<T>(string name, MinMaxAvg<T> value) {
@@ -166,43 +166,43 @@ namespace KLPlugins.RaceEngineer {
                 this.AttachDelegate(name + '.' + MAX_KEYWORD, () => value.Max);
             }
 
-            addIdealRange("Tyres.Pres.Ideal.Front", this._values.Car.Tyres.Info.IdealPresRange.F);
-            addIdealRange("Tyres.Pres.Ideal.Rear", this._values.Car.Tyres.Info.IdealPresRange.R);
-            addIdealRange("Tyres.Temp.Ideal.Front", this._values.Car.Tyres.Info.IdealTempRange.F);
-            addIdealRange("Tyres.Temp.Ideal.Rear", this._values.Car.Tyres.Info.IdealTempRange.R);
+            addIdealRange("Tyres.Pres.Ideal.1", this.Values.Car.Tyres.Info.IdealPresRange.F);
+            addIdealRange("Tyres.Pres.Ideal.2", this.Values.Car.Tyres.Info.IdealPresRange.R);
+            addIdealRange("Tyres.Temp.Ideal.1", this.Values.Car.Tyres.Info.IdealTempRange.F);
+            addIdealRange("Tyres.Temp.Ideal.2", this.Values.Car.Tyres.Info.IdealTempRange.R);
 
-            this.AttachDelegate("Tyres.ShortName", () => this._values.Car.Tyres.Info.ShortName);
+            this.AttachDelegate("Tyres.ShortName", () => this.Values.Car.Tyres.Info.ShortName);
 
-            this.AttachDelegate("Weather.Report", () => this._values.Weather.WeatherSummary);
-            this.AttachDelegate("Weather.AirTemp", () => this._values.Weather.AirTemp);
-            this.AttachDelegate("Weather.TrackTemp", () => this._values.Weather.TrackTemp);
-            this.AttachDelegate("Weather.AirTempAtLapStart", () => this._values.Weather.AirTempAtLapStart);
-            this.AttachDelegate("Weather.TrackTempAtLapStart", () => this._values.Weather.TrackTempAtLapStart);
+            this.AttachDelegate("Weather.Report", () => this.Values.Weather.WeatherSummary);
+            this.AttachDelegate("Weather.AirTemp", () => this.Values.Weather.AirTemp);
+            this.AttachDelegate("Weather.TrackTemp", () => this.Values.Weather.TrackTemp);
+            this.AttachDelegate("Weather.AirTempAtLapStart", () => this.Values.Weather.AirTempAtLapStart);
+            this.AttachDelegate("Weather.TrackTempAtLapStart", () => this.Values.Weather.TrackTempAtLapStart);
 
-            this.AttachDelegate("Stint.Nr", () => this._values.Laps.StintNr);
-            this.AttachDelegate("Stint.Laps", () => this._values.Laps.StintLaps);
+            this.AttachDelegate("Stint.Nr", () => this.Values.Laps.StintNr);
+            this.AttachDelegate("Stint.Laps", () => this.Values.Laps.StintLaps);
 
-            this.AttachDelegate("Brakes.CurrentSetLaps", () => this._values.Car.Brakes.LapsNr);
-            this.AttachDelegate("Brakes.CurrentSet", () => this._values.Car.Brakes.SetNr);
+            this.AttachDelegate("Brakes.CurrentSetLaps", () => this.Values.Car.Brakes.LapsNr);
+            this.AttachDelegate("Brakes.CurrentSet", () => this.Values.Car.Brakes.SetNr);
 
-            this.AttachDelegate("Brakes.DuctFront", () => this._values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[0]);
-            this.AttachDelegate("Brakes.DuctRear", () => this._values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[1]);
+            this.AttachDelegate("Brakes.DuctFront", () => this.Values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[0]);
+            this.AttachDelegate("Brakes.DuctRear", () => this.Values.Car.Setup?.advancedSetup.aeroBalance.brakeDuct[1]);
 
-            this.AttachDelegate("Booleans.IsInMenu", () => this._values.Booleans.NewData.IsInMenu ? 1 : 0);
-            this.AttachDelegate("Booleans.IsOnTrack", () => this._values.Booleans.NewData.IsOnTrack ? 1 : 0);
-            this.AttachDelegate("Booleans.IsMoving", () => this._values.Booleans.NewData.IsMoving ? 1 : 0);
-            this.AttachDelegate("Booleans.IsValidFuelLap", () => this._values.Booleans.NewData.IsValidFuelLap ? 1 : 0);
-            this.AttachDelegate("Booleans.IsSetupMenuVisible", () => this._values.Booleans.NewData.IsSetupMenuVisible ? 1 : 0);
-            this.AttachDelegate("Booleans.IsTimeLimitedSession", () => this._values.Booleans.NewData.IsTimeLimitedSession ? 1 : 0);
-            this.AttachDelegate("Booleans.IsLapLimitedSession", () => this._values.Booleans.NewData.IsLapLimitedSession ? 1 : 0);
-            this.AttachDelegate("Booleans.IsOutLap", () => this._values.Booleans.NewData.IsOutLap ? 1 : 0);
-            this.AttachDelegate("Booleans.IsInLap", () => this._values.Booleans.NewData.IsInLap ? 1 : 0);
-            this.AttachDelegate("Booleans.EcuMapChangedThisLap", () => this._values.Booleans.NewData.EcuMapChangedThisLap ? 1 : 0);
-            this.AttachDelegate("Booleans.RainIntensityChangedThisLap", () => this._values.Booleans.NewData.RainIntensityChangedThisLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsInMenu", () => this.Values.Booleans.NewData.IsInMenu ? 1 : 0);
+            this.AttachDelegate("Booleans.IsOnTrack", () => this.Values.Booleans.NewData.IsOnTrack ? 1 : 0);
+            this.AttachDelegate("Booleans.IsMoving", () => this.Values.Booleans.NewData.IsMoving ? 1 : 0);
+            this.AttachDelegate("Booleans.IsValidFuelLap", () => this.Values.Booleans.NewData.IsValidFuelLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsSetupMenuVisible", () => this.Values.Booleans.NewData.IsSetupMenuVisible ? 1 : 0);
+            this.AttachDelegate("Booleans.IsTimeLimitedSession", () => this.Values.Booleans.NewData.IsTimeLimitedSession ? 1 : 0);
+            this.AttachDelegate("Booleans.IsLapLimitedSession", () => this.Values.Booleans.NewData.IsLapLimitedSession ? 1 : 0);
+            this.AttachDelegate("Booleans.IsOutLap", () => this.Values.Booleans.NewData.IsOutLap ? 1 : 0);
+            this.AttachDelegate("Booleans.IsInLap", () => this.Values.Booleans.NewData.IsInLap ? 1 : 0);
+            this.AttachDelegate("Booleans.EcuMapChangedThisLap", () => this.Values.Booleans.NewData.EcuMapChangedThisLap ? 1 : 0);
+            this.AttachDelegate("Booleans.RainIntensityChangedThisLap", () => this.Values.Booleans.NewData.RainIntensityChangedThisLap ? 1 : 0);
             //this.AttachDelegate("Booleans.IsBroadcastClientConnected", () => _values.RawData.BroadcastClient?.IsConnected ?? false ? 1 : 0);
 
-            this.AttachDelegate("Fuel.Remaining", () => this._values.Car.Fuel.Remaining);
-            this.AttachDelegate("Fuel.RemainingAtLapStart", () => this._values.Car.Fuel.RemainingAtLapStart);
+            this.AttachDelegate("Fuel.Remaining", () => this.Values.Car.Fuel.Remaining);
+            this.AttachDelegate("Fuel.RemainingAtLapStart", () => this.Values.Car.Fuel.RemainingAtLapStart);
 
             void addStats(string name, Stats.Stats values, StatsFlags settings) {
                 if ((StatsFlags.Min & settings) != 0) {
@@ -228,16 +228,16 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            addStats("Laps.Time", this._values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S1Time", this._values.Laps.PrevS1Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S2Time", this._values.Laps.PrevS2Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S3Time", this._values.Laps.PrevS3Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Fuel.UsedPerLap", this._values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
-            addStats("Fuel.LapsRemaining", this._values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
-            addStats("Fuel.TimeRemaining", this._values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
-            addStats("Session.LapsRemaining", this._values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
-            addStats("Session.TimeRemaining", this._values.RemainingInSession.Time, Settings.RemainingStatsFlags);
-            addStats("Fuel.NeededInSession", this._values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
+            addStats("Laps.Time", this.Values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S1Time", this.Values.Laps.PrevS1Times.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S2Time", this.Values.Laps.PrevS2Times.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S3Time", this.Values.Laps.PrevS3Times.Stats, Settings.PrevLapsStatsFlags);
+            addStats("Fuel.UsedPerLap", this.Values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
+            addStats("Fuel.LapsRemaining", this.Values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
+            addStats("Fuel.TimeRemaining", this.Values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
+            addStats("Session.LapsRemaining", this.Values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
+            addStats("Session.TimeRemaining", this.Values.RemainingInSession.Time, Settings.RemainingStatsFlags);
+            addStats("Fuel.NeededInSession", this.Values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
             void addTyres(string name, double[] values) {
@@ -247,13 +247,13 @@ namespace KLPlugins.RaceEngineer {
                 this.AttachDelegate(name + "." + Car.Tyres.Names[3], () => values[3]);
             }
 
-            addTyres("Tyres.IdealInputPres", this._values.Car.Tyres.IdealInputPres);
-            addTyres("Tyres.PredictedIdealInputPresDry", this._values.Car.Tyres.PredictedIdealInputPresDry);
-            addTyres("Tyres.PredictedIdealInputPresWet", this._values.Car.Tyres.PredictedIdealInputPresNowWet);
-            addTyres("Tyres.PredictedIdealInputPresIn30MinWet", this._values.Car.Tyres.PredictedIdealInputPresFutureWet);
-            addTyres("Tyres.CurrentInputPres", this._values.Car.Tyres.CurrentInputPres);
-            addTyres("Tyres.PresLoss", this._values.Car.Tyres.PresLoss);
-            addTyres("Tyres.PresAvgDeltaToIdeal", this._values.Car.Tyres.PressDeltaToIdeal);
+            addTyres("Tyres.IdealInputPres", this.Values.Car.Tyres.IdealInputPres);
+            addTyres("Tyres.PredictedIdealInputPresDry", this.Values.Car.Tyres.PredictedIdealInputPresDry);
+            addTyres("Tyres.PredictedIdealInputPresWet", this.Values.Car.Tyres.PredictedIdealInputPresNowWet);
+            addTyres("Tyres.PredictedIdealInputPresIn30MinWet", this.Values.Car.Tyres.PredictedIdealInputPresFutureWet);
+            addTyres("Tyres.CurrentInputPres", this.Values.Car.Tyres.CurrentInputPres);
+            addTyres("Tyres.PresLoss", this.Values.Car.Tyres.PresLoss);
+            addTyres("Tyres.PresAvgDeltaToIdeal", this.Values.Car.Tyres.PressDeltaToIdeal);
 
             void addTyresNormalized<T>(string name, WheelsData<T> values, WheelFlags flag) {
                 if ((WheelFlags.Color & flag) != 0) {
@@ -264,9 +264,9 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            addTyresNormalized("Tyres.Pres", this._values.Car.Tyres.PresNormalized, Settings.TyrePresFlags);
-            addTyresNormalized("Tyres.Temp", this._values.Car.Tyres.TempNormalized, Settings.TyreTempFlags);
-            addTyresNormalized("Brakes.Temp", this._values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
+            addTyresNormalized("Tyres.Pres", this.Values.Car.Tyres.PresNormalized, Settings.TyrePresFlags);
+            addTyresNormalized("Tyres.Temp", this.Values.Car.Tyres.TempNormalized, Settings.TyreTempFlags);
+            addTyresNormalized("Brakes.Temp", this.Values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
 
             void addTyreStatsNormalized<T>(string name, WheelsData<T> values, string statname) {
                 this.AttachDelegate(name + "." + Car.Tyres.Names[0] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[0]);
@@ -311,26 +311,26 @@ namespace KLPlugins.RaceEngineer {
 
             addTyresStats(
                 "Tyres.Pres",
-                this._values.Car.Tyres.PresOverLap,
-                this._values.Car.Tyres.PresMinNormalized,
-                this._values.Car.Tyres.PresAvgNormalized,
-                this._values.Car.Tyres.PresMaxNormalized,
+                this.Values.Car.Tyres.PresOverLap,
+                this.Values.Car.Tyres.PresMinNormalized,
+                this.Values.Car.Tyres.PresAvgNormalized,
+                this.Values.Car.Tyres.PresMaxNormalized,
                 Settings.TyrePresFlags
             );
             addTyresStats(
                 "Tyres.Temp",
-                this._values.Car.Tyres.TempOverLap,
-                this._values.Car.Tyres.TempMinNormalized,
-                this._values.Car.Tyres.TempAvgNormalized,
-                this._values.Car.Tyres.TempMaxNormalized,
+                this.Values.Car.Tyres.TempOverLap,
+                this.Values.Car.Tyres.TempMinNormalized,
+                this.Values.Car.Tyres.TempAvgNormalized,
+                this.Values.Car.Tyres.TempMaxNormalized,
                 Settings.TyreTempFlags
             );
             addTyresStats(
                 "Brakes.Temp",
-                this._values.Car.Brakes.TempOverLap,
-                this._values.Car.Brakes.TempMinNormalized,
-                this._values.Car.Brakes.TempAvgNormalized,
-                this._values.Car.Brakes.TempMaxNormalized,
+                this.Values.Car.Brakes.TempOverLap,
+                this.Values.Car.Brakes.TempMinNormalized,
+                this.Values.Car.Brakes.TempAvgNormalized,
+                this.Values.Car.Brakes.TempMaxNormalized,
                 Settings.BrakeTempFlags
             );
 
@@ -350,9 +350,9 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            addTyresStatsOnlyAvg("Tyres.Temp.Inner", this._values.Car.Tyres.TempInnerOverLap, this._values.Car.Tyres.TempInnerAvgNormalized, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.Temp.Middle", this._values.Car.Tyres.TempMiddleOverLap, this._values.Car.Tyres.TempMiddleAvgNormalized, Settings.TyreTempFlags);
-            addTyresStatsOnlyAvg("Tyres.Temp.Outer", this._values.Car.Tyres.TempOuterOverLap, this._values.Car.Tyres.TempOuterAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Inner", this.Values.Car.Tyres.TempInnerOverLap, this.Values.Car.Tyres.TempInnerAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Middle", this.Values.Car.Tyres.TempMiddleOverLap, this.Values.Car.Tyres.TempMiddleAvgNormalized, Settings.TyreTempFlags);
+            addTyresStatsOnlyAvg("Tyres.Temp.Outer", this.Values.Car.Tyres.TempOuterOverLap, this.Values.Car.Tyres.TempOuterAvgNormalized, Settings.TyreTempFlags);
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
@@ -392,11 +392,11 @@ namespace KLPlugins.RaceEngineer {
 #pragma warning restore IDE0011 // Add braces
             }
 
-            addPrevData("Laps.PrevTime", this._values.Laps.PrevTimes);
-            addPrevData("Laps.PrevS1Time", this._values.Laps.PrevS1Times);
-            addPrevData("Laps.PrevS2Time", this._values.Laps.PrevS2Times);
-            addPrevData("Laps.PrevS3Time", this._values.Laps.PrevS3Times);
-            addPrevData("Fuel.PrevUsedPerLap", this._values.Car.Fuel.PrevUsedPerLap);
+            addPrevData("Laps.PrevTime", this.Values.Laps.PrevTimes);
+            addPrevData("Laps.PrevS1Time", this.Values.Laps.PrevS1Times);
+            addPrevData("Laps.PrevS2Time", this.Values.Laps.PrevS2Times);
+            addPrevData("Laps.PrevS3Time", this.Values.Laps.PrevS3Times);
+            addPrevData("Fuel.PrevUsedPerLap", this.Values.Car.Fuel.PrevUsedPerLap);
 
             #endregion
 

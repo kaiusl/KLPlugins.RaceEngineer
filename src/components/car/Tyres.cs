@@ -12,7 +12,7 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static string[] Names = ["FL", "FR", "RL", "RR"];
+        public static string[] Names = ["11", "12", "21", "22"];
 
         public string? Name { get; private set; }
 
