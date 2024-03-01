@@ -337,13 +337,13 @@ namespace KLPlugins.RaceEngineer {
             void addTyresStatsOnlyAvg<T>(string name, Stats.WheelsStats values, WheelsData<T> avg, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Avg & flags) != 0) {
-                        this.AttachDelegate(n + "Avg", () => v.Avg);
+                        this.AttachDelegate(n + ".Avg", () => v.Avg);
                     }
                 }
-                _addStats(name + Car.Tyres.Names[0], values[0]);
-                _addStats(name + Car.Tyres.Names[1], values[1]);
-                _addStats(name + Car.Tyres.Names[2], values[2]);
-                _addStats(name + Car.Tyres.Names[3], values[3]);
+                _addStats(name + '.' + Car.Tyres.Names[0], values[0]);
+                _addStats(name + '.' + Car.Tyres.Names[1], values[1]);
+                _addStats(name + '.' + Car.Tyres.Names[2], values[2]);
+                _addStats(name + '.' + Car.Tyres.Names[3], values[3]);
 
                 if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
                     addTyreStatsNormalized(name, avg, "Avg");
@@ -358,37 +358,37 @@ namespace KLPlugins.RaceEngineer {
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
             void addPrevData(string name, FixedSizeDequeStats values) {
 #pragma warning disable IDE0011 // Add braces
-                if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + "0", () => values[0]);
-                if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + "1", () => values[1]);
-                if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + "2", () => values[2]);
-                if (Settings.NumPreviousValuesStored > 3) this.AttachDelegate(name + "3", () => values[3]);
-                if (Settings.NumPreviousValuesStored > 4) this.AttachDelegate(name + "4", () => values[4]);
-                if (Settings.NumPreviousValuesStored > 5) this.AttachDelegate(name + "5", () => values[5]);
-                if (Settings.NumPreviousValuesStored > 6) this.AttachDelegate(name + "6", () => values[6]);
-                if (Settings.NumPreviousValuesStored > 7) this.AttachDelegate(name + "7", () => values[7]);
-                if (Settings.NumPreviousValuesStored > 8) this.AttachDelegate(name + "8", () => values[8]);
-                if (Settings.NumPreviousValuesStored > 9) this.AttachDelegate(name + "9", () => values[9]);
-                if (Settings.NumPreviousValuesStored > 10) this.AttachDelegate(name + "10", () => values[10]);
-                if (Settings.NumPreviousValuesStored > 11) this.AttachDelegate(name + "11", () => values[11]);
-                if (Settings.NumPreviousValuesStored > 12) this.AttachDelegate(name + "12", () => values[12]);
-                if (Settings.NumPreviousValuesStored > 13) this.AttachDelegate(name + "13", () => values[13]);
-                if (Settings.NumPreviousValuesStored > 14) this.AttachDelegate(name + "14", () => values[14]);
-                if (Settings.NumPreviousValuesStored > 15) this.AttachDelegate(name + "15", () => values[15]);
-                if (Settings.NumPreviousValuesStored > 16) this.AttachDelegate(name + "16", () => values[16]);
-                if (Settings.NumPreviousValuesStored > 17) this.AttachDelegate(name + "17", () => values[17]);
-                if (Settings.NumPreviousValuesStored > 18) this.AttachDelegate(name + "18", () => values[18]);
-                if (Settings.NumPreviousValuesStored > 19) this.AttachDelegate(name + "19", () => values[19]);
-                if (Settings.NumPreviousValuesStored > 20) this.AttachDelegate(name + "20", () => values[20]);
-                if (Settings.NumPreviousValuesStored > 21) this.AttachDelegate(name + "21", () => values[21]);
-                if (Settings.NumPreviousValuesStored > 22) this.AttachDelegate(name + "22", () => values[22]);
-                if (Settings.NumPreviousValuesStored > 23) this.AttachDelegate(name + "23", () => values[23]);
-                if (Settings.NumPreviousValuesStored > 24) this.AttachDelegate(name + "24", () => values[24]);
-                if (Settings.NumPreviousValuesStored > 25) this.AttachDelegate(name + "25", () => values[25]);
-                if (Settings.NumPreviousValuesStored > 26) this.AttachDelegate(name + "26", () => values[26]);
-                if (Settings.NumPreviousValuesStored > 27) this.AttachDelegate(name + "27", () => values[27]);
-                if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + "28", () => values[28]);
-                if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + "29", () => values[29]);
-                if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + "30", () => values[30]);
+                if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + ".0", () => values[0]);
+                if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + ".1", () => values[1]);
+                if (Settings.NumPreviousValuesStored > 2) this.AttachDelegate(name + ".2", () => values[2]);
+                if (Settings.NumPreviousValuesStored > 3) this.AttachDelegate(name + ".3", () => values[3]);
+                if (Settings.NumPreviousValuesStored > 4) this.AttachDelegate(name + ".4", () => values[4]);
+                if (Settings.NumPreviousValuesStored > 5) this.AttachDelegate(name + ".5", () => values[5]);
+                if (Settings.NumPreviousValuesStored > 6) this.AttachDelegate(name + ".6", () => values[6]);
+                if (Settings.NumPreviousValuesStored > 7) this.AttachDelegate(name + ".7", () => values[7]);
+                if (Settings.NumPreviousValuesStored > 8) this.AttachDelegate(name + ".8", () => values[8]);
+                if (Settings.NumPreviousValuesStored > 9) this.AttachDelegate(name + ".9", () => values[9]);
+                if (Settings.NumPreviousValuesStored > 10) this.AttachDelegate(name + ".10", () => values[10]);
+                if (Settings.NumPreviousValuesStored > 11) this.AttachDelegate(name + ".11", () => values[11]);
+                if (Settings.NumPreviousValuesStored > 12) this.AttachDelegate(name + ".12", () => values[12]);
+                if (Settings.NumPreviousValuesStored > 13) this.AttachDelegate(name + ".13", () => values[13]);
+                if (Settings.NumPreviousValuesStored > 14) this.AttachDelegate(name + ".14", () => values[14]);
+                if (Settings.NumPreviousValuesStored > 15) this.AttachDelegate(name + ".15", () => values[15]);
+                if (Settings.NumPreviousValuesStored > 16) this.AttachDelegate(name + ".16", () => values[16]);
+                if (Settings.NumPreviousValuesStored > 17) this.AttachDelegate(name + ".17", () => values[17]);
+                if (Settings.NumPreviousValuesStored > 18) this.AttachDelegate(name + ".18", () => values[18]);
+                if (Settings.NumPreviousValuesStored > 19) this.AttachDelegate(name + ".19", () => values[19]);
+                if (Settings.NumPreviousValuesStored > 20) this.AttachDelegate(name + ".20", () => values[20]);
+                if (Settings.NumPreviousValuesStored > 21) this.AttachDelegate(name + ".21", () => values[21]);
+                if (Settings.NumPreviousValuesStored > 22) this.AttachDelegate(name + ".22", () => values[22]);
+                if (Settings.NumPreviousValuesStored > 23) this.AttachDelegate(name + ".23", () => values[23]);
+                if (Settings.NumPreviousValuesStored > 24) this.AttachDelegate(name + ".24", () => values[24]);
+                if (Settings.NumPreviousValuesStored > 25) this.AttachDelegate(name + ".25", () => values[25]);
+                if (Settings.NumPreviousValuesStored > 26) this.AttachDelegate(name + ".26", () => values[26]);
+                if (Settings.NumPreviousValuesStored > 27) this.AttachDelegate(name + ".27", () => values[27]);
+                if (Settings.NumPreviousValuesStored > 28) this.AttachDelegate(name + ".28", () => values[28]);
+                if (Settings.NumPreviousValuesStored > 29) this.AttachDelegate(name + ".29", () => values[29]);
+                if (Settings.NumPreviousValuesStored > 30) this.AttachDelegate(name + ".30", () => values[30]);
 #pragma warning restore IDE0011 // Add braces
             }
 
