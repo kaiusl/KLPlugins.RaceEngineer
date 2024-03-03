@@ -153,6 +153,7 @@ namespace KLPlugins.RaceEngineer {
             const string STD_KEYWORD = "Std";
 
             this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this.Values.Session.TimeOfDay));
+            this.AttachDelegate("Session.Name.Pretty", () => SessionTypeMethods.ToPrettyString(this.Values.Session.SessionType));
             this.AttachDelegate("Session.TimeMultiplier", () => this.Values.Session.TimeMultiplier);
             this.AttachDelegate("Session.Type", () => this.Values.Session.SessionType);
 

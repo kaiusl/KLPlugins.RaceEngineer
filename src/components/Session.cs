@@ -4,7 +4,7 @@ using GameReaderCommon;
 
 namespace KLPlugins.RaceEngineer {
     public class Session {
-        public SessionType? SessionType { get; private set; }
+        public SessionType SessionType { get; private set; } = SessionType.Unknown;
         public bool IsNewSession { get; private set; }
         public int TimeMultiplier { get; private set; }
         public double TimeOfDay { get; private set; }
@@ -20,7 +20,7 @@ namespace KLPlugins.RaceEngineer {
         }
 
         public void Reset() {
-            this.SessionType = null;
+            this.SessionType = SessionType.Unknown;
             this.IsNewSession = false;
             this.TimeMultiplier = -1;
             this.TimeOfDay = 0;
@@ -164,6 +164,23 @@ namespace KLPlugins.RaceEngineer {
                 "time_trial" => SessionType.TimeTrial,
                 "warmup" => SessionType.Warmup,
                 _ => SessionType.Unknown,
+            };
+        }
+
+        public static string ToPrettyString(SessionType s) {
+            return s switch {
+                SessionType.Practice => "Practice",
+                SessionType.Qualifying => "Qualifying",
+                SessionType.Race => "Race",
+                SessionType.Hotlap => "Hotlap",
+                SessionType.Hotstint => "Hotstint",
+                SessionType.HotlapSuperpole => "Superpole",
+                SessionType.Drift => "Drift",
+                SessionType.Drag => "Drag",
+                SessionType.TimeAttack => "Time attack",
+                SessionType.TimeTrial => "Time trial",
+                SessionType.Warmup => "Warmup",
+                _ => "Unknown",
             };
         }
     }
