@@ -189,7 +189,7 @@ namespace KLPlugins.RaceEngineer.Booleans {
 
         }
 
-        public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
+        public void Reset(SessionType sessionType = SessionType.Practice) {
             this.IsInMenu = true;
             this.EnteredMenu = false;
             this.ExitedMenu = false;
@@ -220,9 +220,9 @@ namespace KLPlugins.RaceEngineer.Booleans {
 
             this.IsNewEvent = true;
             this.IsRaceStartStintAdded = false;
-            this.IsOutLap = !(sessionType == RaceSessionType.Hotstint || sessionType == RaceSessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
+            this.IsOutLap = !(sessionType == SessionType.Hotstint || sessionType == SessionType.Hotlap); // First lap of HOTSTINT/HOTLAP is proper lap.
 
-            this.IsValidFuelLap = sessionType == RaceSessionType.Hotstint; // First lap of HOTSTINT is proper lap
+            this.IsValidFuelLap = sessionType == SessionType.Hotstint; // First lap of HOTSTINT is proper lap
             this.EcuMapChangedThisLap = false;
             this.RainIntensityChangedThisLap = false;
 
@@ -233,12 +233,12 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this.IsRaceStartStintAdded = true;
         }
 
-        public void OnNewEvent(RaceSessionType sessionType) {
+        public void OnNewEvent(SessionType sessionType) {
             this.Reset(sessionType);
             this.IsNewEvent = false;
         }
 
-        public void OnSessionChange(RaceSessionType sessionType) {
+        public void OnSessionChange(SessionType sessionType) {
             this.Reset(sessionType);
             this.IsNewEvent = false;
         }
@@ -267,7 +267,7 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this.OldData = new BooleansBase();
         }
 
-        public void Reset(RaceSessionType sessionType = RaceSessionType.Practice) {
+        public void Reset(SessionType sessionType = SessionType.Practice) {
             RaceEngineerPlugin.LogInfo("Booleans.Reset()");
             this.OldData.Reset(sessionType);
             this.NewData.Reset(sessionType);
@@ -278,13 +278,13 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this.NewData.RaceStartStintAdded();
         }
 
-        public void OnNewEvent(RaceSessionType sessionType) {
+        public void OnNewEvent(SessionType sessionType) {
             this.NewData.OnNewEvent(sessionType);
             this.OldData.OnNewEvent(sessionType);
         }
 
         public void OnNewSession(Values v) {
-            this.NewData.OnSessionChange(v.Session.RaceSessionType ?? RaceSessionType.Practice);
+            this.NewData.OnSessionChange(v.Session.SessionType ?? SessionType.Practice);
         }
 
         public void OnLapFinished(GameData data) {

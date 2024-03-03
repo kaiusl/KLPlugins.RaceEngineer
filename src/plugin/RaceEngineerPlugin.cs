@@ -154,7 +154,7 @@ namespace KLPlugins.RaceEngineer {
 
             this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this.Values.Session.TimeOfDay));
             this.AttachDelegate("Session.TimeMultiplier", () => this.Values.Session.TimeMultiplier);
-            this.AttachDelegate("Session.Type", () => this.Values.Session.RaceSessionType);
+            this.AttachDelegate("Session.Type", () => this.Values.Session.SessionType);
 
             this.AttachDelegate("Tyres.CurrentSet", () => this.Values.Car.Tyres.CurrentTyreSet);
             this.AttachDelegate("Tyres.CurrentSetLaps", () => this.Values.Car.Tyres.GetCurrentSetLaps());
@@ -461,19 +461,6 @@ namespace KLPlugins.RaceEngineer {
 
 
     public static class Helpers {
-
-        public static RaceSessionType RaceSessionTypeFromString(string s) {
-            return s switch {
-                "PRACTICE" => RaceSessionType.Practice,
-                "QUALIFY" => RaceSessionType.Qualifying,
-                "RACE" => RaceSessionType.Race,
-                "HOTLAP" => RaceSessionType.Hotlap,
-                "7" => RaceSessionType.Hotstint,
-                "8" => RaceSessionType.HotlapSuperpole,
-                _ => RaceSessionType.Practice,
-            };
-        }
-
         public static string GetAccCarClass(string name) {
             name = name.ToLower();
             if (name.Contains("gt4")) {

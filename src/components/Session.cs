@@ -2,11 +2,9 @@
 
 using GameReaderCommon;
 
-using ksBroadcastingNetwork;
-
 namespace KLPlugins.RaceEngineer {
     public class Session {
-        public RaceSessionType? RaceSessionType { get; private set; }
+        public SessionType? SessionType { get; private set; }
         public bool IsNewSession { get; private set; }
         public int TimeMultiplier { get; private set; }
         public double TimeOfDay { get; private set; }
@@ -22,7 +20,7 @@ namespace KLPlugins.RaceEngineer {
         }
 
         public void Reset() {
-            this.RaceSessionType = null;
+            this.SessionType = null;
             this.IsNewSession = false;
             this.TimeMultiplier = -1;
             this.TimeOfDay = 0;
@@ -42,9 +40,9 @@ namespace KLPlugins.RaceEngineer {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            var newSessType = Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
-            this.IsNewSession = newSessType != this.RaceSessionType;
-            this.RaceSessionType = newSessType;
+            var newSessType = SessionTypeMethods.FromString(data.NewData.SessionTypeName);
+            this.IsNewSession = newSessType != this.SessionType;
+            this.SessionType = newSessType;
 
             if (RaceEngineerPlugin.Game.IsAcc && !this._isTimeMultiplierCalculated) {
                 var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
@@ -76,5 +74,97 @@ namespace KLPlugins.RaceEngineer {
 
         }
 
+    }
+
+    public enum SessionType {
+        Practice,
+        Qualifying,
+        Superpole,
+        Race,
+        Hotlap,
+        Hotstint,
+        HotlapSuperpole,
+        Drift,
+        TimeAttack,
+        Drag,
+        Warmup,
+        TimeTrial,
+        Unknown
+    }
+
+    public static class SessionTypeMethods {
+        public static SessionType FromSHGameData(GameData data) {
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                var accData = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                return accData.Graphics.Session switch {
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_UNKNOWN => SessionType.Unknown,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_PRACTICE => SessionType.Practice,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_QUALIFY => SessionType.Qualifying,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_RACE => SessionType.Race,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_HOTLAP => SessionType.Hotlap,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_TIME_ATTACK => SessionType.TimeAttack,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_DRIFT => SessionType.Drift,
+                    ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE.AC_DRAG => SessionType.Drag,
+                    (ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE)7 => SessionType.Hotstint,
+                    (ACSharedMemory.ACC.MMFModels.AC_SESSION_TYPE)8 => SessionType.HotlapSuperpole,
+                    _ => SessionType.Unknown,
+                };
+            } else if (RaceEngineerPlugin.Game.IsAc) {
+                var acData = (ACSharedMemory.Reader.ACRawData)data.NewData.GetRawDataObject();
+                return acData.Graphics.Session switch {
+                    ACSharedMemory.AC_SESSION_TYPE.AC_UNKNOWN => SessionType.Unknown,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_PRACTICE => SessionType.Practice,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_QUALIFY => SessionType.Qualifying,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_RACE => SessionType.Race,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_HOTLAP => SessionType.Hotlap,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_TIME_ATTACK => SessionType.TimeAttack,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_DRIFT => SessionType.Drift,
+                    ACSharedMemory.AC_SESSION_TYPE.AC_DRAG => SessionType.Drag,
+                    _ => SessionType.Unknown,
+                };
+            }
+
+            return FromString(data.NewData.SessionTypeName);
+        }
+
+
+        public static SessionType FromString(string s) {
+            if (RaceEngineerPlugin.Game.IsAcc) {
+                switch (s.ToLower()) {
+                    case "7":
+                        return SessionType.Hotstint;
+                    case "8":
+                        return SessionType.HotlapSuperpole;
+                    default:
+                        break;
+                }
+            }
+
+
+            return s.ToLower() switch {
+                "practice" 
+                or "open practice" or "offline testing" // IRacing
+                or "practice 1" or "practice 2" or "practice 3" or "short practice" // F120xx
+                => SessionType.Practice,
+
+                "qualify" 
+                or "open qualify" or "lone qualify" // IRacing
+                or "qualifying 1" or "qualifying 2" or "qualifying 3" or "short qualifying" or "OSQ" // F120xx
+                => SessionType.Qualifying,
+
+                "race" 
+                or "race 1" or "race 2" or "race 3" // F120xx
+                => SessionType.Race,
+                "hotlap" => SessionType.Hotlap,
+                "hotstint" => SessionType.Hotstint,
+                "hotlapsuperpole" => SessionType.HotlapSuperpole,
+                "drift" => SessionType.Drift,
+                "time_attack" => SessionType.TimeAttack,
+                "drag" => SessionType.Drag,
+                "time_trial" => SessionType.TimeTrial,
+                "warmup" => SessionType.Warmup,
+                _ => SessionType.Unknown,
+            };
+        }
     }
 }

@@ -132,7 +132,7 @@ namespace KLPlugins.RaceEngineer {
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!this.Booleans.NewData.IsRaceStartStintAdded && this.Booleans.NewData.IsMoving && (this.Session.RaceSessionType == RaceSessionType.Race || this.Session.RaceSessionType == RaceSessionType.Hotstint || this.Session.RaceSessionType == RaceSessionType.Hotlap)) {
+            if (!this.Booleans.NewData.IsRaceStartStintAdded && this.Booleans.NewData.IsMoving && (this.Session.SessionType == SessionType.Race || this.Session.SessionType == SessionType.Hotstint || this.Session.SessionType == SessionType.Hotlap)) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 this.OnNewStint(data);

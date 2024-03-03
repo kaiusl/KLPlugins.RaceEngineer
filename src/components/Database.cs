@@ -41,7 +41,7 @@ namespace KLPlugins.RaceEngineer.Database {
 
     public struct Session(Values v, long eventId) {
         public long EventId = eventId;
-        public string SessionType = v.Session.RaceSessionType.ToString();
+        public string SessionType = v.Session.SessionType.ToString();
         public int TimeMultiplier = v.Session.TimeMultiplier;
         public string StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 

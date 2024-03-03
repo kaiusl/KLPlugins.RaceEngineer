@@ -69,16 +69,12 @@ namespace KLPlugins.RaceEngineer {
             if (v.Booleans.NewData.IsMoving && double.IsNaN(this.AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
-                RaceSessionType sessionType = Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
-                if (RaceEngineerPlugin.Game.IsAcc) {
-                    var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
+                SessionType sessionType = SessionTypeMethods.FromString(data.NewData.SessionTypeName);
 
-                    sessionType = rawDataNew.Realtime?.SessionType ?? Helpers.RaceSessionTypeFromString(data.NewData.CarClass);
-                }
 
                 switch (sessionType) {
-                    case RaceSessionType.Race:
-                    case RaceSessionType.Hotstint:
+                    case SessionType.Race:
+                    case SessionType.Hotstint:
                         if (data.OldData.SessionTimeLeft != data.NewData.SessionTimeLeft) {
                             set_lap_start_temps = true;
                         }
