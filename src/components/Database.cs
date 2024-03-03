@@ -373,7 +373,7 @@ namespace KLPlugins.RaceEngineer.Database {
             new DBField(TIME_MULTIPLIER, "INTEGER")
         ]);
 
-        private static readonly string[] TYRES = [Tyres.Names[0].ToLower(), Tyres.Names[1].ToLower(), Tyres.Names[2].ToLower(), Tyres.Names[3].ToLower()];
+        private static readonly string[] TYRES = ["fl", "fr", "rl", "rr"];
         private const string STINT_ID = "stint_id";
         private const string STINT_NR = "stint_nr";
         private const string TYRE_COMPOUND = "tyre_compound";
@@ -559,6 +559,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public void InsertEvent(GameData data, Values v) {
             var e = new Event(data, v);
             RaceEngineerPlugin.LogInfo(e.ToString());
+            //this.InsertEvent(e);
             _ = Task.Run(() => this.InsertEvent(e));
         }
 
@@ -579,6 +580,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public void InsertSession(GameData data, Values v) {
             var s = new Session(v, this._eventId);
             RaceEngineerPlugin.LogInfo(s.ToString());
+            //this.InsertSession(s);
             _ = Task.Run(() => this.InsertSession(s));
         }
 
@@ -614,6 +616,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public void InsertStint(GameData data, Values v) {
             var stint = new Stint(data, v, this._sessionId);
             RaceEngineerPlugin.LogInfo(stint.ToString());
+            //this.InsertStint(stint);
             _ = Task.Run(() => this.InsertStint(stint));
         }
 
@@ -651,6 +654,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public void InsertLap(GameData data, Values v) {
             var lap = new Lap(data, v, this._stintId);
             RaceEngineerPlugin.LogInfo(lap.ToString());
+            //this.InsertLap(lap);
             _ = Task.Run(() => this.InsertLap(lap));
         }
 
