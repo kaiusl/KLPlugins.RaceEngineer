@@ -91,7 +91,7 @@ namespace KLPlugins.RaceEngineer {
 
         public void OnNewEvent(GameData data) {
             RaceEngineerPlugin.LogInfo($"OnNewEvent.");
-            var sessType = Helpers.RaceSessionTypeFromString(data.NewData.SessionTypeName);
+            var sessType = SessionTypeMethods.FromSHGameData(data);
             this.Booleans.OnNewEvent(sessType);
             this.Track.OnNewEvent(data);
             this.Car.OnNewEvent(data, this);

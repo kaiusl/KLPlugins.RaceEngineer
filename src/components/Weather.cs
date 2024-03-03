@@ -69,7 +69,7 @@ namespace KLPlugins.RaceEngineer {
             if (v.Booleans.NewData.IsMoving && double.IsNaN(this.AirTempAtLapStart)) {
                 bool set_lap_start_temps = false;
 
-                SessionType sessionType = SessionTypeMethods.FromString(data.NewData.SessionTypeName);
+                SessionType sessionType = SessionTypeMethods.FromSHGameData(data);
 
 
                 switch (sessionType) {

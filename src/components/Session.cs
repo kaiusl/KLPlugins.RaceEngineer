@@ -40,7 +40,7 @@ namespace KLPlugins.RaceEngineer {
         }
 
         public void OnRegularUpdate(GameData data, Values v) {
-            var newSessType = SessionTypeMethods.FromString(data.NewData.SessionTypeName);
+            var newSessType = SessionTypeMethods.FromSHGameData(data);
             this.IsNewSession = newSessType != this.SessionType;
             this.SessionType = newSessType;
 
@@ -128,7 +128,7 @@ namespace KLPlugins.RaceEngineer {
         }
 
 
-        public static SessionType FromString(string s) {
+        private static SessionType FromString(string s) {
             if (RaceEngineerPlugin.Game.IsAcc) {
                 switch (s.ToLower()) {
                     case "7":
@@ -142,17 +142,17 @@ namespace KLPlugins.RaceEngineer {
 
 
             return s.ToLower() switch {
-                "practice" 
+                "practice"
                 or "open practice" or "offline testing" // IRacing
                 or "practice 1" or "practice 2" or "practice 3" or "short practice" // F120xx
                 => SessionType.Practice,
 
-                "qualify" 
+                "qualify"
                 or "open qualify" or "lone qualify" // IRacing
                 or "qualifying 1" or "qualifying 2" or "qualifying 3" or "short qualifying" or "OSQ" // F120xx
                 => SessionType.Qualifying,
 
-                "race" 
+                "race"
                 or "race 1" or "race 2" or "race 3" // F120xx
                 => SessionType.Race,
                 "hotlap" => SessionType.Hotlap,
