@@ -567,12 +567,15 @@ namespace KLPlugins.RaceEngineer.Database {
             if (this._insertEventCmd == null) return;
 
             this._dbMutex.WaitOne();
-
-            this.SetParam(this._insertEventCmd, CAR_ID, e.CarId);
-            this.SetParam(this._insertEventCmd, TRACK_ID, e.TrackId);
-            this.SetParam(this._insertEventCmd, START_TIME, e.StartTime);
-            this.SetParam(this._insertEventCmd, GAME_VERSION, e.GameVersion);
-            this._eventId = (long)this._insertEventCmd.ExecuteScalar();
+            try {
+                this.SetParam(this._insertEventCmd, CAR_ID, e.CarId);
+                this.SetParam(this._insertEventCmd, TRACK_ID, e.TrackId);
+                this.SetParam(this._insertEventCmd, START_TIME, e.StartTime);
+                this.SetParam(this._insertEventCmd, GAME_VERSION, e.GameVersion);
+                this._eventId = (long)this._insertEventCmd.ExecuteScalar();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to insert event to DB: {ex}");
+            }
 
             this._dbMutex.ReleaseMutex();
         }
@@ -588,12 +591,15 @@ namespace KLPlugins.RaceEngineer.Database {
             if (this._insertSessionCmd == null) return;
 
             this._dbMutex.WaitOne();
-
-            this.SetParam(this._insertSessionCmd, EVENT_ID, s.EventId);
-            this.SetParam(this._insertSessionCmd, SESSION_TYPE, s.SessionType);
-            this.SetParam(this._insertSessionCmd, TIME_MULTIPLIER, s.TimeMultiplier);
-            this.SetParam(this._insertSessionCmd, START_TIME, s.StartTime);
-            this._sessionId = (long)this._insertSessionCmd.ExecuteScalar();
+            try {
+                this.SetParam(this._insertSessionCmd, EVENT_ID, s.EventId);
+                this.SetParam(this._insertSessionCmd, SESSION_TYPE, s.SessionType);
+                this.SetParam(this._insertSessionCmd, TIME_MULTIPLIER, s.TimeMultiplier);
+                this.SetParam(this._insertSessionCmd, START_TIME, s.StartTime);
+                this._sessionId = (long)this._insertSessionCmd.ExecuteScalar();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to insert session to DB: {ex}");
+            }
 
             this._dbMutex.ReleaseMutex();
         }
@@ -602,13 +608,17 @@ namespace KLPlugins.RaceEngineer.Database {
             var sessId = this._sessionId;
             _ = Task.Run(() => {
                 this._dbMutex.WaitOne();
-                var cmd = new SQLiteCommand(this._conn) {
-                    CommandText = $@"UPDATE {this.sessionsTable.name}
+                try {
+                    var cmd = new SQLiteCommand(this._conn) {
+                        CommandText = $@"UPDATE {this.sessionsTable.name}
 						SET {TIME_MULTIPLIER} = {mult}
 						WHERE {SESSION_ID} == {sessId}"
-                };
+                    };
 
-                cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
+                } catch (Exception ex) {
+                    RaceEngineerPlugin.LogError($"Failed to update session time multiplier to DB: {ex}");
+                }
                 this._dbMutex.ReleaseMutex();
             });
         }
@@ -624,30 +634,33 @@ namespace KLPlugins.RaceEngineer.Database {
             if (this._insertStintCmd == null) return;
 
             this._dbMutex.WaitOne();
+            try {
+                this.SetParam(this._insertStintCmd, SESSION_ID, s.SessionId);
+                this.SetParam(this._insertStintCmd, STINT_NR, s.StintNr);
+                this.SetParam(this._insertStintCmd, START_TIME, s.StartTime);
+                this.SetParam(this._insertStintCmd, TYRE_COMPOUND, s.TyreCompound);
 
-            this.SetParam(this._insertStintCmd, SESSION_ID, s.SessionId);
-            this.SetParam(this._insertStintCmd, STINT_NR, s.StintNr);
-            this.SetParam(this._insertStintCmd, START_TIME, s.StartTime);
-            this.SetParam(this._insertStintCmd, TYRE_COMPOUND, s.TyreCompound);
+                for (var i = 0; i < 4; i++) {
+                    this.SetParam(this._insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", s.TyrePresIn[i]);
+                }
 
-            for (var i = 0; i < 4; i++) {
-                this.SetParam(this._insertStintCmd, TYRE_PRES_IN + $"_{TYRES[i]}", s.TyrePresIn[i]);
+                this.SetParam(this._insertStintCmd, BRAKE_PAD_FRONT, s.BrakePadFront);
+                this.SetParam(this._insertStintCmd, BRAKE_PAD_REAR, s.BrakePadRear);
+                this.SetParam(this._insertStintCmd, TYRE_SET, s.TyreSet);
+                this.SetParam(this._insertStintCmd, BRAKE_PAD_NR, s.BrakePadNr);
+                this.SetParam(this._insertStintCmd, BRAKE_DUCT_FRONT, s.BrakeDuctFront);
+                this.SetParam(this._insertStintCmd, BRAKE_DUCT_REAR, s.BrakeDuctRear);
+                for (var i = 0; i < 4; i++) {
+                    this.SetParam(this._insertStintCmd, CAMBER + $"_{TYRES[i]}", s.Camber[i]);
+                    this.SetParam(this._insertStintCmd, TOE + $"_{TYRES[i]}", s.Toe[i]);
+                }
+                this.SetParam(this._insertStintCmd, CASTER + $"_{TYRES[0]}", s.CasterLf);
+                this.SetParam(this._insertStintCmd, CASTER + $"_{TYRES[1]}", s.CasterRf);
+
+                this._stintId = (long)this._insertStintCmd.ExecuteScalar();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to insert stint to DB: {ex}");
             }
-
-            this.SetParam(this._insertStintCmd, BRAKE_PAD_FRONT, s.BrakePadFront);
-            this.SetParam(this._insertStintCmd, BRAKE_PAD_REAR, s.BrakePadRear);
-            this.SetParam(this._insertStintCmd, TYRE_SET, s.TyreSet);
-            this.SetParam(this._insertStintCmd, BRAKE_PAD_NR, s.BrakePadNr);
-            this.SetParam(this._insertStintCmd, BRAKE_DUCT_FRONT, s.BrakeDuctFront);
-            this.SetParam(this._insertStintCmd, BRAKE_DUCT_REAR, s.BrakeDuctRear);
-            for (var i = 0; i < 4; i++) {
-                this.SetParam(this._insertStintCmd, CAMBER + $"_{TYRES[i]}", s.Camber[i]);
-                this.SetParam(this._insertStintCmd, TOE + $"_{TYRES[i]}", s.Toe[i]);
-            }
-            this.SetParam(this._insertStintCmd, CASTER + $"_{TYRES[0]}", s.CasterLf);
-            this.SetParam(this._insertStintCmd, CASTER + $"_{TYRES[1]}", s.CasterRf);
-
-            this._stintId = (long)this._insertStintCmd.ExecuteScalar();
             this._dbMutex.ReleaseMutex();
         }
 
@@ -662,62 +675,65 @@ namespace KLPlugins.RaceEngineer.Database {
             if (this._insertLapCmd == null) return;
 
             this._dbMutex.WaitOne();
+            try {
+                this.SetParam(this._insertLapCmd, STINT_ID, l.StintId);
+                this.SetParam(this._insertLapCmd, SESSION_LAP_NR, l.SessionLapNr);
+                this.SetParam(this._insertLapCmd, STINT_LAP_NR, l.StintLapNr);
+                this.SetParam(this._insertLapCmd, TYRESET_LAP_NR, l.TyresetLapNr);
+                this.SetParam(this._insertLapCmd, BRAKE_PAD_LAP_NR, l.BrakesLapNr);
+                this.SetParam(this._insertLapCmd, AIR_TEMP, l.AirTemp);
+                this.SetParam(this._insertLapCmd, AIR_TEMP_DELTA, l.AirTempDelta);
+                this.SetParam(this._insertLapCmd, TRACK_TEMP, l.TrackTemp);
+                this.SetParam(this._insertLapCmd, TRACK_TEMP_DELTA, l.TrackTempDelta);
+                this.SetParam(this._insertLapCmd, LAP_TIME, l.LapTime);
+                this.SetParam(this._insertLapCmd, FUEL_USED, l.FuelUsed);
+                this.SetParam(this._insertLapCmd, FUEL_LEFT, l.FuelLeft);
 
-            this.SetParam(this._insertLapCmd, STINT_ID, l.StintId);
-            this.SetParam(this._insertLapCmd, SESSION_LAP_NR, l.SessionLapNr);
-            this.SetParam(this._insertLapCmd, STINT_LAP_NR, l.StintLapNr);
-            this.SetParam(this._insertLapCmd, TYRESET_LAP_NR, l.TyresetLapNr);
-            this.SetParam(this._insertLapCmd, BRAKE_PAD_LAP_NR, l.BrakesLapNr);
-            this.SetParam(this._insertLapCmd, AIR_TEMP, l.AirTemp);
-            this.SetParam(this._insertLapCmd, AIR_TEMP_DELTA, l.AirTempDelta);
-            this.SetParam(this._insertLapCmd, TRACK_TEMP, l.TrackTemp);
-            this.SetParam(this._insertLapCmd, TRACK_TEMP_DELTA, l.TrackTempDelta);
-            this.SetParam(this._insertLapCmd, LAP_TIME, l.LapTime);
-            this.SetParam(this._insertLapCmd, FUEL_USED, l.FuelUsed);
-            this.SetParam(this._insertLapCmd, FUEL_LEFT, l.FuelLeft);
+                for (var i = 0; i < 4; i++) {
+                    var tyre = $"_{TYRES[i]}";
+                    this.SetParam(this._insertLapCmd, TYRE_PRES_AVG + tyre, l.TyrePresAvg[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_PRES_MIN + tyre, l.TyrePresMin[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_PRES_MAX + tyre, l.TyrePresMax[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_PRES_LOSS + tyre, l.TyrePresLoss[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.TyrePresLossLap[i]);
 
-            for (var i = 0; i < 4; i++) {
-                var tyre = $"_{TYRES[i]}";
-                this.SetParam(this._insertLapCmd, TYRE_PRES_AVG + tyre, l.TyrePresAvg[i]);
-                this.SetParam(this._insertLapCmd, TYRE_PRES_MIN + tyre, l.TyrePresMin[i]);
-                this.SetParam(this._insertLapCmd, TYRE_PRES_MAX + tyre, l.TyrePresMax[i]);
-                this.SetParam(this._insertLapCmd, TYRE_PRES_LOSS + tyre, l.TyrePresLoss[i]);
-                this.SetParam(this._insertLapCmd, TYRE_PRES_LOSS_LAP + tyre, l.TyrePresLossLap[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_TEMP_AVG + tyre, l.TyreTempAvg[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_TEMP_MIN + tyre, l.TyreTempMin[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_TEMP_MAX + tyre, l.TyreTempMax[i]);
 
-                this.SetParam(this._insertLapCmd, TYRE_TEMP_AVG + tyre, l.TyreTempAvg[i]);
-                this.SetParam(this._insertLapCmd, TYRE_TEMP_MIN + tyre, l.TyreTempMin[i]);
-                this.SetParam(this._insertLapCmd, TYRE_TEMP_MAX + tyre, l.TyreTempMax[i]);
+                    this.SetParam(this._insertLapCmd, BRAKE_TEMP_AVG + tyre, l.BrakeTempAvg[i]);
+                    this.SetParam(this._insertLapCmd, BRAKE_TEMP_MIN + tyre, l.BrakeTempMin[i]);
+                    this.SetParam(this._insertLapCmd, BRAKE_TEMP_MAX + tyre, l.BrakeTempMax[i]);
 
-                this.SetParam(this._insertLapCmd, BRAKE_TEMP_AVG + tyre, l.BrakeTempAvg[i]);
-                this.SetParam(this._insertLapCmd, BRAKE_TEMP_MIN + tyre, l.BrakeTempMin[i]);
-                this.SetParam(this._insertLapCmd, BRAKE_TEMP_MAX + tyre, l.BrakeTempMax[i]);
+                    this.SetParam(this._insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
+                }
 
-                this.SetParam(this._insertLapCmd, TYRE_LIFE_LEFT + tyre, 0.0);
+                this.SetParam(this._insertLapCmd, ABS, l.Abs);
+                this.SetParam(this._insertLapCmd, TC, l.Tc);
+                this.SetParam(this._insertLapCmd, ECU_MAP, l.EcuMap);
+                this.SetParam(this._insertLapCmd, ECU_MAP_CHANGED, l.EcuMapChanged);
+
+                this.SetParam(this._insertLapCmd, TC2, l.Tc2);
+                this.SetParam(this._insertLapCmd, TRACK_GRIP_STATUS, l.TrackGripStatus);
+
+                for (var i = 0; i < 4; i++) {
+                    this.SetParam(this._insertLapCmd, PAD_LIFE_LEFT + $"_{TYRES[i]}", l.PadLifeLeft[i]);
+                    this.SetParam(this._insertLapCmd, DISC_LIFE_LEFT + $"_{TYRES[i]}", l.DiscLifeLeft[i]);
+                }
+
+                this.SetParam(this._insertLapCmd, IS_VALID, l.IsValid);
+                // Need to use booleans.OldData which is the last point on finished lap
+                this.SetParam(this._insertLapCmd, IS_VALID_FUEL_LAP, l.IsValidFuelLap);
+                this.SetParam(this._insertLapCmd, IS_OUTLAP, l.IsOutLap);
+                this.SetParam(this._insertLapCmd, IS_INLAP, l.IsInLap);
+
+                this.SetParam(this._insertLapCmd, RAIN_INTENSITY, l.RainIntensity);
+                this.SetParam(this._insertLapCmd, RAIN_INTENSITY_CHANGED, l.RainIntensityChanged);
+
+                this._insertLapCmd.ExecuteNonQuery();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to insert lap to DB: {ex}");
             }
-
-            this.SetParam(this._insertLapCmd, ABS, l.Abs);
-            this.SetParam(this._insertLapCmd, TC, l.Tc);
-            this.SetParam(this._insertLapCmd, ECU_MAP, l.EcuMap);
-            this.SetParam(this._insertLapCmd, ECU_MAP_CHANGED, l.EcuMapChanged);
-
-            this.SetParam(this._insertLapCmd, TC2, l.Tc2);
-            this.SetParam(this._insertLapCmd, TRACK_GRIP_STATUS, l.TrackGripStatus);
-
-            for (var i = 0; i < 4; i++) {
-                this.SetParam(this._insertLapCmd, PAD_LIFE_LEFT + $"_{TYRES[i]}", l.PadLifeLeft[i]);
-                this.SetParam(this._insertLapCmd, DISC_LIFE_LEFT + $"_{TYRES[i]}", l.DiscLifeLeft[i]);
-            }
-
-            this.SetParam(this._insertLapCmd, IS_VALID, l.IsValid);
-            // Need to use booleans.OldData which is the last point on finished lap
-            this.SetParam(this._insertLapCmd, IS_VALID_FUEL_LAP, l.IsValidFuelLap);
-            this.SetParam(this._insertLapCmd, IS_OUTLAP, l.IsOutLap);
-            this.SetParam(this._insertLapCmd, IS_INLAP, l.IsInLap);
-
-            this.SetParam(this._insertLapCmd, RAIN_INTENSITY, l.RainIntensity);
-            this.SetParam(this._insertLapCmd, RAIN_INTENSITY_CHANGED, l.RainIntensityChanged);
-
-            this._insertLapCmd.ExecuteNonQuery();
             this._dbMutex.ReleaseMutex();
         }
         #endregion
@@ -745,11 +761,11 @@ namespace KLPlugins.RaceEngineer.Database {
 
             List<PrevData> list = new List<PrevData>(RaceEngineerPlugin.Settings.NumPreviousValuesStored);
             this._dbMutex.WaitOne();
+            try {
 
 
-
-            var cmd = new SQLiteCommand(this._conn) {
-                CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {this.lapsTable.name} AS l 
+                var cmd = new SQLiteCommand(this._conn) {
+                    CommandText = $@"SELECT l.{LAP_TIME}, l.{FUEL_USED} FROM {this.lapsTable.name} AS l 
 					INNER JOIN {this.stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
 					INNER JOIN {this.sessionsTable.name} AS sess ON s.{SESSION_ID} == sess.{SESSION_ID} 
 					INNER JOIN {this.eventsTable.name} AS e ON e.{EVENT_ID} == sess.{EVENT_ID} 
@@ -761,15 +777,18 @@ namespace KLPlugins.RaceEngineer.Database {
 						AND l.{RAIN_INTENSITY_CHANGED} == 0
 					ORDER BY l.{LAP_ID} DESC
 					LIMIT {RaceEngineerPlugin.Settings.NumPreviousValuesStored}"
-            };
+                };
 
-            SQLiteDataReader rdr = cmd.ExecuteReader();
+                SQLiteDataReader rdr = cmd.ExecuteReader();
 
-            while (rdr.Read()) {
-                if (this.HasNullFields(rdr)) continue;
-                list.Add(new PrevData(rdr.GetDouble(0), rdr.GetDouble(1)));
+                while (rdr.Read()) {
+                    if (this.HasNullFields(rdr)) continue;
+                    list.Add(new PrevData(rdr.GetDouble(0), rdr.GetDouble(1)));
+                }
+                rdr.Close();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to read previous session data from DB: {ex}");
             }
-            rdr.Close();
             this._dbMutex.ReleaseMutex();
             return list;
         }
@@ -793,9 +812,10 @@ namespace KLPlugins.RaceEngineer.Database {
             List<double[]> x = [];
 
             this._dbMutex.WaitOne();
+            try {
 
-            var cmd = new SQLiteCommand(this._conn) {
-                CommandText = $@"
+                var cmd = new SQLiteCommand(this._conn) {
+                    CommandText = $@"
 					SELECT s.{TYRE_PRES_IN}_{ty}, l.{TYRE_PRES_AVG}_{ty}, l.{TYRE_PRES_LOSS}_{ty}, l.{AIR_TEMP}, l.{TRACK_TEMP} FROM {this.lapsTable.name} AS l
 					INNER JOIN {this.stintsTable.name} AS s ON l.{STINT_ID} == s.{STINT_ID} 
 					INNER JOIN {this.sessionsTable.name} AS sess ON s.{SESSION_ID} == sess.{SESSION_ID} 
@@ -811,24 +831,27 @@ namespace KLPlugins.RaceEngineer.Database {
 						AND l.{TYRE_PRES_LOSS_LAP}_{ty} == 0
 						AND l.{RAIN_INTENSITY_CHANGED} == 0
 						AND l.{RAIN_INTENSITY} == {(int)rainIntensity}"
-            };
-            if (-1 < brakeDuct && brakeDuct < 7) {
-                cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
-            }
-            if (trackGrip != null) {
-                cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in {trackGrip}";
-            }
+                };
+                if (-1 < brakeDuct && brakeDuct < 7) {
+                    cmd.CommandText += $" AND s.{duct} == {brakeDuct}";
+                }
+                if (trackGrip != null) {
+                    cmd.CommandText += $" AND l.{TRACK_GRIP_STATUS} in {trackGrip}";
+                }
 
-            SQLiteDataReader rdr = cmd.ExecuteReader();
+                SQLiteDataReader rdr = cmd.ExecuteReader();
 
-            while (rdr.Read()) {
-                if (this.HasNullFields(rdr)) continue;
+                while (rdr.Read()) {
+                    if (this.HasNullFields(rdr)) continue;
 
-                y.Add(rdr.GetDouble(0));
-                // Homogeneous coordinate, avg_press - loss, air_temp, track_temp
-                x.Add([1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4)]);
+                    y.Add(rdr.GetDouble(0));
+                    // Homogeneous coordinate, avg_press - loss, air_temp, track_temp
+                    x.Add([1.0, rdr.GetDouble(1) - rdr.GetDouble(2), rdr.GetDouble(3), rdr.GetDouble(4)]);
+                }
+                rdr.Close();
+            } catch (Exception ex) {
+                RaceEngineerPlugin.LogError($"Failed to read input press data from DB: {ex}");
             }
-            rdr.Close();
             this._dbMutex.ReleaseMutex();
 
             RaceEngineerPlugin.LogInfo($"Read {y.Count} datapoints for {ty} tyre pressure model with");
