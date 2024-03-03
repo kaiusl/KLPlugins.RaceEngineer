@@ -156,6 +156,16 @@ namespace KLPlugins.RaceEngineer {
             this.AttachDelegate("Session.Name.Pretty", () => SessionTypeMethods.ToPrettyString(this.Values.Session.SessionType));
             this.AttachDelegate("Session.TimeMultiplier", () => this.Values.Session.TimeMultiplier);
             this.AttachDelegate("Session.Type", () => this.Values.Session.SessionType);
+            this.AttachDelegate("Session.IsRace", () => this.Values.Session.SessionType == SessionType.Race);
+            this.AttachDelegate("Session.IsPractice", () => this.Values.Session.SessionType == SessionType.Practice);
+            this.AttachDelegate("Session.IsQualifying", () => this.Values.Session.SessionType == SessionType.Qualifying);
+            this.AttachDelegate("Session.IsHotlap", () => this.Values.Session.SessionType == SessionType.Hotlap);
+            this.AttachDelegate("Session.IsHotstint", () => this.Values.Session.SessionType == SessionType.Hotstint);
+            this.AttachDelegate("Session.IsHotlapSuperpole", () => this.Values.Session.SessionType == SessionType.HotlapSuperpole);
+            this.AttachDelegate("Session.IsDrift", () => this.Values.Session.SessionType == SessionType.Drift);
+            this.AttachDelegate("Session.IsTimeAttack", () => this.Values.Session.SessionType == SessionType.TimeAttack);
+            this.AttachDelegate("Session.IsTimeTrial", () => this.Values.Session.SessionType == SessionType.TimeTrial);
+            this.AttachDelegate("Session.IsWarmup", () => this.Values.Session.SessionType == SessionType.Warmup);
 
             this.AttachDelegate("Tyres.CurrentSet", () => this.Values.Car.Tyres.CurrentTyreSet);
             this.AttachDelegate("Tyres.CurrentSetLaps", () => this.Values.Car.Tyres.GetCurrentSetLaps());
