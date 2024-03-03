@@ -284,7 +284,7 @@ namespace KLPlugins.RaceEngineer.Booleans {
         }
 
         public void OnNewSession(Values v) {
-            this.NewData.OnSessionChange(v.Session.SessionType ?? SessionType.Practice);
+            this.NewData.OnSessionChange(v.Session.SessionType);
         }
 
         public void OnLapFinished(GameData data) {
