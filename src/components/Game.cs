@@ -1,6 +1,6 @@
-﻿namespace KLPlugins.RaceEngineer {
+﻿using SimHub.Plugins;
 
-
+namespace KLPlugins.RaceEngineer {
     /// <summary>
     /// Booleans to tell which game we have. Since different games have different available data then we need to do alot of check like gameName == "...".
     /// The gameName is constant in each plugin reload and thus we can set it once and simplyfy game checks alot.
@@ -11,43 +11,56 @@
         public const string Rf2Name = "RFactor2";
         public const string IracingName = "IRacing";
         public const string R3eName = "RRRE";
+        public const string AMS2Name = "Automobilista2";
+        public const string LMUName = "LeMansUltimate";
 
         public bool IsAc { get; } = false;
         public bool IsAcc { get; } = false;
         public bool IsRf2 { get; } = false;
         public bool IsIracing { get; } = false;
         public bool IsR3e { get; } = false;
+        public bool IsAMS2 { get; } = false;
+        public bool IsF1 { get; } = false;
+        public bool IsLMU { get; } = false;
         public bool IsUnknown { get; } = false;
         public string Name { get; }
 
         public Game(string gameName) {
             this.Name = gameName;
+
+            if (gameName.StartsWith("F120")) {
+                this.IsF1 = true;
+                return;
+            }
+
             switch (gameName) {
                 case AcName:
                     this.IsAc = true;
-                    RaceEngineerPlugin.LogInfo("Game set to AC");
                     break;
                 case AccName:
                     this.IsAcc = true;
-                    RaceEngineerPlugin.LogInfo("Game set to ACC");
                     break;
                 case Rf2Name:
                     this.IsRf2 = true;
-                    RaceEngineerPlugin.LogInfo("Game set to RF2");
                     break;
                 case IracingName:
                     this.IsIracing = true;
-                    RaceEngineerPlugin.LogInfo("Game set to IRacing");
                     break;
                 case R3eName:
                     this.IsR3e = true;
-                    RaceEngineerPlugin.LogInfo("Game set to R3E");
+                    break;
+                case AMS2Name:
+                    this.IsAMS2 = true;
+                    break;
+                case LMUName:
+                    this.IsLMU = true;
                     break;
                 default:
                     this.IsUnknown = true;
-                    RaceEngineerPlugin.LogInfo("Game set to Unknown");
                     break;
             }
         }
+
+        public Game(PluginManager pm) : this((string)pm.GetPropertyValue("CurrentGame")) { }
     }
 }
