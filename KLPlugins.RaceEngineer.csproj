@@ -39,7 +39,7 @@
   <ItemGroup>
     <Reference Include="ACSharedMemory, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\ACSharedMemory.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\ACSharedMemory.dll</HintPath>
     </Reference>
     <Reference Include="CodemastersReader, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -52,12 +52,12 @@
       <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="GameReaderCommon">
-      <HintPath>C:\Program Files\SimHub\GameReaderCommon.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="InputManagerCS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\InputManagerCS.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\InputManagerCS.dll</HintPath>
     </Reference>
     <Reference Include="iRacingSDK, Version=1.0.8819.35954, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -65,12 +65,12 @@
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\log4net.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MahApps.Metro, Version=1.5.0.23, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\MahApps.Metro.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\MahApps.Metro.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -96,14 +96,18 @@
     </Reference>
     <Reference Include="SimHub.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\SimHub.Logging.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\SimHub.Logging.dll</HintPath>
     </Reference>
     <Reference Include="SimHub.Plugins, Version=1.0.8090.41698, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\SimHub\SimHub.Plugins.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\SimHub\SimHub.Plugins.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL" />
+    <Reference Include="System.Collections.Immutable, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\SimHub\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
@@ -127,6 +131,9 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WoteverCommon">
+      <HintPath>C:\Program Files (x86)\SimHub\WoteverCommon.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\components\ACCRawData.cs" />
