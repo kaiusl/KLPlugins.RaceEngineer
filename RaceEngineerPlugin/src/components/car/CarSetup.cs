@@ -51,10 +51,11 @@ namespace KLPlugins.RaceEngineer.Car {
         public int tyreCompound { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> tyrePressure { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> tyrePressure { get; }
 
         [JsonConstructor]
-        internal TyreSetup(int tyreCompound, ImmutableArray<int> tyrePressure) {
+        internal TyreSetup(int tyreCompound, ImmutableWheelsData<int> tyrePressure) {
             this.tyreCompound = tyreCompound;
             this.tyrePressure = tyrePressure;
         }
@@ -62,19 +63,23 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Alignment {
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> camber { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> camber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> toe { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> toe { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<double> staticCamber { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        public ImmutableWheelsData<double> staticCamber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<double> toeOutLinear { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        public ImmutableWheelsData<double> toeOutLinear { get; }
 
 
         [JsonProperty(Required = Required.Always)]
@@ -89,7 +94,15 @@ namespace KLPlugins.RaceEngineer.Car {
         public int steerRatio { get; }
 
         [JsonConstructor]
-        internal Alignment(ImmutableArray<int> camber, ImmutableArray<int> toe, ImmutableArray<double> staticCamber, ImmutableArray<double> toeOutLinear, int casterLF, int casterRF, int steerRatio) {
+        internal Alignment(
+            ImmutableWheelsData<int> camber,
+            ImmutableWheelsData<int> toe,
+            ImmutableWheelsData<double> staticCamber,
+            ImmutableWheelsData<double> toeOutLinear,
+            int casterLF,
+             int casterRF,
+             int steerRatio
+        ) {
             this.camber = camber;
             this.toe = toe;
             this.staticCamber = staticCamber;
@@ -220,16 +233,20 @@ namespace KLPlugins.RaceEngineer.Car {
         public int aRBRear { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> wheelRate { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> wheelRate { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> bumpStopRateUp { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopRateUp { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> bumpStopRateDn { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopRateDn { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> bumpStopWindow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopWindow { get; }
 
         [JsonProperty(Required = Required.Always)]
         public int brakeTorque { get; }
@@ -238,7 +255,16 @@ namespace KLPlugins.RaceEngineer.Car {
         public int brakeBias { get; }
 
         [JsonConstructor]
-        internal MechanicalBalance(int aRBFront, int aRBRear, ImmutableArray<int> wheelRate, ImmutableArray<int> bumpStopRateUp, ImmutableArray<int> bumpStopRateDn, ImmutableArray<int> bumpStopWindow, int brakeTorque, int brakeBias) {
+        internal MechanicalBalance(
+            int aRBFront,
+            int aRBRear,
+            ImmutableWheelsData<int> wheelRate,
+            ImmutableWheelsData<int> bumpStopRateUp,
+            ImmutableWheelsData<int> bumpStopRateDn,
+            ImmutableWheelsData<int> bumpStopWindow,
+            int brakeTorque,
+            int brakeBias
+        ) {
             this.aRBFront = aRBFront;
             this.aRBRear = aRBRear;
             this.wheelRate = wheelRate;
@@ -252,19 +278,28 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Dampers {
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> bumpSlow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> bumpFast { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpFast { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> reboundSlow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> reboundSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> reboundFast { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> reboundFast { get; }
 
         [JsonConstructor]
-        internal Dampers(ImmutableArray<int> bumpSlow, ImmutableArray<int> bumpFast, ImmutableArray<int> reboundSlow, ImmutableArray<int> reboundFast) {
+        internal Dampers(
+            ImmutableWheelsData<int> bumpSlow,
+            ImmutableWheelsData<int> bumpFast,
+            ImmutableWheelsData<int> reboundSlow,
+            ImmutableWheelsData<int> reboundFast
+        ) {
             this.bumpSlow = bumpSlow;
             this.bumpFast = bumpFast;
             this.reboundSlow = reboundSlow;
@@ -274,10 +309,12 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class AeroBalance {
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<int> rideHeight { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        public ImmutableWheelsData<int> rideHeight { get; }
 
         [JsonProperty(Required = Required.Always)]
-        public ImmutableArray<double> rodLength { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        public ImmutableWheelsData<double> rodLength { get; }
 
         [JsonProperty(Required = Required.Always)]
         public int splitter { get; }
@@ -289,7 +326,13 @@ namespace KLPlugins.RaceEngineer.Car {
         public ImmutableArray<int> brakeDuct { get; }
 
         [JsonConstructor]
-        internal AeroBalance(ImmutableArray<int> rideHeight, ImmutableArray<double> rodLength, int splitter, int rearWing, ImmutableArray<int> brakeDuct) {
+        internal AeroBalance(
+            ImmutableWheelsData<int> rideHeight,
+            ImmutableWheelsData<double> rodLength,
+            int splitter,
+            int rearWing,
+            ImmutableArray<int> brakeDuct
+        ) {
             this.rideHeight = rideHeight;
             this.rodLength = rodLength;
             this.splitter = splitter;

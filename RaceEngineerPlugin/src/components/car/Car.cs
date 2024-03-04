@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using GameReaderCommon;
 
@@ -12,6 +13,8 @@ using KLPlugins.RaceEngineer.Stats;
 using MathNet.Numerics.LinearAlgebra.Factorization;
 
 using Newtonsoft.Json;
+
+[assembly: InternalsVisibleToAttribute("RaceEngineerPluginTests")]
 
 namespace KLPlugins.RaceEngineer.Car {
     /// <summary>
@@ -505,10 +508,16 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class ImmutableWheelsData<T> {
-        private T[] _data { get; set; } = new T[4];
+        private T[] _data { get; set; }
 
-        internal ImmutableWheelsData(T fl, T fr, T rl, T rr) {
-            this._data = [fl, fr, rl, rr];
+        internal ImmutableWheelsData(T fl, T fr, T rl, T rr) : this([fl, fr, rl, rr]) { }
+
+        internal ImmutableWheelsData(T[] values) {
+            if (values.Length != 4) {
+                throw new Exception($"Invalid values for wheels data. Expected 4 values. Got {values.Length}.");
+            }
+
+            this._data = values;
         }
 
         public T FL => this._data[0];
@@ -518,6 +527,42 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public T this[int index] => this._data[index];
     }
+
+    internal class ImmutableWheelsDataJsonConverter<T> : JsonConverter<ImmutableWheelsData<T>> {
+        public override void WriteJson(JsonWriter writer, ImmutableWheelsData<T> value, JsonSerializer serializer) {
+            writer.WriteStartArray();
+
+            writer.WriteValue(value.FL);
+            writer.WriteValue(value.FR);
+            writer.WriteValue(value.RL);
+            writer.WriteValue(value.RR);
+
+            writer.WriteEndArray();
+        }
+
+        public override ImmutableWheelsData<T> ReadJson(JsonReader reader, Type objectType, ImmutableWheelsData<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            var xs = new T[4];
+
+            if (reader.TokenType != JsonToken.StartArray) {
+                throw new Exception("Invalid JSON");
+            }
+
+            for (int i = 0; i < 4; i++) {
+                reader.Read();
+                var val = serializer.Deserialize<T>(reader) ?? throw new Exception("Invalid JSON");
+                xs[i] = val;
+            }
+
+            reader.Read();
+            if (reader.TokenType != JsonToken.EndArray) {
+                throw new Exception("Invalid JSON");
+            }
+
+            return new(xs);
+        }
+    }
+
+
 
     internal class ACTyreInfo(string name, string shortName, Lut wearCurveF, Lut wearCurveR, Lut tempCurveF, Lut tempCurveR, FrontRear<double> idealPres) {
         internal string Name { get; private set; } = name;

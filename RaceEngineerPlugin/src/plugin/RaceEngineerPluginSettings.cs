@@ -18,7 +18,7 @@ namespace KLPlugins.RaceEngineer {
     public class Settings {
         public int NumPreviousValuesStored { get; }
         public string DataLocation { get; }
-        public string AccDataLocation { get;  }
+        public string AccDataLocation { get; }
 
         public Lut BrakeTempNormalizationLut { get; }
         public Lut TyreTempNormalizationLut { get; }

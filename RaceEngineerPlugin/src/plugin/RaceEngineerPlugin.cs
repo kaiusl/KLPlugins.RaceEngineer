@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 
 using GameReaderCommon;
-using SimHub.Plugins;
 
-using KLPlugins.RaceEngineer.Deque;
-using ksBroadcastingNetwork;
 using KLPlugins.RaceEngineer.Car;
-using System.Linq;
+using KLPlugins.RaceEngineer.Deque;
 using KLPlugins.RaceEngineer.Stats;
+
+using ksBroadcastingNetwork;
+
+using SimHub.Plugins;
 
 namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]

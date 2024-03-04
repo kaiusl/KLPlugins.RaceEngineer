@@ -62,8 +62,8 @@ namespace KLPlugins.RaceEngineer.Database {
         internal int BrakeDuctFront;
         internal int BrakeDuctRear;
         internal int TyreSet;
-        internal int[] Camber;
-        internal int[] Toe;
+        internal ImmutableWheelsData<int> Camber;
+        internal ImmutableWheelsData<int> Toe;
         internal int CasterLf;
         internal int CasterRf;
 
@@ -94,21 +94,15 @@ namespace KLPlugins.RaceEngineer.Database {
             if (v.Car.Setup != null) {
                 this.BrakeDuctFront = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
                 this.BrakeDuctRear = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
-                this.Camber = v.Car.Setup.basicSetup.alignment.camber.ToArray();
-                this.Toe = v.Car.Setup.basicSetup.alignment.toe.ToArray();
+                this.Camber = v.Car.Setup.basicSetup.alignment.camber;
+                this.Toe = v.Car.Setup.basicSetup.alignment.toe;
                 this.CasterLf = v.Car.Setup.basicSetup.alignment.casterLF;
                 this.CasterRf = v.Car.Setup.basicSetup.alignment.casterRF;
             } else {
                 this.BrakeDuctFront = -1;
                 this.BrakeDuctRear = -1;
-                this.Camber = new int[4];
-                this.Toe = new int[4];
-
-                for (var i = 0; i < 4; i++) {
-                    this.Camber[i] = -1;
-                    this.Toe[i] = -1;
-                }
-
+                this.Camber = new(-1, -1, -1, -1);
+                this.Toe = new(-1, -1, -1, -1);
                 this.CasterLf = -1;
                 this.CasterRf = -1;
             }
@@ -118,7 +112,7 @@ namespace KLPlugins.RaceEngineer.Database {
             return $@"SessionId = {this.SessionId}; StartTime = {this.StartTime}; StintNr = {this.StintNr};
 	TyreCompount = {this.TyreCompound}; TyrePresIn = {WheelsDataToString(this.TyrePresIn)}; TyreSet = {this.TyreSet};
 	BrakePad = [F: {this.BrakePadFront}, R: {this.BrakePadRear}]; BrakePadNr = {this.BrakePadNr}; BrakeDuct = [F: {this.BrakeDuctFront}, R: {this.BrakeDuctRear}],
-	Camber = {ArrayToString(this.Camber)}; Toe = {ArrayToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
+	Camber = {WheelsDataToString(this.Camber)}; Toe = {WheelsDataToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
         }
 
         private static string ArrayToString<T>(T[] a) {
@@ -126,6 +120,10 @@ namespace KLPlugins.RaceEngineer.Database {
         }
 
         private static string WheelsDataToString<T>(WheelsData<T> a) {
+            return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
+        }
+
+        private static string WheelsDataToString<T>(ImmutableWheelsData<T> a) {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
     }
