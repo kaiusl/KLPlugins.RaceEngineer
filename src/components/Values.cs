@@ -3,8 +3,6 @@ using System.Diagnostics;
 
 using GameReaderCommon;
 
-using ksBroadcastingNetwork;
-
 using SimHub.Plugins;
 
 
@@ -23,13 +21,13 @@ namespace KLPlugins.RaceEngineer {
         public Session Session = new();
         public Remaining.RemainingInSession RemainingInSession = new();
         public Remaining.RemainingOnFuel RemainingOnFuel = new();
-        public Database.Database Db = new();
+        internal Database.Database Db = new();
 
         //public ACCUdpRemoteClient BroadcastClient = null;
 
         public Values() { }
 
-        public void Reset() {
+        internal void Reset() {
             //if (BroadcastClient != null) {
             //    DisposeBroadcastClient();
             //}
@@ -56,9 +54,9 @@ namespace KLPlugins.RaceEngineer {
         protected virtual void Dispose(bool disposing) {
             if (!this._isDisposed) {
                 if (disposing) {
-                    RaceEngineerPlugin.LogInfo("Disposed");
                     this.Db.Dispose();
                     //DisposeBroadcastClient();
+                    RaceEngineerPlugin.LogInfo("Disposed");
                 }
 
                 this._isDisposed = true;
@@ -132,7 +130,10 @@ namespace KLPlugins.RaceEngineer {
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
-            if (!this.Booleans.NewData.IsRaceStartStintAdded && this.Booleans.NewData.IsMoving && (this.Session.SessionType == SessionType.Race || this.Session.SessionType == SessionType.Hotstint || this.Session.SessionType == SessionType.Hotlap)) {
+            if (
+                !this.Booleans.NewData.IsRaceStartStintAdded
+                && this.Booleans.NewData.IsMoving
+                && this.Session.SessionType is SessionType.Race or SessionType.Hotstint or SessionType.Hotlap) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
                 this.OnNewStint(data);
