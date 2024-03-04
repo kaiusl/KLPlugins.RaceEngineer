@@ -17,7 +17,6 @@ namespace KLPlugins.RaceEngineer {
         public Track.Track Track = new();
         public Laps.Laps Laps = new();
         public Weather Weather = new();
-        //public ACCRawData RawData = new ACCRawData();
         public Session Session = new();
         public Remaining.RemainingInSession RemainingInSession = new();
         public Remaining.RemainingOnFuel RemainingOnFuel = new();
@@ -29,15 +28,9 @@ namespace KLPlugins.RaceEngineer {
         public event OnNewEventHandler? OnNewSession;
         public event OnNewEventHandler? OnLapFinished;
 
-        //public ACCUdpRemoteClient BroadcastClient = null;
-
         public Values() { }
 
         internal void Reset() {
-            //if (BroadcastClient != null) {
-            //    DisposeBroadcastClient();
-            //}
-
             this.Booleans.Reset();
             this.Car.Reset();
             this.Track.Reset();
@@ -45,7 +38,6 @@ namespace KLPlugins.RaceEngineer {
             this.Weather.Reset();
             this.RemainingInSession.Reset();
             this.RemainingOnFuel.Reset();
-            // RawData.Reset();
             this.Session.Reset();
         }
 
@@ -82,11 +74,7 @@ namespace KLPlugins.RaceEngineer {
 
         public void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
-                //if (BroadcastClient != null) {
-                //    RaceEngineerPlugin.LogWarn("Broadcast client wasn't 'null' at start of new event. Shouldn't be possible, there is a bug in disposing of Broadcast client from previous session.");
-                //    DisposeBroadcastClient();
-                //}
-                //ConnectToBroadcastClient();
+                //
             } else {
                 this.Reset();
             }
@@ -104,7 +92,6 @@ namespace KLPlugins.RaceEngineer {
         ///     OnNewEvent - at the start of event, eg at the start of first session
         /// 
         /// </summary>
-        private readonly DateTime lastWeather = DateTime.Now;
         public void OnDataUpdate(GameData data) {
             // RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
@@ -176,11 +163,6 @@ namespace KLPlugins.RaceEngineer {
                 this.Db.InsertSession(data, this);
             }
 
-            //if ((data.NewData.PacketTime - lastWeather).TotalSeconds > 5) {
-            //    File.AppendAllText($"{RaceEngineerPlugin.Settings.DataLocation}\\weather.txt", $"{data.NewData.PacketTime.Ticks}; {RawData.NewData.Graphics.clock}; {data.NewData.AirTemperature}; {data.NewData.RoadTemperature}; {RawData.NewData.Graphics.rainIntensity}; {RawData.NewData.Graphics.rainIntensityIn10min}; {RawData.NewData.Graphics.rainIntensityIn30min}; {RawData.NewData.Graphics.trackGripStatus}; {RawData.NewData.Graphics.CarCount}; {RawData.NewData.Graphics.WindSpeed}\n");
-            //    lastWeather = data.NewData.PacketTime;
-            //}
-
             // We want to invoke these after all the data has been updated from our side
             this.InvokeEvents(data, isNewStint);
         }
@@ -202,32 +184,6 @@ namespace KLPlugins.RaceEngineer {
                 this.OnNewSession.Invoke(data, this);
             }
         }
-
-        #region Broadcast client connection
-
-        //public void ConnectToBroadcastClient() {
-        //    BroadcastClient = new ACCUdpRemoteClient("127.0.0.1", 9000, "REPlugin", "asd", "", 100);
-        //    BroadcastClient.MessageHandler.OnRealtimeUpdate += RawData.OnBroadcastRealtimeUpdate;
-        //    BroadcastClient.MessageHandler.OnConnectionStateChanged += OnBroadcastConnectionStateChanged;
-        //}
-
-        //public void DisposeBroadcastClient() {
-        //    if (BroadcastClient != null) {
-        //        BroadcastClient.Shutdown();
-        //        BroadcastClient.Dispose();
-        //        BroadcastClient = null;
-        //    }
-        //}
-
-        //private void OnBroadcastConnectionStateChanged(int connectionId, bool connectionSuccess, bool isReadonly, string error) {
-        //    if (connectionSuccess) {
-        //        RaceEngineerPlugin.LogInfo("Connected to broadcast client.");
-        //    } else {
-        //        RaceEngineerPlugin.LogWarn($"Failed to connect to broadcast client. Err: {error}");
-        //    }
-        //}
-
-        #endregion
 
     }
 
