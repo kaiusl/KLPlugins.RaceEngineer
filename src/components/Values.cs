@@ -5,32 +5,33 @@ using GameReaderCommon;
 
 using SimHub.Plugins;
 
-
 namespace KLPlugins.RaceEngineer {
 
     /// <summary>
     /// Storage and calculation of new properties
     /// </summary>
-    public class Values : IDisposable {
-        public Booleans.Booleans Booleans = new();
-        public Car.Car Car = new();
-        public Track.Track Track = new();
-        public Laps.Laps Laps = new();
-        public Weather Weather = new();
-        public Session Session = new();
-        public Remaining.RemainingInSession RemainingInSession = new();
-        public Remaining.RemainingOnFuel RemainingOnFuel = new();
-        internal Database.Database Db = new();
+    public sealed class Values {
+        public Booleans.Booleans Booleans { get; } = new();
+        public Car.Car Car { get; } = new();
+        public Track.Track Track { get; } = new();
+        public Laps.Laps Laps { get; } = new();
+        public Weather Weather { get; } = new();
+        public Session Session { get; } = new();
+        public Remaining.RemainingInSession RemainingInSession { get; } = new();
+        public Remaining.RemainingOnFuel RemainingOnFuel { get; } = new();
+        internal Database.Database Db { get; } = new();
 
-        public delegate void OnNewEventHandler(in GameData data, in Values v);
-        public event OnNewEventHandler? OnNewEvent;
-        public event OnNewEventHandler? OnNewStint;
-        public event OnNewEventHandler? OnNewSession;
-        public event OnNewEventHandler? OnLapFinished;
+        public delegate void NewXXXStartedEventHandler(Values sender, GameData data);
+        public event NewXXXStartedEventHandler? NewEventStarted;
+        public event NewXXXStartedEventHandler? NewStintStarted;
+        public event NewXXXStartedEventHandler? NewSessionStarted;
+        public event NewXXXStartedEventHandler? LapFinished;
 
-        public Values() { }
+        internal Values(PluginManager pm) {
+            pm.GameStateChanged += this.OnGameStateChanged;
+        }
 
-        internal void Reset() {
+        private void Reset() {
             this.Booleans.Reset();
             this.Car.Reset();
             this.Track.Reset();
@@ -45,11 +46,10 @@ namespace KLPlugins.RaceEngineer {
         #region IDisposable Support
         ~Values() {
             this.Dispose(false);
-            GC.SuppressFinalize(this);
         }
 
         private bool _isDisposed = false;
-        protected virtual void Dispose(bool disposing) {
+        private void Dispose(bool disposing) {
             if (!this._isDisposed) {
                 if (disposing) {
                     this.Db.Dispose();
@@ -61,18 +61,19 @@ namespace KLPlugins.RaceEngineer {
             }
         }
 
-        public void Dispose() {
+        internal void Dispose() {
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 
-        private void _onNewStint(GameData data) {
+        private void OnNewStint(GameData data) {
             this.Laps.OnNewStint();
             this.Car.OnNewStint();
             this.Db.InsertStint(data, this);
         }
 
-        public void OnGameStateChanged(bool running, PluginManager manager) {
+        private void OnGameStateChanged(bool running, PluginManager manager) {
             if (running) {
                 //
             } else {
@@ -92,7 +93,7 @@ namespace KLPlugins.RaceEngineer {
         ///     OnNewEvent - at the start of event, eg at the start of first session
         /// 
         /// </summary>
-        public void OnDataUpdate(GameData data) {
+        internal void OnDataUpdate(GameData data) {
             // RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
             if (this.Booleans.NewData.IsNewEvent) {
@@ -116,7 +117,7 @@ namespace KLPlugins.RaceEngineer {
             if (this.Booleans.NewData.ExitedPitLane && !this.Booleans.NewData.IsInMenu) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
-                this._onNewStint(data);
+                this.OnNewStint(data);
                 isNewStint = true;
             }
 
@@ -127,7 +128,7 @@ namespace KLPlugins.RaceEngineer {
                 && this.Session.SessionType is SessionType.Race or SessionType.Hotstint or SessionType.Hotlap) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
-                this._onNewStint(data);
+                this.OnNewStint(data);
                 this.Booleans.RaceStartStintAdded();
                 isNewStint = true;
             }
@@ -168,24 +169,21 @@ namespace KLPlugins.RaceEngineer {
         }
 
         private void InvokeEvents(GameData data, bool isNewStint) {
-            if (this.OnNewEvent != null && this.Booleans.NewData.IsNewEvent) {
-                this.OnNewEvent.Invoke(data, this);
+            if (this.NewEventStarted != null && this.Booleans.NewData.IsNewEvent) {
+                this.NewEventStarted.Invoke(this, data);
             }
 
-            if (this.OnNewStint != null && isNewStint) {
-                this.OnNewStint.Invoke(data, this);
+            if (this.NewStintStarted != null && isNewStint) {
+                this.NewStintStarted.Invoke(this, data);
             }
 
-            if (this.OnLapFinished != null && this.Booleans.NewData.IsLapFinished) {
-                this.OnLapFinished.Invoke(data, this);
+            if (this.LapFinished != null && this.Booleans.NewData.IsLapFinished) {
+                this.LapFinished.Invoke(this, data);
             }
 
-            if (this.OnNewSession != null && this.Session.IsNewSession) {
-                this.OnNewSession.Invoke(data, this);
+            if (this.NewSessionStarted != null && this.Session.IsNewSession) {
+                this.NewSessionStarted.Invoke(this, data);
             }
         }
-
     }
-
-
 }

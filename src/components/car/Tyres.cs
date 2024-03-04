@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
 using ACSharedMemory.ACC.MMFModels;
@@ -13,7 +14,7 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static ImmutableArray<string> Names = ImmutableArray.Create("11", "12", "21", "22");
+        public static readonly ImmutableWheelsData<string> Names = new("11", "12", "21", "22");
 
         public string? Name { get; private set; }
 
@@ -26,8 +27,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public WheelsData<double> PresLoss { get; }
         public WheelsData<bool> PresLossLap { get; }
 
-        public MultiPointLinearInterpolator TempNormalizerF { get; private set; }
-        public MultiPointLinearInterpolator TempNormalizerR { get; private set; }
+        private MultiPointLinearInterpolator _tempNormalizerF { get; set; }
+        private MultiPointLinearInterpolator _tempNormalizerR { get; set; }
 
         private const double NORMALIZED_DATA_DEF_VALUE = -1.0;
         public WheelsData<double> TempNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
@@ -39,8 +40,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public WheelsData<double> TempMiddleAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> TempOuterAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
 
-        public MultiPointLinearInterpolator PresNormalizerF { get; private set; }
-        public MultiPointLinearInterpolator PresNormalizerR { get; private set; }
+        private MultiPointLinearInterpolator PresNormalizerF { get; set; }
+        private MultiPointLinearInterpolator PresNormalizerR { get; set; }
         public WheelsData<double> PresNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> PresMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> PresMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
@@ -55,7 +56,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public WheelsStats TempOuterOverLap { get; }
 
 
-        public Dictionary<string, Dictionary<int, int>> SetLaps { get; private set; }
+        private Dictionary<string, Dictionary<int, int>> _setLaps { get; set; }
 
         public InputTyrePresPredictor? InputTyrePresPredictorDry { get; private set; }
         public InputTyrePresPredictor? InputTyrePresPredictorNowWet { get; private set; }
@@ -89,10 +90,10 @@ namespace KLPlugins.RaceEngineer.Car {
             this.PressDeltaToIdeal = new(double.NaN);
             this.PresLoss = new(0.0);
             this.PresLossLap = new(false);
-            this.SetLaps = [];
+            this._setLaps = [];
 
-            this.TempNormalizerF = DefTempNormalizer();
-            this.TempNormalizerR = DefTempNormalizer();
+            this._tempNormalizerF = DefTempNormalizer();
+            this._tempNormalizerR = DefTempNormalizer();
 
             this.PresNormalizerF = DefPresNormalizer();
             this.PresNormalizerR = DefPresNormalizer();
@@ -124,13 +125,13 @@ namespace KLPlugins.RaceEngineer.Car {
             this.TempMiddleAvgNormalized.Reset();
             this.TempOuterAvgNormalized.Reset();
 
-            this.SetLaps.Clear();
+            this._setLaps.Clear();
             this.InputTyrePresPredictorDry = null;
             this.InputTyrePresPredictorNowWet = null;
             this.InputTyrePresPredictorFutureWet = null;
 
-            this.TempNormalizerF = DefTempNormalizer();
-            this.TempNormalizerR = DefTempNormalizer();
+            this._tempNormalizerF = DefTempNormalizer();
+            this._tempNormalizerR = DefTempNormalizer();
             this.TempNormalized.Reset();
             this.TempMinNormalized.Reset();
             this.TempMaxNormalized.Reset();
@@ -159,8 +160,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public int GetCurrentSetLaps() {
             if (this.Name == null) return -1;
 
-            if (this.SetLaps.ContainsKey(this.Name) && this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
-                return this.SetLaps[this.Name][this.CurrentTyreSet];
+            if (this._setLaps.ContainsKey(this.Name) && this._setLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                return this._setLaps[this.Name][this.CurrentTyreSet];
             }
             return -1;
         }
@@ -179,18 +180,18 @@ namespace KLPlugins.RaceEngineer.Car {
         public void OnNewStint() {
             if (this.Name == null) return;
 
-            if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
-                this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
+            if (!this._setLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                this._setLaps[this.Name][this.CurrentTyreSet] = 0;
             }
         }
 
         public void OnLapFinished(Values v) {
             if (this.Name != null) {
-                if (!this.SetLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
-                    this.SetLaps[this.Name][this.CurrentTyreSet] = 0;
+                if (!this._setLaps[this.Name].ContainsKey(this.CurrentTyreSet)) {
+                    this._setLaps[this.Name][this.CurrentTyreSet] = 0;
                 }
 
-                this.SetLaps[this.Name][this.CurrentTyreSet] += 1;
+                this._setLaps[this.Name][this.CurrentTyreSet] += 1;
 
             }
 
@@ -247,10 +248,10 @@ namespace KLPlugins.RaceEngineer.Car {
                 }
 
                 if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                    this.TempNormalized.FL = this.TempNormalizerF.Interpolate(data.NewData.TyreTemperatureFrontLeft);
-                    this.TempNormalized.FR = this.TempNormalizerF.Interpolate(data.NewData.TyreTemperatureFrontRight);
-                    this.TempNormalized.RL = this.TempNormalizerR.Interpolate(data.NewData.TyreTemperatureRearLeft);
-                    this.TempNormalized.RR = this.TempNormalizerR.Interpolate(data.NewData.TyreTemperatureRearRight);
+                    this.TempNormalized.FL = this._tempNormalizerF.Interpolate(data.NewData.TyreTemperatureFrontLeft);
+                    this.TempNormalized.FR = this._tempNormalizerF.Interpolate(data.NewData.TyreTemperatureFrontRight);
+                    this.TempNormalized.RL = this._tempNormalizerR.Interpolate(data.NewData.TyreTemperatureRearLeft);
+                    this.TempNormalized.RR = this._tempNormalizerR.Interpolate(data.NewData.TyreTemperatureRearRight);
                 }
             }
         }
@@ -276,37 +277,37 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                this.TempMinNormalized.FL = this.TempNormalizerF.Interpolate(this.TempOverLap.FL.Min);
-                this.TempMinNormalized.FR = this.TempNormalizerF.Interpolate(this.TempOverLap.FR.Min);
-                this.TempMinNormalized.RL = this.TempNormalizerR.Interpolate(this.TempOverLap.RL.Min);
-                this.TempMinNormalized.RR = this.TempNormalizerR.Interpolate(this.TempOverLap.RR.Min);
+                this.TempMinNormalized.FL = this._tempNormalizerF.Interpolate(this.TempOverLap.FL.Min);
+                this.TempMinNormalized.FR = this._tempNormalizerF.Interpolate(this.TempOverLap.FR.Min);
+                this.TempMinNormalized.RL = this._tempNormalizerR.Interpolate(this.TempOverLap.RL.Min);
+                this.TempMinNormalized.RR = this._tempNormalizerR.Interpolate(this.TempOverLap.RR.Min);
             }
             if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                this.TempMaxNormalized.FL = this.TempNormalizerF.Interpolate(this.TempOverLap.FL.Max);
-                this.TempMaxNormalized.FR = this.TempNormalizerF.Interpolate(this.TempOverLap.FR.Max);
-                this.TempMaxNormalized.RL = this.TempNormalizerR.Interpolate(this.TempOverLap.RL.Max);
-                this.TempMaxNormalized.RR = this.TempNormalizerR.Interpolate(this.TempOverLap.RR.Max);
+                this.TempMaxNormalized.FL = this._tempNormalizerF.Interpolate(this.TempOverLap.FL.Max);
+                this.TempMaxNormalized.FR = this._tempNormalizerF.Interpolate(this.TempOverLap.FR.Max);
+                this.TempMaxNormalized.RL = this._tempNormalizerR.Interpolate(this.TempOverLap.RL.Max);
+                this.TempMaxNormalized.RR = this._tempNormalizerR.Interpolate(this.TempOverLap.RR.Max);
             }
             if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
-                this.TempAvgNormalized.FL = this.TempNormalizerF.Interpolate(this.TempOverLap.FL.Avg);
-                this.TempAvgNormalized.FR = this.TempNormalizerF.Interpolate(this.TempOverLap.FR.Avg);
-                this.TempAvgNormalized.RL = this.TempNormalizerR.Interpolate(this.TempOverLap.RL.Avg);
-                this.TempAvgNormalized.RR = this.TempNormalizerR.Interpolate(this.TempOverLap.RR.Avg);
+                this.TempAvgNormalized.FL = this._tempNormalizerF.Interpolate(this.TempOverLap.FL.Avg);
+                this.TempAvgNormalized.FR = this._tempNormalizerF.Interpolate(this.TempOverLap.FR.Avg);
+                this.TempAvgNormalized.RL = this._tempNormalizerR.Interpolate(this.TempOverLap.RL.Avg);
+                this.TempAvgNormalized.RR = this._tempNormalizerR.Interpolate(this.TempOverLap.RR.Avg);
 
-                this.TempInnerAvgNormalized.FL = this.TempNormalizerF.Interpolate(this.TempInnerOverLap.FL.Avg);
-                this.TempInnerAvgNormalized.FR = this.TempNormalizerF.Interpolate(this.TempInnerOverLap.FR.Avg);
-                this.TempInnerAvgNormalized.RL = this.TempNormalizerR.Interpolate(this.TempInnerOverLap.RL.Avg);
-                this.TempInnerAvgNormalized.RR = this.TempNormalizerR.Interpolate(this.TempInnerOverLap.RR.Avg);
+                this.TempInnerAvgNormalized.FL = this._tempNormalizerF.Interpolate(this.TempInnerOverLap.FL.Avg);
+                this.TempInnerAvgNormalized.FR = this._tempNormalizerF.Interpolate(this.TempInnerOverLap.FR.Avg);
+                this.TempInnerAvgNormalized.RL = this._tempNormalizerR.Interpolate(this.TempInnerOverLap.RL.Avg);
+                this.TempInnerAvgNormalized.RR = this._tempNormalizerR.Interpolate(this.TempInnerOverLap.RR.Avg);
 
-                this.TempMiddleAvgNormalized.FL = this.TempNormalizerF.Interpolate(this.TempMiddleOverLap.FL.Avg);
-                this.TempMiddleAvgNormalized.FR = this.TempNormalizerF.Interpolate(this.TempMiddleOverLap.FR.Avg);
-                this.TempMiddleAvgNormalized.RL = this.TempNormalizerR.Interpolate(this.TempMiddleOverLap.RL.Avg);
-                this.TempMiddleAvgNormalized.RR = this.TempNormalizerR.Interpolate(this.TempMiddleOverLap.RR.Avg);
+                this.TempMiddleAvgNormalized.FL = this._tempNormalizerF.Interpolate(this.TempMiddleOverLap.FL.Avg);
+                this.TempMiddleAvgNormalized.FR = this._tempNormalizerF.Interpolate(this.TempMiddleOverLap.FR.Avg);
+                this.TempMiddleAvgNormalized.RL = this._tempNormalizerR.Interpolate(this.TempMiddleOverLap.RL.Avg);
+                this.TempMiddleAvgNormalized.RR = this._tempNormalizerR.Interpolate(this.TempMiddleOverLap.RR.Avg);
 
-                this.TempOuterAvgNormalized.FL = this.TempNormalizerF.Interpolate(this.TempOuterOverLap.FL.Avg);
-                this.TempOuterAvgNormalized.FR = this.TempNormalizerF.Interpolate(this.TempOuterOverLap.FR.Avg);
-                this.TempOuterAvgNormalized.RL = this.TempNormalizerR.Interpolate(this.TempOuterOverLap.RL.Avg);
-                this.TempOuterAvgNormalized.RR = this.TempNormalizerR.Interpolate(this.TempOuterOverLap.RR.Avg);
+                this.TempOuterAvgNormalized.FL = this._tempNormalizerF.Interpolate(this.TempOuterOverLap.FL.Avg);
+                this.TempOuterAvgNormalized.FR = this._tempNormalizerF.Interpolate(this.TempOuterOverLap.FR.Avg);
+                this.TempOuterAvgNormalized.RL = this._tempNormalizerR.Interpolate(this.TempOuterOverLap.RL.Avg);
+                this.TempOuterAvgNormalized.RR = this._tempNormalizerR.Interpolate(this.TempOuterOverLap.RR.Avg);
             }
 
         }
@@ -357,8 +358,8 @@ namespace KLPlugins.RaceEngineer.Car {
             this.ResetValues();
 
             this.Name = newTyreName;
-            if (!this.SetLaps.ContainsKey(this.Name)) {
-                this.SetLaps[this.Name] = [];
+            if (!this._setLaps.ContainsKey(this.Name)) {
+                this._setLaps[this.Name] = [];
             }
 
             if (v.Car.Info.Tyres.ContainsKey(this.Name)) {
@@ -374,8 +375,8 @@ namespace KLPlugins.RaceEngineer.Car {
 
             this.PresNormalizerF = new(this.Info.IdealPresCurve.F);
             this.PresNormalizerR = new(this.Info.IdealPresCurve.R);
-            this.TempNormalizerF = new(this.Info.IdealTempCurve.F);
-            this.TempNormalizerR = new(this.Info.IdealTempCurve.R);
+            this._tempNormalizerF = new(this.Info.IdealTempCurve.F);
+            this._tempNormalizerR = new(this.Info.IdealTempCurve.R);
         }
 
         static MultiPointLinearInterpolator DefPresNormalizer() {
@@ -528,7 +529,7 @@ namespace KLPlugins.RaceEngineer.Car {
                         preds.CopyTo(this.PredictedIdealInputPresDry, 0);
                     } else {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
-                            this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, v.Db);
+                            this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct.ToArray(), v.Db);
                             for (int i = 0; i < 4; i++) {
                                 this.PredictedIdealInputPresDry[i] = double.NaN;
                             }
@@ -540,7 +541,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 if (!this._updatingPresPredictorNowWet && rawDataNew.Graphics.rainIntensity != ACC_RAIN_INTENSITY.ACC_NO_RAIN) {
                     if (rawDataNew.Graphics.rainIntensity != rawDataOld.Graphics.rainIntensity || this.InputTyrePresPredictorNowWet == null) {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
-                            this.InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, data, v.Db);
+                            this.InitInputTyrePresPredictorNowWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct.ToArray(), data, v.Db);
                         }
                         for (int i = 0; i < 4; i++) {
                             this.PredictedIdealInputPresNowWet[i] = double.NaN;
@@ -559,7 +560,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 if (!this._updatingPresPredictorFutureWet && (rawDataNew.Graphics.rainIntensityIn30min != ACC_RAIN_INTENSITY.ACC_NO_RAIN || rawDataNew.Graphics.rainIntensityIn10min != ACC_RAIN_INTENSITY.ACC_NO_RAIN)) {
                     if (rawDataNew.Graphics.rainIntensityIn30min != rawDataOld.Graphics.rainIntensityIn30min || this.InputTyrePresPredictorFutureWet == null) {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
-                            this.InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct, data, v.Db);
+                            this.InitInputTyrePresPredictorFutureWet(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct.ToArray(), data, v.Db);
                         }
                         for (int i = 0; i < 4; i++) {
                             this.PredictedIdealInputPresFutureWet[i] = double.NaN;
@@ -632,8 +633,8 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void ResetNormalizers() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
-            this.TempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
-            this.TempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this._tempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            this._tempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
             this.PresNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
             this.PresNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
         }
@@ -672,7 +673,13 @@ namespace KLPlugins.RaceEngineer.Car {
         private readonly int[] _brakeDucts;
         private readonly string _compound;
 
-        public InputTyrePresPredictor(string trackName, string carName, int[] brakeDucts, string compound, ACC_RAIN_INTENSITY rain_intensity, string trackGrip, Database.Database db) {
+        internal InputTyrePresPredictor(
+            string trackName,
+             string carName,
+             int[] brakeDucts,
+             string compound,
+              ACC_RAIN_INTENSITY rain_intensity,
+              string trackGrip, Database.Database db) {
             this._trackName = trackName;
             this._carName = carName;
             this._brakeDucts = brakeDucts;

@@ -25,7 +25,7 @@ namespace KLPlugins.RaceEngineer {
         public bool IsUnknown { get; } = false;
         public string Name { get; }
 
-        public Game(string gameName) {
+        internal Game(string gameName) {
             this.Name = gameName;
 
             if (gameName.StartsWith("F120")) {
@@ -61,6 +61,6 @@ namespace KLPlugins.RaceEngineer {
             }
         }
 
-        public Game(PluginManager pm) : this((string)pm.GetPropertyValue("CurrentGame")) { }
+        internal Game(PluginManager pm) : this((string)pm.GetPropertyValue("CurrentGame")) { }
     }
 }

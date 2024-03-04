@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 using MathNet.Numerics.Statistics;
@@ -11,41 +12,39 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// Base class to build different statistics implementations
     /// </summary>
     public class Stats {
-        public static readonly string[] Names = ["Min", "Max", "Avg", "Std", "Median", "Q1", "Q3"];
-        public double[] Data { get; }
-        public double Min { get => this.Data[0]; set => this.Data[0] = value; }
-        public double Max { get => this.Data[1]; set => this.Data[1] = value; }
-        public double Avg { get => this.Data[2]; set => this.Data[2] = value; }
-        public double Std { get => this.Data[3]; set => this.Data[3] = value; }
-        public double Median { get => this.Data[4]; set => this.Data[4] = value; }
-        public double Q1 { get => this.Data[5]; set => this.Data[5] = value; }
-        public double Q3 { get => this.Data[6]; set => this.Data[6] = value; }
+        public static readonly ImmutableArray<string> Names = ImmutableArray.Create("Min", "Max", "Avg", "Std", "Median", "Q1", "Q3");
+        private double[] _data { get; }
+        public double Min { get => this._data[0]; set => this._data[0] = value; }
+        public double Max { get => this._data[1]; set => this._data[1] = value; }
+        public double Avg { get => this._data[2]; set => this._data[2] = value; }
+        public double Std { get => this._data[3]; set => this._data[3] = value; }
+        public double Median { get => this._data[4]; set => this._data[4] = value; }
+        public double Q1 { get => this._data[5]; set => this._data[5] = value; }
+        public double Q3 { get => this._data[6]; set => this._data[6] = value; }
 
-        private const int _size = 7;
-
-        public Stats() {
-            this.Data = [double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN];
+        internal Stats() {
+            this._data = [double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN, double.NaN];
         }
 
-        public Stats(Stats o) : this() {
-            o.Data.CopyTo(this.Data, 0);
+        internal Stats(Stats o) : this() {
+            o._data.CopyTo(this._data, 0);
         }
 
-        public Stats(RunningStatistics o) : this() {
+        internal Stats(RunningStatistics o) : this() {
             this.Set(o);
         }
 
-        public void Reset() {
-            this.Data[0] = double.NaN;
-            this.Data[1] = double.NaN;
-            this.Data[2] = double.NaN;
-            this.Data[3] = double.NaN;
-            this.Data[4] = double.NaN;
-            this.Data[5] = double.NaN;
-            this.Data[6] = double.NaN;
+        internal void Reset() {
+            this._data[0] = double.NaN;
+            this._data[1] = double.NaN;
+            this._data[2] = double.NaN;
+            this._data[3] = double.NaN;
+            this._data[4] = double.NaN;
+            this._data[5] = double.NaN;
+            this._data[6] = double.NaN;
         }
 
-        public void Set(double value) {
+        internal void Set(double value) {
             this.Min = value;
             this.Max = value;
             this.Avg = value;
@@ -55,14 +54,14 @@ namespace KLPlugins.RaceEngineer.Stats {
             this.Q3 = double.NaN;
         }
 
-        public void Set(RunningStatistics o) {
+        internal void Set(RunningStatistics o) {
             this.Min = o.Minimum;
             this.Max = o.Maximum;
             this.Avg = o.Mean;
             this.Std = o.StandardDeviation;
         }
 
-        public double this[int key] => this.Data[key];
+        public double this[int key] => this._data[key];
 
     }
 
@@ -71,38 +70,38 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// Convenience class to simplyfy handling statistics of all four wheels.
     /// </summary>
     public class WheelsStats {
-        public Stats[] Data { get; }
-        public Stats FL => this.Data[0];
-        public Stats FR => this.Data[1];
-        public Stats RL => this.Data[2];
-        public Stats RR => this.Data[3];
+        private Stats[] _data { get; }
+        public Stats FL => this._data[0];
+        public Stats FR => this._data[1];
+        public Stats RL => this._data[2];
+        public Stats RR => this._data[3];
 
         private const int _size = 4;
 
-        public WheelsStats() {
-            this.Data = [new(), new(), new(), new()];
+        internal WheelsStats() {
+            this._data = [new(), new(), new(), new()];
         }
 
-        public WheelsStats(WheelsRunningStats o) {
-            this.Data = new Stats[_size];
+        internal WheelsStats(WheelsRunningStats o) {
+            this._data = new Stats[_size];
             for (int i = 0; i < _size; i++) {
-                this.Data[i] = new(o.Data[i]);
+                this._data[i] = new(o[i]);
             }
         }
 
-        public void Reset() {
+        internal void Reset() {
             for (int i = 0; i < _size; i++) {
-                this.Data[i].Reset();
+                this._data[i].Reset();
             }
         }
 
-        public void Update(WheelsRunningStats o) {
+        internal void Update(WheelsRunningStats o) {
             for (int i = 0; i < _size; i++) {
-                this.Data[i].Set(o.Data[i]);
+                this._data[i].Set(o[i]);
             }
         }
 
-        public Stats this[int key] => this.Data[key];
+        public Stats this[int key] => this._data[key];
 
     }
 
@@ -110,32 +109,38 @@ namespace KLPlugins.RaceEngineer.Stats {
     /// Convenience class to simplyfy handling running statistics of all four wheels.
     /// </summary>
     public class WheelsRunningStats {
-        public RunningStatistics[] Data { get; }
-        public RunningStatistics Fl => this.Data[0];
-        public RunningStatistics FR => this.Data[1];
-        public RunningStatistics Rl => this.Data[2];
-        public RunningStatistics RR => this.Data[3];
+        private RunningStatistics[] _data { get; }
+        public RunningStatistics Fl => this._data[0];
+        public RunningStatistics FR => this._data[1];
+        public RunningStatistics Rl => this._data[2];
+        public RunningStatistics RR => this._data[3];
 
         private const int _SIZE = 4;
 
-        public WheelsRunningStats() {
-            this.Data = [new(), new(), new(), new()];
+        internal WheelsRunningStats() {
+            this._data = [new(), new(), new(), new()];
         }
 
-        public void Reset() {
+        internal void Reset() {
             for (int i = 0; i < _SIZE; i++) {
-                this.Data[i] = new();
+                this._data[i] = new();
             }
         }
 
-        public void Update(double[] values) {
+        internal void Update(double[] values) {
             for (int i = 0; i < _SIZE; i++) {
-                this.Data[i].Push(values[i]);
+                this._data[i].Push(values[i]);
             }
         }
 
-        public RunningStatistics this[int key] => this.Data[key];
+        internal RunningStatistics this[int key] => this._data[key];
 
+    }
+
+    public class MinMaxAvg<T>(T min, T max, T avg) {
+        public T Min { get; internal set; } = min;
+        public T Max { get; internal set; } = max;
+        public T Avg { get; internal set; } = avg;
     }
 
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using ACSharedMemory.ACC.MMFModels;
 
@@ -13,27 +14,27 @@ namespace KLPlugins.RaceEngineer {
         public double AirTempAtLapStart { get; private set; }
         public double TrackTempAtLapStart { get; private set; }
 
-        public List<WeatherPoint> Forecast { get; }
+        private List<WeatherPoint> _forecast { get; }
 
         public string WeatherSummary = "";
 
         private bool _isInitialForecastAdded = false;
         private double? _initalForecastTime = null;
-        public int _daysSinceStart = 0;
-        public bool _add10MinChange = true;
+        private int _daysSinceStart = 0;
+        private bool _add10MinChange = true;
         // Keep track of weather changes, predict exact time for weather change
 
-        public Weather() {
-            this.Forecast = [];
+        internal Weather() {
+            this._forecast = [];
             this.Reset();
         }
 
-        public void Reset() {
+        internal void Reset() {
             this.AirTemp = double.NaN;
             this.TrackTemp = double.NaN;
             this.AirTempAtLapStart = double.NaN;
             this.TrackTempAtLapStart = double.NaN;
-            this.Forecast.Clear();
+            this._forecast.Clear();
             this._isInitialForecastAdded = false;
             this._initalForecastTime = null;
             this._daysSinceStart = 0;
@@ -42,12 +43,12 @@ namespace KLPlugins.RaceEngineer {
 
         #region On... METHODS
 
-        public void OnLapFinishedAfterInsert(GameData data) {
+        internal void OnLapFinishedAfterInsert(GameData data) {
             this.AirTempAtLapStart = data.NewData.AirTemperature;
             this.TrackTempAtLapStart = data.NewData.RoadTemperature;
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             this.UpdateTemps(data, v);
             this.UpdateForecast(data, v);
         }
@@ -57,7 +58,7 @@ namespace KLPlugins.RaceEngineer {
 
         #region Private methods
 
-        public void UpdateTemps(GameData data, Values v) {
+        internal void UpdateTemps(GameData data, Values v) {
 
 
             if (v.Booleans.NewData.EnteredMenu) {
@@ -103,7 +104,7 @@ namespace KLPlugins.RaceEngineer {
         }
 
         private const double SEC_IN_DAY = 24 * 3600;
-        public void UpdateForecast(GameData data, Values v) {
+        internal void UpdateForecast(GameData data, Values v) {
 
             if (RaceEngineerPlugin.Game.IsAcc) {
                 var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
@@ -117,10 +118,10 @@ namespace KLPlugins.RaceEngineer {
                     var in30 = rawDataNew.Graphics.rainIntensityIn30min;
 
                     if (in10 != now) {
-                        this.Forecast.Add(new WeatherPoint(in10, nowTime + 10 * 60));
+                        this._forecast.Add(new WeatherPoint(in10, nowTime + 10 * 60));
                     }
                     if (in30 != in10) {
-                        this.Forecast.Add(new WeatherPoint(in30, nowTime + 30 * 60));
+                        this._forecast.Add(new WeatherPoint(in30, nowTime + 30 * 60));
                     }
                     this._isInitialForecastAdded = true;
                     this._initalForecastTime = nowTime;
@@ -139,24 +140,24 @@ namespace KLPlugins.RaceEngineer {
 
                 var changed = false;
                 if (this._add10MinChange && rawDataOld.Graphics.rainIntensityIn10min != rawDataNew.Graphics.rainIntensityIn10min) {
-                    this.Forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn10min, nowTime + 10 * 60));
+                    this._forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn10min, nowTime + 10 * 60));
                     changed = true;
                 }
 
                 if (rawDataOld.Graphics.rainIntensityIn30min != rawDataNew.Graphics.rainIntensityIn30min) {
-                    this.Forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn30min, nowTime + 30 * 60));
+                    this._forecast.Add(new WeatherPoint(rawDataNew.Graphics.rainIntensityIn30min, nowTime + 30 * 60));
                     changed = true;
                 }
 
                 // Remove points which are past
-                var lenprev = this.Forecast.Count;
-                this.Forecast.RemoveAll((w) => w.StartTime < nowTime);
-                if (changed || lenprev != this.Forecast.Count) {
-                    this.Forecast.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+                var lenprev = this._forecast.Count;
+                this._forecast.RemoveAll((w) => w.StartTime < nowTime);
+                if (changed || lenprev != this._forecast.Count) {
+                    this._forecast.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
                 }
 
                 this.WeatherSummary = "";
-                foreach (var weatherPoint in this.Forecast) {
+                foreach (var weatherPoint in this._forecast) {
                     if (v.Session.TimeMultiplier != 0) { // Weather won't change if timemult == 0, no reason to update weatherSummary
                         var deltaFromNow = (weatherPoint.StartTime - nowTime) / 60.0 / v.Session.TimeMultiplier;
                         this.WeatherSummary += $"{deltaFromNow:0.0}min: {ToPrettyString(weatherPoint.RainIntensity)}, ";
@@ -181,9 +182,9 @@ namespace KLPlugins.RaceEngineer {
 
     }
 
-    public class WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, double startTime) {
-        public ACC_RAIN_INTENSITY RainIntensity { get; } = rainIntensity;
-        public double StartTime { get; } = startTime;
+    internal class WeatherPoint(ACC_RAIN_INTENSITY rainIntensity, double startTime) {
+        internal ACC_RAIN_INTENSITY RainIntensity { get; } = rainIntensity;
+        internal double StartTime { get; } = startTime;
 
         /// <summary>
         /// Time when the given weather starts. 

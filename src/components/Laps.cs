@@ -19,7 +19,7 @@ namespace KLPlugins.RaceEngineer.Laps {
 
         private double _maxTime = 1000;
 
-        public Laps() {
+        internal Laps() {
             this.StintNr = 0;
             this.StintLaps = 0;
             var numValues = RaceEngineerPlugin.Settings.NumPreviousValuesStored;
@@ -34,7 +34,7 @@ namespace KLPlugins.RaceEngineer.Laps {
             this.PrevS3Times.Fill(double.NaN);
         }
 
-        public void Reset() {
+        internal void Reset() {
             RaceEngineerPlugin.LogInfo("Laps.Reset()");
             this.PrevTimes.Fill(double.NaN);
             this.PrevS1Times.Fill(double.NaN);
@@ -46,14 +46,14 @@ namespace KLPlugins.RaceEngineer.Laps {
             this.StintLaps = 0;
         }
 
-        public void OnNewEvent(GameData data, Values v) {
+        internal void OnNewEvent(GameData data, Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 //RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
                 this.PrevTimes.AddToFront(pd.lapTime);
             }
         }
 
-        public void OnNewSession(GameData data, Values v) {
+        internal void OnNewSession(GameData data, Values v) {
             this.Reset();
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
@@ -62,12 +62,12 @@ namespace KLPlugins.RaceEngineer.Laps {
             }
         }
 
-        public void OnNewStint() {
+        internal void OnNewStint() {
             this.StintNr += 1;
             this.StintLaps = 0;
         }
 
-        public void OnLapFinished(GameData data, Values v) {
+        internal void OnLapFinished(GameData data, Values v) {
             this.StintLaps += 1;
             this.LastTime = data.NewData.LastLapTime.TotalSeconds;
             if (v.Booleans.NewData.SavePrevLap) {

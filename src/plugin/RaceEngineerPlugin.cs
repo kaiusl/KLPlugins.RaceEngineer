@@ -12,19 +12,20 @@ using KLPlugins.RaceEngineer.Deque;
 using ksBroadcastingNetwork;
 using KLPlugins.RaceEngineer.Car;
 using System.Linq;
+using KLPlugins.RaceEngineer.Stats;
 
 namespace KLPlugins.RaceEngineer {
     [PluginDescription("Plugin to analyze race data and derive some useful results")]
     [PluginAuthor("Kaius Loos")]
     [PluginName("RaceEngineerPlugin")]
     public class RaceEngineerPlugin : IPlugin, IDataPlugin, IWPFSettingsV2 {
-        public const string PluginName = "RACE ENGINEER";
+        internal const string PluginName = "RACE ENGINEER";
 
         // these are set in Init method, 
         // so they are technically null but nothing can touch them before 
         //we actually initialize them, so practically they cannot be nulls
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public RaceEngineerPluginSettings ShSettings;
+        internal RaceEngineerPluginSettings ShSettings;
         public PluginManager PluginManager { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -35,11 +36,12 @@ namespace KLPlugins.RaceEngineer {
 
         // these are set in Init method
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public static Game Game; // Const during the lifetime of this plugin, plugin is rebuilt at game change
-        public static string GameDataPath; // Same as above
+        public static Game Game { get; private set; } // Const during the lifetime of this plugin, plugin is rebuilt at game change
+
+        internal static string GameDataPath { get; private set; } // Same as above
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public static string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
+        internal static readonly string PluginStartTime = $"{DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss")}";
 
         private static FileStream? _logFile;
         private static StreamWriter? _logWriter;
@@ -47,7 +49,7 @@ namespace KLPlugins.RaceEngineer {
 
         // these are set in Init method
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public Values Values;
+        public Values Values { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
@@ -131,9 +133,8 @@ namespace KLPlugins.RaceEngineer {
 
 
             GameDataPath = $@"{Settings.DataLocation}\{gameName}";
-            this.Values = new Values();
+            this.Values = new Values(pluginManager);
 
-            pluginManager.GameStateChanged += this.Values.OnGameStateChanged;
             pluginManager.GameStateChanged += (bool running, PluginManager _) => {
                 LogInfo($"GameStateChanged to {running}");
                 if (!running) {
@@ -251,11 +252,11 @@ namespace KLPlugins.RaceEngineer {
             addStats("Fuel.NeededInSession", this.Values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
-            void addTyres(string name, double[] values) {
-                this.AttachDelegate(name + "." + Car.Tyres.Names[0], () => values[0]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[1], () => values[1]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[2], () => values[2]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[3], () => values[3]);
+            void addTyres(string name, WheelsData<double> values) {
+                this.AttachDelegate(name + "." + Car.Tyres.Names.FL, () => values.FL);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.FR, () => values.FR);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.RL, () => values.RL);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.RR, () => values.RR);
             }
 
             addTyres("Tyres.IdealInputPres", this.Values.Car.Tyres.IdealInputPres);
@@ -268,10 +269,10 @@ namespace KLPlugins.RaceEngineer {
 
             void addTyresNormalized<T>(string name, WheelsData<T> values, WheelFlags flag) {
                 if ((WheelFlags.Color & flag) != 0) {
-                    this.AttachDelegate(name + "." + Car.Tyres.Names[0] + "." + NORMALIZED_KEYWORD, () => values[0]);
-                    this.AttachDelegate(name + "." + Car.Tyres.Names[1] + "." + NORMALIZED_KEYWORD, () => values[1]);
-                    this.AttachDelegate(name + "." + Car.Tyres.Names[2] + "." + NORMALIZED_KEYWORD, () => values[2]);
-                    this.AttachDelegate(name + "." + Car.Tyres.Names[3] + "." + NORMALIZED_KEYWORD, () => values[3]);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names.FL + "." + NORMALIZED_KEYWORD, () => values.FL);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names.FR + "." + NORMALIZED_KEYWORD, () => values.FR);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names.RL + "." + NORMALIZED_KEYWORD, () => values.RL);
+                    this.AttachDelegate(name + "." + Car.Tyres.Names.RR + "." + NORMALIZED_KEYWORD, () => values.RR);
                 }
             }
 
@@ -280,10 +281,10 @@ namespace KLPlugins.RaceEngineer {
             addTyresNormalized("Brakes.Temp", this.Values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
 
             void addTyreStatsNormalized<T>(string name, WheelsData<T> values, string statname) {
-                this.AttachDelegate(name + "." + Car.Tyres.Names[0] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[0]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[1] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[1]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[2] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[2]);
-                this.AttachDelegate(name + "." + Car.Tyres.Names[3] + "." + statname + "." + NORMALIZED_KEYWORD, () => values[3]);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.FL + "." + statname + "." + NORMALIZED_KEYWORD, () => values.FL);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.FR + "." + statname + "." + NORMALIZED_KEYWORD, () => values.FR);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.RL + "." + statname + "." + NORMALIZED_KEYWORD, () => values.RL);
+                this.AttachDelegate(name + "." + Car.Tyres.Names.RR + "." + statname + "." + NORMALIZED_KEYWORD, () => values.RR);
             }
 
             void addTyresStats<T>(string name, Stats.WheelsStats values, WheelsData<T> min, WheelsData<T> avg, WheelsData<T> max, WheelFlags flags) {
@@ -301,10 +302,10 @@ namespace KLPlugins.RaceEngineer {
                         this.AttachDelegate(n + "." + STD_KEYWORD, () => v.Std);
                     }
                 }
-                _addStats(name + "." + Car.Tyres.Names[0], values[0]);
-                _addStats(name + "." + Car.Tyres.Names[1], values[1]);
-                _addStats(name + "." + Car.Tyres.Names[2], values[2]);
-                _addStats(name + "." + Car.Tyres.Names[3], values[3]);
+                _addStats(name + "." + Car.Tyres.Names.FL, values.FL);
+                _addStats(name + "." + Car.Tyres.Names.FR, values.FR);
+                _addStats(name + "." + Car.Tyres.Names.RL, values.RL);
+                _addStats(name + "." + Car.Tyres.Names.RR, values.RR);
 
                 if ((WheelFlags.MinColor & Settings.TyrePresFlags) != 0) {
                     addTyreStatsNormalized(name, min, "Min");
@@ -351,10 +352,10 @@ namespace KLPlugins.RaceEngineer {
                         this.AttachDelegate(n + ".Avg", () => v.Avg);
                     }
                 }
-                _addStats(name + '.' + Car.Tyres.Names[0], values[0]);
-                _addStats(name + '.' + Car.Tyres.Names[1], values[1]);
-                _addStats(name + '.' + Car.Tyres.Names[2], values[2]);
-                _addStats(name + '.' + Car.Tyres.Names[3], values[3]);
+                _addStats(name + '.' + Car.Tyres.Names.FL, values.FL);
+                _addStats(name + '.' + Car.Tyres.Names.FR, values.FR);
+                _addStats(name + '.' + Car.Tyres.Names.RL, values.RL);
+                _addStats(name + '.' + Car.Tyres.Names.RR, values.RR);
 
                 if ((WheelFlags.AvgColor & Settings.TyrePresFlags) != 0) {
                     addTyreStatsNormalized(name, avg, "Avg");
@@ -489,7 +490,5 @@ namespace KLPlugins.RaceEngineer {
                 _ => "gt3",
             };
         }
-
-
     }
 }

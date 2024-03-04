@@ -5,15 +5,15 @@ namespace KLPlugins.RaceEngineer.Track {
     public class Track {
         public string? Name { get; private set; }
 
-        public void Reset() {
+        internal void Reset() {
             this.Name = null;
         }
 
-        public void OnNewEvent(GameData data) {
+        internal void OnNewEvent(GameData data) {
             this.CheckChange(data.NewData.TrackId);
         }
 
-        public void OnRegularUpdate(GameData data) {
+        internal void OnRegularUpdate(GameData data) {
             this.CheckChange(data.NewData.TrackId);
         }
 

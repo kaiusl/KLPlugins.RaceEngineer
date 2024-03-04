@@ -16,16 +16,16 @@ namespace KLPlugins.RaceEngineer {
     }
 
     public class Settings {
-        public int NumPreviousValuesStored { get; set; }
-        public string DataLocation { get; set; }
-        public string AccDataLocation { get; set; }
+        public int NumPreviousValuesStored { get; }
+        public string DataLocation { get; }
+        public string AccDataLocation { get;  }
 
-        public Lut BrakeTempNormalizationLut { get; set; }
-        public Lut TyreTempNormalizationLut { get; set; }
-        public Lut TyrePresNormalizationLut { get; set; }
+        public Lut BrakeTempNormalizationLut { get; }
+        public Lut TyreTempNormalizationLut { get; }
+        public Lut TyrePresNormalizationLut { get; }
 
-        public bool Log { get; set; }
-        public bool ShowAllLaps { get; set; }
+        public bool Log { get; }
+        public bool ShowAllLaps { get; }
 
         public StatsFlags PrevLapsStatsFlags => this._prevLapsStats;
         public StatsFlags PrevFuelPerLapStatsFlags => this._prevFuelPerLapStats;

@@ -10,18 +10,18 @@ namespace KLPlugins.RaceEngineer.ML {
     /// <summary>
     /// Ridge regression algorithm
     /// </summary>
-    public class RidgeRegression {
+    internal class RidgeRegression {
         Vector<double> y;
         Matrix<double> x;
         Vector<double> w;
 
-        public RidgeRegression(double[][] x, double[] y)
+        internal RidgeRegression(double[][] x, double[] y)
             : this(Matrix<double>.Build.DenseOfRows(x), Vector<double>.Build.Dense(y)) { }
 
-        public RidgeRegression(List<double[]> x, List<double> y)
+        internal RidgeRegression(List<double[]> x, List<double> y)
             : this(Matrix<double>.Build.DenseOfRows(x), Vector<double>.Build.DenseOfEnumerable(y)) { }
 
-        public RidgeRegression(Matrix<double> x, Vector<double> y) {
+        internal RidgeRegression(Matrix<double> x, Vector<double> y) {
             this.x = x;
             this.y = y;
 
@@ -34,15 +34,15 @@ namespace KLPlugins.RaceEngineer.ML {
             this.w = this.GetWeights(); // compiler cannot see that we assign in this.Fit(), so inline it
         }
 
-        public void Fit() {
+        internal void Fit() {
             this.w = this.GetWeights();
         }
 
-        public Vector<double> GetWeights() {
+        internal Vector<double> GetWeights() {
             return (this.x.Transpose().Multiply(this.x) + Matrix<double>.Build.DenseIdentity(this.x.ColumnCount)).Inverse().Multiply(this.x.Transpose().Multiply(this.y));
         }
 
-        public double Predict(double[] v) {
+        internal double Predict(double[] v) {
             Debug.Assert(v.Length == this.w.Count - 1, $"Model has {this.w.Count - 1} features. Provided input has {v.Length} features.");
 
             var res = this.w[0];
@@ -52,7 +52,7 @@ namespace KLPlugins.RaceEngineer.ML {
             return res;
         }
 
-        public void AddNewData(double[] x, double y) {
+        internal void AddNewData(double[] x, double y) {
             Trace.Assert(x[0] == 1, $"Features must be in homogeneous coordinates. First column must be 1.");
             this.y = Vector<double>.Build.DenseOfEnumerable(this.y.Append(y));
             var newRow = Vector<double>.Build.Dense(x);

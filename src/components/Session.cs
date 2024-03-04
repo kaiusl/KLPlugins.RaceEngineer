@@ -18,11 +18,11 @@ namespace KLPlugins.RaceEngineer {
         private double _firstClock = double.NaN;
         private bool _isTimeMultiplierCalculated = false;
 
-        public Session() {
+        internal Session() {
             this.Reset();
         }
 
-        public void Reset() {
+        internal void Reset() {
             this.SessionType = SessionType.Unknown;
             this.IsNewSession = false;
             this.TimeMultiplier = -1;
@@ -33,7 +33,7 @@ namespace KLPlugins.RaceEngineer {
             this._isTimeMultiplierCalculated = false;
         }
 
-        public void OnNewSession() {
+        internal void OnNewSession() {
             this.TimeMultiplier = -1;
             this._startClock = double.NaN;
             this._startISplit = double.NaN;
@@ -42,7 +42,7 @@ namespace KLPlugins.RaceEngineer {
             this.TimeOfDay = 0;
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             var newSessType = SessionTypeMethods.FromSHGameData(data);
             this.IsNewSession = newSessType != this.SessionType;
             this.SessionType = newSessType;
@@ -107,8 +107,8 @@ namespace KLPlugins.RaceEngineer {
         Unknown
     }
 
-    public static class SessionTypeMethods {
-        public static SessionType FromSHGameData(GameData data) {
+    internal static class SessionTypeMethods {
+        internal static SessionType FromSHGameData(GameData data) {
             if (RaceEngineerPlugin.Game.IsAcc) {
                 var accData = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
                 return accData.Graphics.Session switch {
@@ -182,7 +182,7 @@ namespace KLPlugins.RaceEngineer {
             };
         }
 
-        public static string ToPrettyString(SessionType s) {
+        internal static string ToPrettyString(SessionType s) {
             return s switch {
                 SessionType.Practice => "Practice",
                 SessionType.Qualifying => "Qualifying",

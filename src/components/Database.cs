@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -14,13 +14,13 @@ using GameReaderCommon;
 using KLPlugins.RaceEngineer.Car;
 
 namespace KLPlugins.RaceEngineer.Database {
-    public struct Event {
-        public string? CarId;
-        public string? TrackId;
-        public string StartTime;
-        public string GameVersion;
+    internal struct Event {
+        internal string? CarId;
+        internal string? TrackId;
+        internal string StartTime;
+        internal string GameVersion;
 
-        public Event(GameData data, Values v) {
+        internal Event(GameData data, Values v) {
             this.CarId = v.Car.Name;
             this.TrackId = v.Track.Name;
             this.StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
@@ -39,35 +39,35 @@ namespace KLPlugins.RaceEngineer.Database {
         }
     }
 
-    public struct Session(Values v, long eventId) {
-        public long EventId = eventId;
-        public string SessionType = v.Session.SessionType.ToString();
-        public int TimeMultiplier = v.Session.TimeMultiplier;
-        public string StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
+    internal struct Session(Values v, long eventId) {
+        internal long EventId = eventId;
+        internal string SessionType = v.Session.SessionType.ToString();
+        internal int TimeMultiplier = v.Session.TimeMultiplier;
+        internal string StartTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
         public override readonly string ToString() {
             return $"EventId = {this.EventId}, SessionType = {this.SessionType}, TimeMultiplier = {this.TimeMultiplier}, StartTime = {this.StartTime}";
         }
     }
 
-    public struct Stint {
-        public long SessionId;
-        public int StintNr;
-        public string StartTime;
-        public string? TyreCompound;
-        public WheelsData<double> TyrePresIn;
-        public int BrakePadFront;
-        public int BrakePadRear;
-        public int BrakePadNr;
-        public int BrakeDuctFront;
-        public int BrakeDuctRear;
-        public int TyreSet;
-        public int[] Camber;
-        public int[] Toe;
-        public int CasterLf;
-        public int CasterRf;
+    internal struct Stint {
+        internal long SessionId;
+        internal int StintNr;
+        internal string StartTime;
+        internal string? TyreCompound;
+        internal WheelsData<double> TyrePresIn;
+        internal int BrakePadFront;
+        internal int BrakePadRear;
+        internal int BrakePadNr;
+        internal int BrakeDuctFront;
+        internal int BrakeDuctRear;
+        internal int TyreSet;
+        internal int[] Camber;
+        internal int[] Toe;
+        internal int CasterLf;
+        internal int CasterRf;
 
-        public Stint(GameData data, Values v, long sessionId) {
+        internal Stint(GameData data, Values v, long sessionId) {
             this.SessionId = sessionId;
             string stime = DateTime.Now.ToString("dd.MM.yyyy HH:mm.ss");
 
@@ -94,8 +94,8 @@ namespace KLPlugins.RaceEngineer.Database {
             if (v.Car.Setup != null) {
                 this.BrakeDuctFront = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[0];
                 this.BrakeDuctRear = v.Car.Setup.advancedSetup.aeroBalance.brakeDuct[1];
-                this.Camber = v.Car.Setup.basicSetup.alignment.camber;
-                this.Toe = v.Car.Setup.basicSetup.alignment.toe;
+                this.Camber = v.Car.Setup.basicSetup.alignment.camber.ToArray();
+                this.Toe = v.Car.Setup.basicSetup.alignment.toe.ToArray();
                 this.CasterLf = v.Car.Setup.basicSetup.alignment.casterLF;
                 this.CasterRf = v.Car.Setup.basicSetup.alignment.casterRF;
             } else {
@@ -130,61 +130,61 @@ namespace KLPlugins.RaceEngineer.Database {
         }
     }
 
-    public class Lap {
-        public long StintId;
-        public int SessionLapNr;
-        public int StintLapNr;
-        public int TyresetLapNr;
-        public int BrakesLapNr;
-        public double AirTemp;
-        public double AirTempDelta;
-        public double TrackTemp;
-        public double TrackTempDelta;
-        public double LapTime;
-        public double FuelUsed;
-        public double FuelLeft;
+    internal class Lap {
+        internal long StintId;
+        internal int SessionLapNr;
+        internal int StintLapNr;
+        internal int TyresetLapNr;
+        internal int BrakesLapNr;
+        internal double AirTemp;
+        internal double AirTempDelta;
+        internal double TrackTemp;
+        internal double TrackTempDelta;
+        internal double LapTime;
+        internal double FuelUsed;
+        internal double FuelLeft;
 
-        public double[] TyrePresAvg = [0.0, 0.0, 0.0, 0.0];
-        public double[] TyrePresMin = [0.0, 0.0, 0.0, 0.0];
-        public double[] TyrePresMax = [0.0, 0.0, 0.0, 0.0];
-        public double[] TyrePresLoss = [0.0, 0.0, 0.0, 0.0];
-        public bool[] TyrePresLossLap = [false, false, false, false];
+        internal double[] TyrePresAvg = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyrePresMin = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyrePresMax = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyrePresLoss = [0.0, 0.0, 0.0, 0.0];
+        internal bool[] TyrePresLossLap = [false, false, false, false];
 
-        public double[] TyreTempAvg = [0.0, 0.0, 0.0, 0.0];
-        public double[] TyreTempMin = [0.0, 0.0, 0.0, 0.0];
-        public double[] TyreTempMax = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyreTempAvg = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyreTempMin = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyreTempMax = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] BrakeTempAvg = [0.0, 0.0, 0.0, 0.0];
-        public double[] BrakeTempMin = [0.0, 0.0, 0.0, 0.0];
-        public double[] BrakeTempMax = [0.0, 0.0, 0.0, 0.0];
+        internal double[] BrakeTempAvg = [0.0, 0.0, 0.0, 0.0];
+        internal double[] BrakeTempMin = [0.0, 0.0, 0.0, 0.0];
+        internal double[] BrakeTempMax = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] TyreLifeLeft = [0.0, 0.0, 0.0, 0.0];
+        internal double[] TyreLifeLeft = [0.0, 0.0, 0.0, 0.0];
 
-        public double[] PadLifeLeft = [0.0, 0.0, 0.0, 0.0];
-        public double[] DiscLifeLeft = [0.0, 0.0, 0.0, 0.0];
+        internal double[] PadLifeLeft = [0.0, 0.0, 0.0, 0.0];
+        internal double[] DiscLifeLeft = [0.0, 0.0, 0.0, 0.0];
 
-        public int Abs;
-        public int Tc;
-        public int Tc2;
-        public int EcuMap;
-        public bool EcuMapChanged;
-        public int TrackGripStatus;
-        public bool IsValid;
-        public bool IsValidFuelLap;
-        public bool IsOutLap;
-        public bool IsInLap;
-        public int RainIntensity;
-        public bool RainIntensityChanged;
+        internal int Abs;
+        internal int Tc;
+        internal int Tc2;
+        internal int EcuMap;
+        internal bool EcuMapChanged;
+        internal int TrackGripStatus;
+        internal bool IsValid;
+        internal bool IsValidFuelLap;
+        internal bool IsOutLap;
+        internal bool IsInLap;
+        internal int RainIntensity;
+        internal bool RainIntensityChanged;
 
-        public Lap() { }
+        internal Lap() { }
 
 
-        public Lap(GameData data, Values v, long stint_id) {
+        internal Lap(GameData data, Values v, long stint_id) {
             this.Update(data, v, stint_id);
         }
 
 
-        public void Update(GameData data, Values v, long stint_id) {
+        internal void Update(GameData data, Values v, long stint_id) {
             this.StintId = stint_id;
             this.SessionLapNr = data.NewData.CompletedLaps;
             this.StintLapNr = v.Laps.StintLaps;
@@ -276,7 +276,7 @@ namespace KLPlugins.RaceEngineer.Database {
     /// <summary>
     /// Handles data collection/storing for plugin.
     /// </summary>
-    public class Database : IDisposable {
+    internal class Database {
         private SQLiteConnection? _conn;
 
         private readonly SQLiteCommand? _insertEventCmd;
@@ -289,7 +289,7 @@ namespace KLPlugins.RaceEngineer.Database {
         private long _stintId;
         private readonly Mutex _dbMutex = new();
 
-        public Database() {
+        internal Database() {
             var location = $@"{RaceEngineerPlugin.Settings.DataLocation}\{RaceEngineerPlugin.Game.Name}\data.db";
             if (!File.Exists(location)) {
                 Directory.CreateDirectory(Path.GetDirectoryName(location));
@@ -343,7 +343,7 @@ namespace KLPlugins.RaceEngineer.Database {
             }
         }
 
-        public void Dispose() {
+        internal void Dispose() {
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -560,14 +560,14 @@ namespace KLPlugins.RaceEngineer.Database {
             this.SetParam(cmd, name, value ? 1 : 0);
         }
 
-        public void InsertEvent(GameData data, Values v) {
+        internal void InsertEvent(GameData data, Values v) {
             var e = new Event(data, v);
             RaceEngineerPlugin.LogInfo(e.ToString());
             //this.InsertEvent(e);
             _ = Task.Run(() => this.InsertEvent(e));
         }
 
-        public void InsertEvent(Event e) {
+        internal void InsertEvent(Event e) {
             if (this._insertEventCmd == null) return;
 
             this._dbMutex.WaitOne();
@@ -584,14 +584,14 @@ namespace KLPlugins.RaceEngineer.Database {
             this._dbMutex.ReleaseMutex();
         }
 
-        public void InsertSession(GameData data, Values v) {
+        internal void InsertSession(GameData data, Values v) {
             var s = new Session(v, this._eventId);
             RaceEngineerPlugin.LogInfo(s.ToString());
             //this.InsertSession(s);
             _ = Task.Run(() => this.InsertSession(s));
         }
 
-        public void InsertSession(Session s) {
+        internal void InsertSession(Session s) {
             if (this._insertSessionCmd == null) return;
 
             this._dbMutex.WaitOne();
@@ -608,7 +608,7 @@ namespace KLPlugins.RaceEngineer.Database {
             this._dbMutex.ReleaseMutex();
         }
 
-        public void UpdateSessionTimeMultiplier(int mult) {
+        internal void UpdateSessionTimeMultiplier(int mult) {
             var sessId = this._sessionId;
             _ = Task.Run(() => {
                 this._dbMutex.WaitOne();
@@ -627,7 +627,7 @@ namespace KLPlugins.RaceEngineer.Database {
             });
         }
 
-        public void InsertStint(GameData data, Values v) {
+        internal void InsertStint(GameData data, Values v) {
             var stint = new Stint(data, v, this._sessionId);
             RaceEngineerPlugin.LogInfo(stint.ToString());
             //this.InsertStint(stint);
@@ -668,7 +668,7 @@ namespace KLPlugins.RaceEngineer.Database {
             this._dbMutex.ReleaseMutex();
         }
 
-        public void InsertLap(GameData data, Values v) {
+        internal void InsertLap(GameData data, Values v) {
             var lap = new Lap(data, v, this._stintId);
             RaceEngineerPlugin.LogInfo(lap.ToString());
             //this.InsertLap(lap);
@@ -744,7 +744,7 @@ namespace KLPlugins.RaceEngineer.Database {
 
         #region QUERIES
 
-        public List<PrevData> GetPrevSessionData(GameData data, Values v) {
+        internal List<PrevData> GetPrevSessionData(GameData data, Values v) {
             int trackGrip;
             int rainIntensity;
             if (RaceEngineerPlugin.Game.IsAcc) {
@@ -802,7 +802,7 @@ namespace KLPlugins.RaceEngineer.Database {
         private const double TYRE_PRES_LOSS_THRESHOLD = 0.25;
         private const double AIR_TEMP_CHANGE_THRESHOLD = 0.25;
         private const double TRACK_TEMP_CHANGE_THRESHOLD = 0.25;
-        public Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string trackGrip, ACC_RAIN_INTENSITY rainIntensity) {
+        internal Tuple<List<double[]>, List<double>> GetInputPresData(int tyre, string car, string track, int brakeDuct, string compound, string trackGrip, ACC_RAIN_INTENSITY rainIntensity) {
             string duct;
             if (tyre < 2) {
                 duct = BRAKE_DUCT_FRONT;
@@ -878,10 +878,10 @@ namespace KLPlugins.RaceEngineer.Database {
     /// Definition of database table and methods to create some methods
     /// </summary>
     class DBTable(string name, DBField[] fields) {
-        public string name = name;
-        public DBField[] fields = fields;
+        internal string name = name;
+        internal DBField[] fields = fields;
 
-        public void CreateTableWForeignKey(SQLiteConnection conn, string foreignKey) {
+        internal void CreateTableWForeignKey(SQLiteConnection conn, string foreignKey) {
             var cmd = new SQLiteCommand(conn);
 
             List<string> fields = new List<string>(this.fields.Length);
@@ -894,7 +894,7 @@ namespace KLPlugins.RaceEngineer.Database {
             cmd.Dispose();
         }
 
-        public void CreateTable(SQLiteConnection conn) {
+        internal void CreateTable(SQLiteConnection conn) {
             var cmd = new SQLiteCommand(conn);
 
             List<string> fields = new List<string>(this.fields.Length);
@@ -907,7 +907,7 @@ namespace KLPlugins.RaceEngineer.Database {
             cmd.Dispose();
         }
 
-        public SQLiteCommand CreateInsertCmd(SQLiteConnection conn) {
+        internal SQLiteCommand CreateInsertCmd(SQLiteConnection conn) {
             List<string> fields = new List<string>(this.fields.Length - 1);
             List<string> atfields = new List<string>(this.fields.Length - 1);
             foreach (var f in this.fields) {
@@ -934,7 +934,7 @@ namespace KLPlugins.RaceEngineer.Database {
             return cmd;
         }
 
-        public SQLiteCommand CreateInsertCmdWReturning(SQLiteConnection conn, string returning_field) {
+        internal SQLiteCommand CreateInsertCmdWReturning(SQLiteConnection conn, string returning_field) {
             List<string> fields = new List<string>(this.fields.Length - 1);
             List<string> atfields = new List<string>(this.fields.Length - 1);
             foreach (var f in this.fields.Skip(1)) {
@@ -963,12 +963,12 @@ namespace KLPlugins.RaceEngineer.Database {
     }
 
     class DBField(string name, string type) {
-        public string name = name;
-        public string type = type;
+        internal string name = name;
+        internal string type = type;
     }
 
-    public class PrevData(double lapTime, double fuelUsed) {
-        public double lapTime = lapTime;
-        public double fuelUsed = fuelUsed;
+    internal class PrevData(double lapTime, double fuelUsed) {
+        internal double lapTime = lapTime;
+        internal double fuelUsed = fuelUsed;
     }
 }

@@ -15,12 +15,12 @@ namespace KLPlugins.RaceEngineer.Car {
         public double LastUsedPerLap { get; private set; }
         public FixedSizeDequeStats PrevUsedPerLap { get; private set; }
 
-        public Fuel() {
+        internal Fuel() {
             this.PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
             this.Reset();
         }
 
-        public void Reset() {
+        internal void Reset() {
             RaceEngineerPlugin.LogInfo("Fuel.Reset()");
             this.Remaining = 0.0;
             this.RemainingAtLapStart = 0.0;
@@ -30,13 +30,13 @@ namespace KLPlugins.RaceEngineer.Car {
 
         #region On... METHODS
 
-        public void OnNewEvent(GameData data, Values v) {
+        internal void OnNewEvent(GameData data, Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
-        public void OnSessionChange(GameData data, Values v) {
+        internal void OnSessionChange(GameData data, Values v) {
             this.Reset();
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
@@ -44,7 +44,7 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        public void OnLapFinished(GameData data, Values v) {
+        internal void OnLapFinished(GameData data, Values v) {
             this.LastUsedPerLap = this.RemainingAtLapStart - data.NewData.Fuel;
             this.RemainingAtLapStart = data.NewData.Fuel;
             RaceEngineerPlugin.LogInfo($"Set fuel at lap start to '{this.RemainingAtLapStart}'");
@@ -55,7 +55,7 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             /////////////
             // Fuel left
             this.Remaining = data.NewData.Fuel;

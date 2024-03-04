@@ -10,13 +10,13 @@ namespace KLPlugins.RaceEngineer.Remaining {
         public Stats.Stats Laps = new();
         public Stats.Stats FuelNeeded = new();
 
-        public void Reset() {
+        internal void Reset() {
             this.Time.Reset();
             this.Laps.Reset();
             this.FuelNeeded.Reset();
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             if (v.Booleans.NewData.IsTimeLimitedSession) {
                 var timeLeft = data.NewData.SessionTimeLeft.TotalSeconds;
                 this.Time.Set(timeLeft);
@@ -45,12 +45,12 @@ namespace KLPlugins.RaceEngineer.Remaining {
         public Stats.Stats Time = new();
         public Stats.Stats Laps = new();
 
-        public void Reset() {
+        internal void Reset() {
             this.Time.Reset();
             this.Laps.Reset();
         }
 
-        public void OnRegularUpdate(Values v) {
+        internal void OnRegularUpdate(Values v) {
             this.Laps.Min = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Max;
             this.Laps.Max = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Min;
             this.Laps.Avg = v.Car.Fuel.Remaining / v.Car.Fuel.PrevUsedPerLap.Avg;

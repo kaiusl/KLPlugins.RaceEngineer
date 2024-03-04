@@ -22,14 +22,14 @@ namespace KLPlugins.RaceEngineer.Car {
         private readonly WheelsRunningStats _tempRunning = new();
         private DateTime _lastSampleTimeSec = DateTime.Now;
 
-        public Brakes() {
+        internal Brakes() {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap = new();
             this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
         }
 
-        public void Reset() {
+        internal void Reset() {
             this.SetNr = 0;
             this.LapsNr = 0;
             this.TempOverLap.Reset();
@@ -43,14 +43,14 @@ namespace KLPlugins.RaceEngineer.Car {
 
         #region On... METHODS
 
-        public void OnLapFinished(Values v) {
+        internal void OnLapFinished(Values v) {
             this.LapsNr += 1;
             this.TempOverLap.Update(this._tempRunning);
             this._tempRunning.Reset();
             this.UpdateNormalizedDataOverLap(v);
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             this.CheckPadChange(data, v);
             this.UpdateOverLapData(data, v);
             this.UpdateNormalizedData(data, v);

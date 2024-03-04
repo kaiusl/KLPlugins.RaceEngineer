@@ -47,11 +47,11 @@ namespace KLPlugins.RaceEngineer.Booleans {
 
         private bool _isSessionLimitSet = false;
 
-        public BooleansBase() {
+        internal BooleansBase() {
             this.Reset();
         }
 
-        public void Update(BooleansBase o) {
+        internal void Update(BooleansBase o) {
             this.IsInMenu = o.IsInMenu;
             this.EnteredMenu = o.EnteredMenu;
             this.ExitedMenu = o.ExitedMenu;
@@ -89,7 +89,7 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this.RainIntensityChangedThisLap = o.RainIntensityChangedThisLap;
         }
 
-        public void Update(GameData data, Values v) {
+        internal void Update(GameData data, Values v) {
             this.IsInMenu = data.NewData.AirTemperature == 0;
             var wasInMenu = data.OldData.AirTemperature == 0;
             this.EnteredMenu = !wasInMenu && this.IsInMenu;
@@ -189,7 +189,7 @@ namespace KLPlugins.RaceEngineer.Booleans {
 
         }
 
-        public void Reset(SessionType sessionType = SessionType.Practice) {
+        internal void Reset(SessionType sessionType = SessionType.Practice) {
             this.IsInMenu = true;
             this.EnteredMenu = false;
             this.ExitedMenu = false;
@@ -229,21 +229,21 @@ namespace KLPlugins.RaceEngineer.Booleans {
             this._isSessionLimitSet = false;
         }
 
-        public void RaceStartStintAdded() {
+        internal void RaceStartStintAdded() {
             this.IsRaceStartStintAdded = true;
         }
 
-        public void OnNewEvent(SessionType sessionType) {
+        internal void OnNewEvent(SessionType sessionType) {
             this.Reset(sessionType);
             this.IsNewEvent = false;
         }
 
-        public void OnSessionChange(SessionType sessionType) {
+        internal void OnSessionChange(SessionType sessionType) {
             this.Reset(sessionType);
             this.IsNewEvent = false;
         }
 
-        public void OnLapFinished(GameData data) {
+        internal void OnLapFinished(GameData data) {
             // HOTLAP doesn't have fuel usage, thus set isValidFuelLap = false in that case always, otherwise reset to valid lap in other cases
             this.IsValidFuelLap = data.NewData.SessionTypeName != "HOTLAP";
             this.IsOutLap = false;
@@ -259,39 +259,39 @@ namespace KLPlugins.RaceEngineer.Booleans {
     /// Hold current and previous boolean values 
     /// </summary>
     public class Booleans {
-        public BooleansBase NewData { get; private set; }
-        public BooleansBase OldData { get; private set; }
+        public BooleansBase NewData { get; }
+        public BooleansBase OldData { get; }
 
-        public Booleans() {
+        internal Booleans() {
             this.NewData = new BooleansBase();
             this.OldData = new BooleansBase();
         }
 
-        public void Reset(SessionType sessionType = SessionType.Practice) {
+        internal void Reset(SessionType sessionType = SessionType.Practice) {
             RaceEngineerPlugin.LogInfo("Booleans.Reset()");
             this.OldData.Reset(sessionType);
             this.NewData.Reset(sessionType);
         }
 
-        public void RaceStartStintAdded() {
+        internal void RaceStartStintAdded() {
             RaceEngineerPlugin.LogInfo("Booleans.RaceStartStintAdded()");
             this.NewData.RaceStartStintAdded();
         }
 
-        public void OnNewEvent(SessionType sessionType) {
+        internal void OnNewEvent(SessionType sessionType) {
             this.NewData.OnNewEvent(sessionType);
             this.OldData.OnNewEvent(sessionType);
         }
 
-        public void OnNewSession(Values v) {
+        internal void OnNewSession(Values v) {
             this.NewData.OnSessionChange(v.Session.SessionType);
         }
 
-        public void OnLapFinished(GameData data) {
+        internal void OnLapFinished(GameData data) {
             this.NewData.OnLapFinished(data);
         }
 
-        public void OnRegularUpdate(GameData data, Values v) {
+        internal void OnRegularUpdate(GameData data, Values v) {
             this.OldData.Update(this.NewData);
             this.NewData.Update(data, v);
         }

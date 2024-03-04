@@ -29,9 +29,8 @@ namespace KLPlugins.RaceEngineer.Deque {
     /// </remarks>
     /// <param name="size">The size.</param>
     public class FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
-        public Deque<double> Data { get; } = new Deque<double>(size);
-        public int Capacity => this.Data.Capacity;
-        public int Count => this.Data.Count;
+        public int Capacity => this._data.Capacity;
+        public int Count => this._data.Count;
         public Stats.Stats Stats { get; } = new Stats.Stats();
         public double Min => this.Stats.Min;
         public double Max => this.Stats.Max;
@@ -41,13 +40,15 @@ namespace KLPlugins.RaceEngineer.Deque {
         public double Q1 => this.Stats.Q1;
         public double Q3 => this.Stats.Q3;
 
+        private Deque<double> _data { get; } = new Deque<double>(size);
+
         private double _lowerBound = double.NegativeInfinity;
         private double _upperBound = double.PositiveInfinity;
         private readonly RemoveOutliers _removeOutliers = removeOutliers;
-        private DescriptiveStatistics? _stats;
+        private DescriptiveStatistics? _descriptiveStats;
 
-        public void Clear() {
-            this.Data.Clear();
+        internal void Clear() {
+            this._data.Clear();
             this.Stats.Reset();
             this._lowerBound = double.NegativeInfinity;
             this._upperBound = double.PositiveInfinity;
@@ -58,15 +59,15 @@ namespace KLPlugins.RaceEngineer.Deque {
         /// Add value, remove last if over size
         /// </summary>
         /// <param name="value">The value.</param>
-        public void AddToFront(double value) {
+        internal void AddToFront(double value) {
             if (this.Count == this.Capacity) {
-                double oldData = this.Data.RemoveFromBack();
+                double oldData = this._data.RemoveFromBack();
             }
-            this.Data.AddToFront(value);
-            var data = this.Data.Where(x => !double.IsNaN(x));
+            this._data.AddToFront(value);
+            var data = this._data.Where(x => !double.IsNaN(x));
             this.SetBounds(data);
             if (data.Count() > 1) {
-                this._stats = this._removeOutliers switch {
+                this._descriptiveStats = this._removeOutliers switch {
                     RemoveOutliers.Upper => new(data.Where(x => x < this._upperBound)),
                     RemoveOutliers.Lower => new(data.Where(x => this._lowerBound < x)),
                     RemoveOutliers.Both => new(data.Where(x => this._lowerBound < x && x < this._upperBound)),
@@ -74,17 +75,17 @@ namespace KLPlugins.RaceEngineer.Deque {
                     _ => new(data),
                 };
             } else {
-                this._stats = new(data);
+                this._descriptiveStats = new(data);
             }
 
-            this.Stats.Avg = this._stats.Mean;
-            this.Stats.Std = this._stats.StandardDeviation;
-            this.Stats.Min = this._stats.Minimum;
-            this.Stats.Max = this._stats.Maximum;
+            this.Stats.Avg = this._descriptiveStats.Mean;
+            this.Stats.Std = this._descriptiveStats.StandardDeviation;
+            this.Stats.Min = this._descriptiveStats.Minimum;
+            this.Stats.Max = this._descriptiveStats.Maximum;
 
             if (RaceEngineerPlugin.Settings.Log) {
                 string txt = "Data = [";
-                foreach (var a in this.Data) {
+                foreach (var a in this._data) {
                     txt += $"{a:0.000}, ";
                 }
                 //            RaceEngineerPlugin.LogInfo($@"{txt}],
@@ -108,13 +109,13 @@ namespace KLPlugins.RaceEngineer.Deque {
             }
         }
 
-        public void Fill(double value) {
-            this.Data.Clear();
+        internal void Fill(double value) {
+            this._data.Clear();
             for (int i = 0; i < this.Capacity; i++) {
-                this.Data.AddToFront(value);
+                this._data.AddToFront(value);
             }
         }
 
-        public double this[int key] => this.Data[key];
+        public double this[int key] => this._data[key];
     }
 }
