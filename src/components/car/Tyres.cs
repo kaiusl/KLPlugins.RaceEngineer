@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using ACSharedMemory.ACC.MMFModels;
@@ -12,18 +13,18 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static string[] Names = ["11", "12", "21", "22"];
+        public static ImmutableArray<string> Names = ImmutableArray.Create("11", "12", "21", "22");
 
         public string? Name { get; private set; }
 
-        public double[] IdealInputPres { get; }
-        public double[] PredictedIdealInputPresDry { get; }
-        public double[] PredictedIdealInputPresNowWet { get; }
-        public double[] PredictedIdealInputPresFutureWet { get; }
-        public double[] CurrentInputPres { get; }
-        public double[] PressDeltaToIdeal { get; }
-        public double[] PresLoss { get; }
-        public bool[] PresLossLap { get; }
+        public WheelsData<double> IdealInputPres { get; }
+        public WheelsData<double> PredictedIdealInputPresDry { get; }
+        public WheelsData<double> PredictedIdealInputPresNowWet { get; }
+        public WheelsData<double> PredictedIdealInputPresFutureWet { get; }
+        public WheelsData<double> CurrentInputPres { get; }
+        public WheelsData<double> PressDeltaToIdeal { get; }
+        public WheelsData<double> PresLoss { get; }
+        public WheelsData<bool> PresLossLap { get; }
 
         public MultiPointLinearInterpolator TempNormalizerF { get; private set; }
         public MultiPointLinearInterpolator TempNormalizerR { get; private set; }
@@ -80,14 +81,14 @@ namespace KLPlugins.RaceEngineer.Car {
             this.TempInnerOverLap = new WheelsStats();
             this.TempMiddleOverLap = new WheelsStats();
             this.TempOuterOverLap = new WheelsStats();
-            this.IdealInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.PredictedIdealInputPresDry = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.PredictedIdealInputPresNowWet = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.PredictedIdealInputPresFutureWet = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.CurrentInputPres = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.PressDeltaToIdeal = [double.NaN, double.NaN, double.NaN, double.NaN];
-            this.PresLoss = [0.0, 0.0, 0.0, 0.0];
-            this.PresLossLap = [false, false, false, false];
+            this.IdealInputPres = new(double.NaN);
+            this.PredictedIdealInputPresDry = new(double.NaN);
+            this.PredictedIdealInputPresNowWet = new(double.NaN);
+            this.PredictedIdealInputPresFutureWet = new(double.NaN);
+            this.CurrentInputPres = new(double.NaN);
+            this.PressDeltaToIdeal = new(double.NaN);
+            this.PresLoss = new(0.0);
+            this.PresLossLap = new(false);
             this.SetLaps = [];
 
             this.TempNormalizerF = DefTempNormalizer();
@@ -696,8 +697,8 @@ namespace KLPlugins.RaceEngineer.Car {
             }
         }
 
-        public double[] Predict(double airtemp, double tracktemp, double idealPresFront, double idealPresRear) {
-            var res = new double[4];
+        public WheelsData<double> Predict(double airtemp, double tracktemp, double idealPresFront, double idealPresRear) {
+            var res = new WheelsData<double>(0.0);
             for (int i = 0; i < 4; i++) {
                 if (this._regressors[i] != null && airtemp != 0.0) {
                     res[i] = this._regressors[i]?.Predict([i < 3 ? idealPresFront : idealPresRear, airtemp, tracktemp]) ?? -1.0;

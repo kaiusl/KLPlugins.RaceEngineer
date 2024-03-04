@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -55,7 +55,7 @@ namespace KLPlugins.RaceEngineer.Database {
         public int StintNr;
         public string StartTime;
         public string? TyreCompound;
-        public double[] TyrePresIn;
+        public WheelsData<double> TyrePresIn;
         public int BrakePadFront;
         public int BrakePadRear;
         public int BrakePadNr;
@@ -116,12 +116,16 @@ namespace KLPlugins.RaceEngineer.Database {
 
         public override readonly string ToString() {
             return $@"SessionId = {this.SessionId}; StartTime = {this.StartTime}; StintNr = {this.StintNr};
-	TyreCompount = {this.TyreCompound}; TyrePresIn = {this.ArrayToString(this.TyrePresIn)}; TyreSet = {this.TyreSet};
+	TyreCompount = {this.TyreCompound}; TyrePresIn = {WheelsDataToString(this.TyrePresIn)}; TyreSet = {this.TyreSet};
 	BrakePad = [F: {this.BrakePadFront}, R: {this.BrakePadRear}]; BrakePadNr = {this.BrakePadNr}; BrakeDuct = [F: {this.BrakeDuctFront}, R: {this.BrakeDuctRear}],
-	Camber = {this.ArrayToString(this.Camber)}; Toe = {this.ArrayToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
+	Camber = {ArrayToString(this.Camber)}; Toe = {ArrayToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
         }
 
-        private readonly string ArrayToString<T>(T[] a) {
+        private static string ArrayToString<T>(T[] a) {
+            return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
+        }
+
+        private static string WheelsDataToString<T>(WheelsData<T> a) {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
     }
