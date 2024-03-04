@@ -17,9 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="KLPlugins.RaceEngineer">
-      <HintPath>C:\Program Files (x86)\SimHub\KLPlugins.RaceEngineer.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RaceEngineerPlugin\KLPlugins.RaceEngineer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Newtonsoft.Json">
       <HintPath>C:\Program Files (x86)\SimHub\Newtonsoft.Json.dll</HintPath>
     </Reference>
