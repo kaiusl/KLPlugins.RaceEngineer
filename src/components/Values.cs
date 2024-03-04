@@ -23,6 +23,12 @@ namespace KLPlugins.RaceEngineer {
         public Remaining.RemainingOnFuel RemainingOnFuel = new();
         internal Database.Database Db = new();
 
+        public delegate void OnNewEventHandler(in GameData data, in Values v);
+        public event OnNewEventHandler? OnNewEvent;
+        public event OnNewEventHandler? OnNewStint;
+        public event OnNewEventHandler? OnNewSession;
+        public event OnNewEventHandler? OnLapFinished;
+
         //public ACCUdpRemoteClient BroadcastClient = null;
 
         public Values() { }
@@ -68,7 +74,7 @@ namespace KLPlugins.RaceEngineer {
         }
         #endregion
 
-        private void OnNewStint(GameData data) {
+        private void _onNewStint(GameData data) {
             this.Laps.OnNewStint();
             this.Car.OnNewStint();
             this.Db.InsertStint(data, this);
@@ -85,16 +91,6 @@ namespace KLPlugins.RaceEngineer {
                 this.Reset();
             }
 
-        }
-
-        public void OnNewEvent(GameData data) {
-            RaceEngineerPlugin.LogInfo($"OnNewEvent.");
-            var sessType = SessionTypeMethods.FromSHGameData(data);
-            this.Booleans.OnNewEvent(sessType);
-            this.Track.OnNewEvent(data);
-            this.Car.OnNewEvent(data, this);
-            this.Laps.OnNewEvent(data, this);
-            this.Db.InsertEvent(data, this);
         }
 
         /// <summary>
@@ -114,7 +110,13 @@ namespace KLPlugins.RaceEngineer {
 
             if (this.Booleans.NewData.IsNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
-                this.OnNewEvent(data);
+                RaceEngineerPlugin.LogInfo($"OnNewEvent.");
+                var sessType = SessionTypeMethods.FromSHGameData(data);
+                this.Booleans.OnNewEvent(sessType);
+                this.Track.OnNewEvent(data);
+                this.Car.OnNewEvent(data, this);
+                this.Laps.OnNewEvent(data, this);
+                this.Db.InsertEvent(data, this);
             }
 
             this.Booleans.OnRegularUpdate(data, this);
@@ -123,10 +125,12 @@ namespace KLPlugins.RaceEngineer {
             this.Car.OnRegularUpdate(data, this);
             this.Weather.OnRegularUpdate(data, this);
 
+            var isNewStint = false;
             if (this.Booleans.NewData.ExitedPitLane && !this.Booleans.NewData.IsInMenu) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on pit exit.");
-                this.OnNewStint(data);
+                this._onNewStint(data);
+                isNewStint = true;
             }
 
             // We need to add stint at the start of the race/hotlap/hotstint separately since we are never in pitlane.
@@ -136,8 +140,9 @@ namespace KLPlugins.RaceEngineer {
                 && this.Session.SessionType is SessionType.Race or SessionType.Hotstint or SessionType.Hotlap) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New stint on race/hotlap/hotstint start.");
-                this.OnNewStint(data);
+                this._onNewStint(data);
                 this.Booleans.RaceStartStintAdded();
+                isNewStint = true;
             }
 
             this.RemainingInSession.OnRegularUpdate(data, this);
@@ -176,7 +181,26 @@ namespace KLPlugins.RaceEngineer {
             //    lastWeather = data.NewData.PacketTime;
             //}
 
+            // We want to invoke these after all the data has been updated from our side
+            this.InvokeEvents(data, isNewStint);
+        }
 
+        private void InvokeEvents(GameData data, bool isNewStint) {
+            if (this.OnNewEvent != null && this.Booleans.NewData.IsNewEvent) {
+                this.OnNewEvent.Invoke(data, this);
+            }
+
+            if (this.OnNewStint != null && isNewStint) {
+                this.OnNewStint.Invoke(data, this);
+            }
+
+            if (this.OnLapFinished != null && this.Booleans.NewData.IsLapFinished) {
+                this.OnLapFinished.Invoke(data, this);
+            }
+
+            if (this.OnNewSession != null && this.Session.IsNewSession) {
+                this.OnNewSession.Invoke(data, this);
+            }
         }
 
         #region Broadcast client connection
