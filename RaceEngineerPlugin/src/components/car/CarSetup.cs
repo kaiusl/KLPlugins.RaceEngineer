@@ -6,10 +6,16 @@ namespace KLPlugins.RaceEngineer.Car {
 #pragma warning disable IDE1006 // Naming Styles
 
     public class CarSetup {
-
+        [JsonProperty(Required = Required.Always)]
         public string carName { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public BasicSetup basicSetup { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public AdvancedSetup advancedSetup { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int trackBopType { get; }
 
         [JsonConstructor]
@@ -22,9 +28,13 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class BasicSetup {
+        [JsonProperty(Required = Required.Always)]
         public TyreSetup tyres { get; }
+        [JsonProperty(Required = Required.Always)]
         public Alignment alignment { get; }
+        [JsonProperty(Required = Required.Always)]
         public Electronics electronics { get; }
+        [JsonProperty(Required = Required.Always)]
         public Strategy strategy { get; }
 
         [JsonConstructor]
@@ -37,7 +47,10 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class TyreSetup {
+        [JsonProperty(Required = Required.Always)]
         public int tyreCompound { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> tyrePressure { get; }
 
         [JsonConstructor]
@@ -48,12 +61,31 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class Alignment {
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> camber { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> toe { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<double> staticCamber { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<double> toeOutLinear { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public int casterLF { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public int casterRF { get; }
+
+
+        [JsonProperty(Required = Required.Always)]
         public int steerRatio { get; }
 
         [JsonConstructor]
@@ -69,11 +101,22 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class Electronics {
+        [JsonProperty(Required = Required.Always)]
         public int tC1 { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int tC2 { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int abs { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int eCUMap { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int fuelMix { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int telemetryLaps { get; }
 
         [JsonConstructor]
@@ -88,12 +131,25 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class Strategy {
+        [JsonProperty(Required = Required.Always)]
         public int fuel { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int nPitStops { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int tyreSet { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int frontBrakePadCompound { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int rearBrakePadCompound { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<PitStrategy> pitStrategy { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public float fuelPerLap { get; }
 
         [JsonConstructor]
@@ -109,10 +165,19 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class PitStrategy {
+        [JsonProperty(Required = Required.Always)]
         public int fuelToAdd { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public TyreSetup tyres { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int tyreSet { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int frontBrakePadCompound { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int rearBrakePadCompound { get; }
 
         [JsonConstructor]
@@ -126,9 +191,16 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class AdvancedSetup {
+        [JsonProperty(Required = Required.Always)]
         public MechanicalBalance mechanicalBalance { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public Dampers dampers { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public AeroBalance aeroBalance { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public Drivetrain driveTrain { get; }
 
         [JsonConstructor]
@@ -141,13 +213,28 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class MechanicalBalance {
+        [JsonProperty(Required = Required.Always)]
         public int aRBFront { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int aRBRear { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> wheelRate { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> bumpStopRateUp { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> bumpStopRateDn { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> bumpStopWindow { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int brakeTorque { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int brakeBias { get; }
 
         [JsonConstructor]
@@ -164,9 +251,16 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class Dampers {
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> bumpSlow { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> bumpFast { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> reboundSlow { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> reboundFast { get; }
 
         [JsonConstructor]
@@ -179,10 +273,19 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class AeroBalance {
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> rideHeight { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<double> rodLength { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int splitter { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public int rearWing { get; }
+
+        [JsonProperty(Required = Required.Always)]
         public ImmutableArray<int> brakeDuct { get; }
 
         [JsonConstructor]
@@ -196,6 +299,7 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     public class Drivetrain {
+        [JsonProperty(Required = Required.Always)]
         public int preload { get; }
 
         [JsonConstructor]
