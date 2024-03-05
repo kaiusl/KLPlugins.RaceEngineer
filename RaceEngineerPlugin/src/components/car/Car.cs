@@ -233,45 +233,134 @@ namespace KLPlugins.RaceEngineer.Car {
         public FrontRear(T one) : this(one, one) { }
     }
 
-    internal class FrontRearPartial<T>(T f, T r) {
-        internal T? F { get; set; } = f;
-        internal T? R { get; set; } = r;
+    internal class FrontRearJsonConverter<T> : JsonConverter<FrontRear<T>>
+        where T : IEquatable<T> {
+        private readonly JsonConverter<T>? _tConverter = null;
 
-        internal FrontRear<T> Build() {
-            if (this.F != null && this.R != null) {
-                return new(this.F, this.R);
-            } else if (this.R != null) {
-                return new(this.R);
-            } else if (this.F != null) {
-                return new(this.F);
-            } else {
-                throw new Exception("Invalid JSON");
-            }
+        public FrontRearJsonConverter() { }
+
+        public FrontRearJsonConverter(JsonConverter<T> tConverter) {
+            _tConverter = tConverter;
         }
-    }
 
-    internal class FrontRearJsonConverter<T> : JsonConverter<FrontRear<T>> where T : IEquatable<T> {
-        public override void WriteJson(JsonWriter writer, FrontRear<T> value, JsonSerializer serializer) {
+        public override void WriteJson(JsonWriter writer, FrontRear<T>? value, JsonSerializer serializer) {
+            if (value == null) {
+                writer.WriteNull();
+                return;
+            }
+
             writer.WriteStartObject();
 
             writer.WritePropertyName("F");
-            serializer.Serialize(writer, value.F);
+            this.WriteT(writer, value.F, serializer);
 
             if (!value.R.Equals(value.F)) {
                 writer.WritePropertyName("R");
-                serializer.Serialize(writer, value.R);
+                this.WriteT(writer, value.R, serializer);
             }
 
             writer.WriteEndObject();
         }
 
-        public override FrontRear<T> ReadJson(JsonReader reader, Type objectType, FrontRear<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            throw new NotImplementedException("FrontRear should never be deserialized into. Use FrontRearPartial for it.");
+        void WriteT(JsonWriter writer, T value, JsonSerializer serializer) {
+            if (_tConverter != null) {
+                _tConverter.WriteJson(writer, value, serializer);
+            } else {
+                serializer.Serialize(writer, value);
+            }
+        }
+
+        public override FrontRear<T> ReadJson(JsonReader reader, Type objectType, FrontRear<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            if (reader.TokenType != JsonToken.StartObject) {
+                throw new Exception($"Invalid JSON. Expected '{JsonToken.StartObject}'. Found '{reader.TokenType}: {reader.Value}'.");
+            }
+
+            T? f = default;
+            T? r = default;
+
+            reader.Read();
+
+            if (reader.TokenType != JsonToken.PropertyName || reader.Value == null) {
+                throw new Exception($"Invalid JSON. Expected '{JsonToken.PropertyName}'. Found '{reader.TokenType}: {reader.Value}'.");
+            }
+
+            if ((string)reader.Value! == "F") {
+                reader.Read();
+                f = this.ReadT(reader, objectType, existingValue == null ? default : existingValue.F, hasExistingValue, serializer);
+            } else if ((string)reader.Value! == "R") {
+                reader.Read();
+                r = this.ReadT(reader, objectType, existingValue == null ? default : existingValue.R, hasExistingValue, serializer);
+            } else {
+                throw new Exception($"Invalid JSON. Expected '{JsonToken.PropertyName}' with value of 'F' or 'R'. Found '{reader.TokenType}: {reader.Value}'.");
+            }
+
+            reader.Read();
+            if (reader.TokenType == JsonToken.PropertyName) {
+                if (reader.Value == null) {
+                    throw new Exception($"Invalid JSON. Expected '{JsonToken.PropertyName}'. Found '{reader.TokenType}: {reader.Value}'.");
+                }
+
+                if ((string)reader.Value! == "R") {
+                    if (r == null) {
+                        reader.Read();
+                        r = this.ReadT(reader, objectType, existingValue == null ? default : existingValue.R, hasExistingValue, serializer);
+                    } else {
+                        throw new Exception($"Invalid JSON. Found double property 'R'. Found '{reader.TokenType}: {reader.Value}'.");
+                    }
+                } else if ((string)reader.Value! == "F") {
+                    if (f == null) {
+                        reader.Read();
+                        f = this.ReadT(reader, objectType, existingValue == null ? default : existingValue.F, hasExistingValue, serializer);
+                    } else {
+                        throw new Exception($"Invalid JSON. Found double property ''. Found '{reader.TokenType}: {reader.Value}'.");
+                    }
+                }
+
+                reader.Read();
+            }
+
+            if (reader.TokenType != JsonToken.EndObject) {
+                throw new Exception($"Invalid JSON. Expected '{JsonToken.EndObject}'. Found '{reader.TokenType}: {reader.Value}'.");
+            }
+
+            if (f == null && r == null) {
+                throw new Exception("Invalid JSON. Both R and F are missing.");
+            } else if (r != null && f == null) {
+                return new(r);
+            } else if (f != null && r == null) {
+                return new(f);
+            } else if (f != null && r != null) {
+                return new(f, r);
+            } else {
+                throw new Exception("unreachable branch");
+            }
+        }
+
+        T? ReadT(JsonReader reader, Type objectType, T? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            if (_tConverter != null) {
+                return _tConverter.ReadJson(reader, objectType, existingValue, hasExistingValue, serializer);
+            } else {
+                return serializer.Deserialize<T>(reader);
+            }
+        }
+    }
+
+    internal class FrontRearLutJsonConverter : JsonConverter<FrontRear<Lut>> {
+        private readonly JsonConverter<FrontRear<Lut>> _inner = new FrontRearJsonConverter<Lut>(new LutJsonConverter());
+
+        public override void WriteJson(JsonWriter writer, FrontRear<Lut>? value, JsonSerializer serializer) {
+            _inner.WriteJson(writer, value, serializer);
+        }
+
+        public override FrontRear<Lut>? ReadJson(JsonReader reader, Type objectType, FrontRear<Lut>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            return _inner.ReadJson(reader, objectType, existingValue, hasExistingValue, serializer);
         }
     }
 
     public class TyreInfo {
+        [JsonConverter(typeof(FrontRearLutJsonConverter))]
         public FrontRear<Lut> IdealPresCurve { get; }
+        [JsonConverter(typeof(FrontRearLutJsonConverter))]
         public FrontRear<Lut> IdealTempCurve { get; }
         public string? ShortName { get; }
 
@@ -304,8 +393,8 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         internal static TyreInfo FromPartial(TyreInfoPartial partial) {
-            var idealPresCurve = partial.IdealPresCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            var idealTempCurve = partial.IdealTempCurve?.Build() ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
+            var idealPresCurve = partial.IdealPresCurve ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            var idealTempCurve = partial.IdealTempCurve ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
 
             return new TyreInfo(idealPresCurve, idealTempCurve, partial.ShortName);
         }
@@ -319,8 +408,8 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         internal static TyreInfo FromPartialAndACTyreInfo(TyreInfoPartial partial, ACTyreInfo acTyreInfo) {
-            var idealPresCurve = partial.IdealPresCurve?.Build() ?? PresCurvesFromACTyreInfo(acTyreInfo);
-            var idealTempCurve = partial.IdealTempCurve?.Build() ?? TempCurvesFromACTyreInfo(acTyreInfo);
+            var idealPresCurve = partial.IdealPresCurve ?? PresCurvesFromACTyreInfo(acTyreInfo);
+            var idealTempCurve = partial.IdealTempCurve ?? TempCurvesFromACTyreInfo(acTyreInfo);
 
             return new TyreInfo(idealPresCurve, idealTempCurve, partial.ShortName ?? acTyreInfo.ShortName);
         }
@@ -360,9 +449,23 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     internal class TyreInfoPartial {
-        internal FrontRearPartial<Lut>? IdealPresCurve { get; set; }
-        internal FrontRearPartial<Lut>? IdealTempCurve { get; set; }
+        //[JsonConverter(typeof(LutJsonConverter))]
+        [JsonProperty]
+        internal FrontRear<Lut>? IdealPresCurve { get; set; }
+        //[JsonConverter(typeof(LutJsonConverter))]
+        [JsonProperty]
+        internal FrontRear<Lut>? IdealTempCurve { get; set; }
+        [JsonProperty]
         internal string? ShortName { get; set; }
+
+        internal TyreInfoPartial() { }
+
+        [JsonConstructor]
+        internal TyreInfoPartial(FrontRear<Lut>? idealPresCurve, FrontRear<Lut>? idealTempCurve, string? shortName) {
+            this.IdealPresCurve = idealPresCurve;
+            this.IdealTempCurve = idealTempCurve;
+            this.ShortName = shortName;
+        }
 
         internal void FillGaps(TyreInfoPartial other) {
             this.IdealPresCurve ??= other.IdealPresCurve;
@@ -583,10 +686,8 @@ namespace KLPlugins.RaceEngineer.Car {
             internal string? ShortName { get; set; }
             internal Lut? WearCurveF { get; set; }
             internal Lut? WearCurveR { get; set; }
-
             internal double? IdealPresF { get; set; }
             internal double? IdealPresR { get; set; }
-
             internal Lut? TempCurveF { get; set; }
             internal Lut? TempCurveR { get; set; }
 
@@ -793,7 +894,7 @@ namespace KLPlugins.RaceEngineer.Car {
             var ys = new List<double>();
 
             if (reader.TokenType != JsonToken.StartArray) {
-                throw new Exception("Invalid JSON");
+                throw new Exception($"Invalid JSON. Expected '{JsonToken.StartArray}'. Found '{reader.TokenType}: {reader.Value}'.");
             }
 
             double ReadNumber(JsonReader reader) {
@@ -811,7 +912,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
                     reader.Read(); // eat array end
                     if (reader.TokenType != JsonToken.EndArray) {
-                        throw new Exception("Invalid JSON");
+                        throw new Exception($"Invalid JSON. Expected '{JsonToken.EndArray}'. Found '{reader.TokenType}: {reader.Value}'.");
                     }
                     continue;
                 }
