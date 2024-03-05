@@ -833,7 +833,8 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         internal static Lut FromFile(string path) {
-            var lut = new Lut();
+            var xs = new List<double>();
+            var ys = new List<double>();
 
             var txt = File.ReadAllText(path);
 
@@ -847,11 +848,11 @@ namespace KLPlugins.RaceEngineer.Car {
                 var x = Convert.ToDouble(parts[0].Trim());
                 var y = Convert.ToDouble(parts[1].Split(';')[0].Trim());
 
-                lut.X.Add(x);
-                lut.Y.Add(y);
+                xs.Add(x);
+                ys.Add(y);
             }
 
-            return lut;
+            return new Lut(xs.ToImmutableList(), ys.ToImmutableList());
         }
 
         public int Length() {
