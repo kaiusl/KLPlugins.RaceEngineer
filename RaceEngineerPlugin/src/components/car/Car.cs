@@ -666,16 +666,31 @@ namespace KLPlugins.RaceEngineer.Car {
         Lut tempCurveR,
         FrontRear<double> idealPres
     ) {
+
+        [JsonProperty]
         internal string Name { get; private set; } = name;
+
+        [JsonProperty]
         internal string ShortName { get; private set; } = shortName;
+
+        [JsonProperty]
         internal Lut WearCurveF { get; private set; } = wearCurveF;
+
+        [JsonProperty]
         internal Lut WearCurveR { get; private set; } = wearCurveR;
+
+        [JsonProperty]
         internal FrontRear<double> IdealPres { get; private set; } = idealPres;
+
+        [JsonProperty]
         internal Lut TempCurveF { get; private set; } = tempCurveF;
+
+        [JsonProperty]
         internal Lut TempCurveR { get; private set; } = tempCurveR;
     }
 
     internal class ACCarInfo {
+        [JsonProperty]
         internal Dictionary<string, ACTyreInfo> Tyres { get; private set; } = [];
 
         /// <summary>

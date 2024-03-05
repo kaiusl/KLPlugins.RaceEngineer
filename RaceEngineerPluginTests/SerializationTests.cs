@@ -1,6 +1,9 @@
+using System.Reflection;
+
 using KLPlugins.RaceEngineer.Car;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using Xunit.Abstractions;
 
@@ -14,7 +17,7 @@ namespace RaceEngineerPluginTests {
         }
 
         [Fact]
-        public void DeserializeCarSetup() {
+        public void Deserialize_CarSetup() {
             var fname = "../../../Data/ACC_Test_Setup.json";
             Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
             var txt = File.ReadAllText(fname);
@@ -25,14 +28,14 @@ namespace RaceEngineerPluginTests {
 
 
         [Fact]
-        public void SerializeImmutableWheelsData() {
+        public void Serialize_ImmutableWheelsData() {
             var data = new ImmutableWheelsData<int>([1, 2, 3, 4]);
             var json = JsonConvert.SerializeObject(data, new ImmutableWheelsData<int>.JsonConverter());
             Assert.Equal("[1,2,3,4]", json);
         }
 
         [Fact]
-        public void DeserializeImmutableWheelsData() {
+        public void Deserialize_ImmutableWheelsData() {
             var s = "[1,2,3,4]";
             var wheels = JsonConvert.DeserializeObject<ImmutableWheelsData<int>>(s, new ImmutableWheelsData<int>.JsonConverter());
             Assert.NotNull(wheels);
@@ -43,7 +46,7 @@ namespace RaceEngineerPluginTests {
         }
 
         [Fact]
-        public void DeserializeTyreInfoPartial() {
+        public void Deserialize_TyreInfoPartial() {
             var fname = "../../../Data/TyreInfoPartial.json";
             Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
             var txt = File.ReadAllText(fname);
@@ -63,7 +66,7 @@ namespace RaceEngineerPluginTests {
         }
 
         [Fact]
-        public void DeserializeTyreInfoFull() {
+        public void Deserialize_TyreInfoFull() {
             var fname = "../../../Data/TyreInfoFull.json";
             Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
             var txt = File.ReadAllText(fname);
@@ -82,6 +85,25 @@ namespace RaceEngineerPluginTests {
             Assert.Equal(tempLutR, tyreInfo?.IdealTempCurve?.R);
 
             _output.WriteLine(JsonConvert.SerializeObject(tyreInfo, Formatting.Indented));
+        }
+
+        [Fact]
+        public async void Deserialize_CarInfo() {
+            var fname = "../../../Data/CarInfo.json";
+            Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
+            var txt = File.ReadAllText(fname);
+            var carInfo = JsonConvert.DeserializeObject<CarInfo.Partial>(txt.Replace("\"", "'"));
+
+            Assert.Equal(true, carInfo?.IsFullyInitializedAC());
+
+            await VerifyJson(JsonConvert.SerializeObject(carInfo, Formatting.Indented));
+        }
+
+        [Fact]
+        public async void Deserialize_ACCarInfo() {
+            var folderPath = "../../../Data/ACCarInfo";
+            var carInfo = ACCarInfo.FromFiles(folderPath);
+            await VerifyJson(JsonConvert.SerializeObject(carInfo, Formatting.Indented));
         }
     }
 }
