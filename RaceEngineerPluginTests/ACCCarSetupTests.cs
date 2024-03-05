@@ -47,7 +47,7 @@ namespace RaceEngineerPluginTests {
             var fname = "../../../Data/TyreInfoPartial.json";
             Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
             var txt = File.ReadAllText(fname);
-            var tyreInfo = JsonConvert.DeserializeObject<TyreInfo>(txt.Replace("\"", "'"));
+            var tyreInfo = JsonConvert.DeserializeObject<TyreInfo.Partial>(txt.Replace("\"", "'"));
 
             Assert.Equal("D", tyreInfo?.ShortName);
 
@@ -67,7 +67,7 @@ namespace RaceEngineerPluginTests {
             var fname = "../../../Data/TyreInfoFull.json";
             Assert.True(File.Exists(fname), "Test setup file doesn't exist.");
             var txt = File.ReadAllText(fname);
-            var tyreInfo = JsonConvert.DeserializeObject<TyreInfo>(txt.Replace("\"", "'"));
+            var tyreInfo = JsonConvert.DeserializeObject<TyreInfo.Partial>(txt.Replace("\"", "'"));
 
             Assert.Equal("D", tyreInfo?.ShortName);
 
@@ -82,8 +82,6 @@ namespace RaceEngineerPluginTests {
             Assert.Equal(tempLutR, tyreInfo?.IdealTempCurve?.R);
 
             _output.WriteLine(JsonConvert.SerializeObject(tyreInfo, Formatting.Indented));
-
-
         }
     }
 }

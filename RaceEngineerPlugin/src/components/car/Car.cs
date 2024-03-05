@@ -132,7 +132,7 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             try {
-                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
                 if (partial != null) {
                     this.Info = CarInfo.FromPartial(partial);
                 }
@@ -151,12 +151,12 @@ namespace KLPlugins.RaceEngineer.Car {
             string pluginsCarDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             string ACRawDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
 
-            CarInfoPartial partialInfo = new();
+            CarInfo.Partial partialInfo = new();
 
             // 1. Try to read car specific data file
             try {
                 var txt = File.ReadAllText(pluginsCarDataPath).Replace("\"", "'");
-                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(txt, new LutJsonConverter());
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt, new LutJsonConverter());
 
                 if (partial != null) {
                     partialInfo = partial;
@@ -194,7 +194,7 @@ namespace KLPlugins.RaceEngineer.Car {
             var defDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
             try {
                 var txt = File.ReadAllText(defDataPath).Replace("\"", "'");
-                var partial = JsonConvert.DeserializeObject<CarInfoPartial>(txt, new LutJsonConverter());
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt, new LutJsonConverter());
 
                 if (partial != null) {
                     RaceEngineerPlugin.LogInfo($"Read car info from '{pluginsCarDataPath}'. Filled the gaps from def file '{defDataPath}'.");
@@ -357,15 +357,19 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
+
     public class TyreInfo {
         [JsonConverter(typeof(FrontRearLutJsonConverter))]
         public FrontRear<Lut> IdealPresCurve { get; }
+
         [JsonConverter(typeof(FrontRearLutJsonConverter))]
         public FrontRear<Lut> IdealTempCurve { get; }
+
         public string? ShortName { get; }
 
         [JsonIgnore]
         public FrontRear<MinMaxAvg<double>> IdealPresRange { get; }
+
         [JsonIgnore]
         public FrontRear<MinMaxAvg<double>> IdealTempRange { get; }
 
@@ -376,7 +380,6 @@ namespace KLPlugins.RaceEngineer.Car {
 
             this.IdealPresRange = new(FindIdealMinMaxAvg(idealPresCurve.F), FindIdealMinMaxAvg(idealPresCurve.R));
             this.IdealTempRange = new(FindIdealMinMaxAvg(idealTempCurve.F), FindIdealMinMaxAvg(idealTempCurve.R));
-
         }
 
         private static MinMaxAvg<double> FindIdealMinMaxAvg(Lut lut) {
@@ -387,12 +390,11 @@ namespace KLPlugins.RaceEngineer.Car {
             return new MinMaxAvg<double>(min, max, (min + max) / 2.0);
         }
 
-
         internal static TyreInfo Default() {
-            return FromPartial(new TyreInfoPartial());
+            return FromPartial(new Partial());
         }
 
-        internal static TyreInfo FromPartial(TyreInfoPartial partial) {
+        internal static TyreInfo FromPartial(Partial partial) {
             var idealPresCurve = partial.IdealPresCurve ?? new(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
             var idealTempCurve = partial.IdealTempCurve ?? new(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
 
@@ -407,7 +409,7 @@ namespace KLPlugins.RaceEngineer.Car {
             );
         }
 
-        internal static TyreInfo FromPartialAndACTyreInfo(TyreInfoPartial partial, ACTyreInfo acTyreInfo) {
+        internal static TyreInfo FromPartialAndACTyreInfo(Partial partial, ACTyreInfo acTyreInfo) {
             var idealPresCurve = partial.IdealPresCurve ?? PresCurvesFromACTyreInfo(acTyreInfo);
             var idealTempCurve = partial.IdealTempCurve ?? TempCurvesFromACTyreInfo(acTyreInfo);
 
@@ -446,39 +448,42 @@ namespace KLPlugins.RaceEngineer.Car {
 
             return new FrontRear<Lut>(NormalizeTempCurve(acTyreInfo.TempCurveF), NormalizeTempCurve(acTyreInfo.TempCurveR));
         }
-    }
 
-    internal class TyreInfoPartial {
-        //[JsonConverter(typeof(LutJsonConverter))]
-        [JsonProperty]
-        internal FrontRear<Lut>? IdealPresCurve { get; set; }
-        //[JsonConverter(typeof(LutJsonConverter))]
-        [JsonProperty]
-        internal FrontRear<Lut>? IdealTempCurve { get; set; }
-        [JsonProperty]
-        internal string? ShortName { get; set; }
+        internal class Partial {
 
-        internal TyreInfoPartial() { }
+            [JsonProperty]
+            [JsonConverter(typeof(FrontRearLutJsonConverter))]
+            internal FrontRear<Lut>? IdealPresCurve { get; set; }
 
-        [JsonConstructor]
-        internal TyreInfoPartial(FrontRear<Lut>? idealPresCurve, FrontRear<Lut>? idealTempCurve, string? shortName) {
-            this.IdealPresCurve = idealPresCurve;
-            this.IdealTempCurve = idealTempCurve;
-            this.ShortName = shortName;
-        }
+            [JsonProperty]
+            [JsonConverter(typeof(FrontRearLutJsonConverter))]
+            internal FrontRear<Lut>? IdealTempCurve { get; set; }
 
-        internal void FillGaps(TyreInfoPartial other) {
-            this.IdealPresCurve ??= other.IdealPresCurve;
-            this.IdealTempCurve ??= other.IdealTempCurve;
-            this.ShortName ??= other.ShortName;
-        }
+            [JsonProperty]
+            internal string? ShortName { get; set; }
 
-        internal bool IsFullyInitialized() {
-            return this.IdealPresCurve != null && this.IdealTempCurve != null;
-        }
+            internal Partial() { }
 
-        internal bool IsFullyInitializedAC() {
-            return this.IdealPresCurve != null && this.IdealTempCurve != null && this.ShortName != null;
+            [JsonConstructor]
+            internal Partial(FrontRear<Lut>? idealPresCurve, FrontRear<Lut>? idealTempCurve, string? shortName) {
+                this.IdealPresCurve = idealPresCurve;
+                this.IdealTempCurve = idealTempCurve;
+                this.ShortName = shortName;
+            }
+
+            internal void FillGaps(Partial other) {
+                this.IdealPresCurve ??= other.IdealPresCurve;
+                this.IdealTempCurve ??= other.IdealTempCurve;
+                this.ShortName ??= other.ShortName;
+            }
+
+            internal bool IsFullyInitialized() {
+                return this.IdealPresCurve != null && this.IdealTempCurve != null;
+            }
+
+            internal bool IsFullyInitializedAC() {
+                return this.IdealPresCurve != null && this.IdealTempCurve != null && this.ShortName != null;
+            }
         }
     }
 
@@ -501,7 +506,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this.Tyres.Clear();
         }
 
-        internal static CarInfo FromPartial(CarInfoPartial partial) {
+        internal static CarInfo FromPartial(Partial partial) {
             var result = new CarInfo([]);
             if (partial.Tyres == null) return result;
 
@@ -512,7 +517,7 @@ namespace KLPlugins.RaceEngineer.Car {
             return result;
         }
 
-        internal static CarInfo FromPartialAndACData(CarInfoPartial partial, ACCarInfo acCarInfo) {
+        internal static CarInfo FromPartialAndACData(Partial partial, ACCarInfo acCarInfo) {
             var result = new CarInfo([]);
 
             // Check for existing tyres and fill their gaps
@@ -545,34 +550,35 @@ namespace KLPlugins.RaceEngineer.Car {
 
             return result;
         }
-    }
 
-    internal class CarInfoPartial {
-        internal Dictionary<string, TyreInfoPartial>? Tyres { get; set; }
+        internal class Partial {
+            [JsonProperty]
+            internal Dictionary<string, TyreInfo.Partial>? Tyres { get; set; }
 
-        internal void FillGaps(CarInfoPartial other) {
-            if (other.Tyres == null) return;
+            internal void FillGaps(Partial other) {
+                if (other.Tyres == null) return;
 
-            if (this.Tyres == null) {
-                this.Tyres = [];
-            }
+                if (this.Tyres == null) {
+                    this.Tyres = [];
+                }
 
-            // Add tyres that were not present
-            foreach (var tyre in other.Tyres) {
-                if (!this.Tyres.ContainsKey(tyre.Key)) {
-                    this.Tyres[tyre.Key] = tyre.Value;
-                } else {
-                    this.Tyres[tyre.Key].FillGaps(tyre.Value);
+                // Add tyres that were not present
+                foreach (var tyre in other.Tyres) {
+                    if (!this.Tyres.ContainsKey(tyre.Key)) {
+                        this.Tyres[tyre.Key] = tyre.Value;
+                    } else {
+                        this.Tyres[tyre.Key].FillGaps(tyre.Value);
+                    }
                 }
             }
-        }
 
-        internal bool IsFullyInitialized() {
-            return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitialized());
-        }
+            internal bool IsFullyInitialized() {
+                return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitialized());
+            }
 
-        internal bool IsFullyInitializedAC() {
-            return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitializedAC());
+            internal bool IsFullyInitializedAC() {
+                return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitializedAC());
+            }
         }
     }
 
