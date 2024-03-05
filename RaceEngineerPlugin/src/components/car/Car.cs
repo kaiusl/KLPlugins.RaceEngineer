@@ -176,7 +176,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
             // 2. Car specific file was not present or partially initialized. Try reading the AC's raw data files
             try {
-                var acinfo = ACCarInfo.FromFile(ACRawDataPath);
+                var acinfo = ACCarInfo.FromFiles(ACRawDataPath);
                 // if we didn't throw then acinfo does contain all required data
                 this.Info = CarInfo.FromPartialAndACData(partialInfo, acinfo);
 
@@ -224,7 +224,6 @@ namespace KLPlugins.RaceEngineer.Car {
         }
 
         #endregion
-
     }
 
     public class FrontRear<T>(T f, T r) {
@@ -346,25 +345,12 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    internal class FrontRearLutJsonConverter : JsonConverter<FrontRear<Lut>> {
-        private readonly JsonConverter<FrontRear<Lut>> _inner = new FrontRearJsonConverter<Lut>(new Lut.JsonConverter());
-
-        public override void WriteJson(JsonWriter writer, FrontRear<Lut>? value, JsonSerializer serializer) {
-            _inner.WriteJson(writer, value, serializer);
-        }
-
-        public override FrontRear<Lut>? ReadJson(JsonReader reader, Type objectType, FrontRear<Lut>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            return _inner.ReadJson(reader, objectType, existingValue, hasExistingValue, serializer);
-        }
-    }
-
-
     public class TyreInfo {
-        [JsonConverter(typeof(FrontRearLutJsonConverter))]
+        [JsonConverter(typeof(FrontRearJsonConverter<Lut>))]
         [JsonProperty(Required = Required.Always)]
         public FrontRear<Lut> IdealPresCurve { get; }
 
-        [JsonConverter(typeof(FrontRearLutJsonConverter))]
+        [JsonConverter(typeof(FrontRearJsonConverter<Lut>))]
         [JsonProperty(Required = Required.Always)]
         public FrontRear<Lut> IdealTempCurve { get; }
 
@@ -456,11 +442,11 @@ namespace KLPlugins.RaceEngineer.Car {
         internal class Partial {
 
             [JsonProperty]
-            [JsonConverter(typeof(FrontRearLutJsonConverter))]
+            [JsonConverter(typeof(FrontRearJsonConverter<Lut>))]
             internal FrontRear<Lut>? IdealPresCurve { get; set; }
 
             [JsonProperty]
-            [JsonConverter(typeof(FrontRearLutJsonConverter))]
+            [JsonConverter(typeof(FrontRearJsonConverter<Lut>))]
             internal FrontRear<Lut>? IdealTempCurve { get; set; }
 
             [JsonProperty]
@@ -664,47 +650,37 @@ namespace KLPlugins.RaceEngineer.Car {
 
 
 
-    internal class ACTyreInfo(string name, string shortName, Lut wearCurveF, Lut wearCurveR, Lut tempCurveF, Lut tempCurveR, FrontRear<double> idealPres) {
+    internal class ACTyreInfo(
+        string name,
+        string shortName,
+        Lut wearCurveF,
+        Lut wearCurveR,
+        Lut tempCurveF,
+        Lut tempCurveR,
+        FrontRear<double> idealPres
+    ) {
         internal string Name { get; private set; } = name;
         internal string ShortName { get; private set; } = shortName;
         internal Lut WearCurveF { get; private set; } = wearCurveF;
         internal Lut WearCurveR { get; private set; } = wearCurveR;
-
         internal FrontRear<double> IdealPres { get; private set; } = idealPres;
-
         internal Lut TempCurveF { get; private set; } = tempCurveF;
         internal Lut TempCurveR { get; private set; } = tempCurveR;
     }
 
     internal class ACCarInfo {
-        enum FrontOrRear { F, R }
-        internal class ACTyreInfoPartial {
-            internal string? Name { get; set; }
-            internal string? ShortName { get; set; }
-            internal Lut? WearCurveF { get; set; }
-            internal Lut? WearCurveR { get; set; }
-            internal double? IdealPresF { get; set; }
-            internal double? IdealPresR { get; set; }
-            internal Lut? TempCurveF { get; set; }
-            internal Lut? TempCurveR { get; set; }
-
-            internal ACTyreInfo Build() {
-                return new ACTyreInfo(this.Name!, this.ShortName!, this.WearCurveF!, this.WearCurveR!, this.TempCurveF!, this.TempCurveR!, new FrontRear<double>((double)this.IdealPresF!, (double)this.IdealPresR!));
-            }
-        }
-
         internal Dictionary<string, ACTyreInfo> Tyres { get; private set; } = [];
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="path"> Path to a folder containing the tyres.ini file and other LUTs.</param>
+        /// <param name="folderPath"> Path to a folder containing the tyres.ini file and other LUTs.</param>
         /// <returns></returns>
-        internal static ACCarInfo FromFile(string path) {
+        internal static ACCarInfo FromFiles(string folderPath) {
             var info = new ACCarInfo();
             Dictionary<int, ACTyreInfoPartial> results = [];
 
-            var folder_path = path + "\\";
+            var folder_path = folderPath + "\\";
             var tyresini_path = folder_path + "tyres.ini";
             var txt = File.ReadAllText(tyresini_path);
 
@@ -795,8 +771,33 @@ namespace KLPlugins.RaceEngineer.Car {
 
             return info;
         }
+
+        private enum FrontOrRear { F, R }
+        private class ACTyreInfoPartial {
+            internal string? Name { get; set; }
+            internal string? ShortName { get; set; }
+            internal Lut? WearCurveF { get; set; }
+            internal Lut? WearCurveR { get; set; }
+            internal double? IdealPresF { get; set; }
+            internal double? IdealPresR { get; set; }
+            internal Lut? TempCurveF { get; set; }
+            internal Lut? TempCurveR { get; set; }
+
+            internal ACTyreInfo Build() {
+                return new ACTyreInfo(
+                    this.Name!,
+                    this.ShortName!,
+                    this.WearCurveF!,
+                    this.WearCurveR!,
+                    this.TempCurveF!,
+                    this.TempCurveR!,
+                    new FrontRear<double>((double)this.IdealPresF!, (double)this.IdealPresR!)
+                );
+            }
+        }
     }
 
+    [JsonConverter(typeof(Lut.JsonConverter))]
     public class Lut : IEnumerable<(double, double)>, IEquatable<Lut> {
         public ImmutableList<double> X { get; }
         public ImmutableList<double> Y { get; }
@@ -922,8 +923,6 @@ namespace KLPlugins.RaceEngineer.Car {
                 }
 
                 return new Lut(xs.ToImmutableList(), ys.ToImmutableList());
-
-
             }
         }
     }
