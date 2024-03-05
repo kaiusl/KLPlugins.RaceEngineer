@@ -346,7 +346,7 @@ namespace KLPlugins.RaceEngineer.Car {
     }
 
     internal class FrontRearLutJsonConverter : JsonConverter<FrontRear<Lut>> {
-        private readonly JsonConverter<FrontRear<Lut>> _inner = new FrontRearJsonConverter<Lut>(new LutJsonConverter());
+        private readonly JsonConverter<FrontRear<Lut>> _inner = new FrontRearJsonConverter<Lut>(new Lut.JsonConverter());
 
         public override void WriteJson(JsonWriter writer, FrontRear<Lut>? value, JsonSerializer serializer) {
             _inner.WriteJson(writer, value, serializer);
@@ -635,39 +635,25 @@ namespace KLPlugins.RaceEngineer.Car {
         public T RR => this._data[3];
 
         public T this[int index] => this._data[index];
-    }
 
-    internal class ImmutableWheelsDataJsonConverter<T> : JsonConverter<ImmutableWheelsData<T>> {
-        public override void WriteJson(JsonWriter writer, ImmutableWheelsData<T> value, JsonSerializer serializer) {
-            writer.WriteStartArray();
 
-            writer.WriteValue(value.FL);
-            writer.WriteValue(value.FR);
-            writer.WriteValue(value.RL);
-            writer.WriteValue(value.RR);
-
-            writer.WriteEndArray();
-        }
-
-        public override ImmutableWheelsData<T> ReadJson(JsonReader reader, Type objectType, ImmutableWheelsData<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            var xs = new T[4];
-
-            if (reader.TokenType != JsonToken.StartArray) {
-                throw new Exception("Invalid JSON");
+        internal class JsonConverter : JsonConverter<ImmutableWheelsData<T>> {
+            public override void WriteJson(JsonWriter writer, ImmutableWheelsData<T>? value, JsonSerializer serializer) {
+                if (value == null) {
+                    writer.WriteNull();
+                    return;
+                }
+                serializer.Serialize(writer, value._data);
             }
 
-            for (int i = 0; i < 4; i++) {
-                reader.Read();
-                var val = serializer.Deserialize<T>(reader) ?? throw new Exception("Invalid JSON");
-                xs[i] = val;
-            }
+            public override ImmutableWheelsData<T> ReadJson(JsonReader reader, Type objectType, ImmutableWheelsData<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+                var xs = serializer.Deserialize<T[]>(reader) ?? throw new Exception("Invalid JSON");
+                if (xs.Length != 4) {
+                    throw new Exception("Invalid JSON");
+                }
 
-            reader.Read();
-            if (reader.TokenType != JsonToken.EndArray) {
-                throw new Exception("Invalid JSON");
+                return new(xs);
             }
-
-            return new(xs);
         }
     }
 

@@ -51,7 +51,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public int tyreCompound { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> tyrePressure { get; }
 
         [JsonConstructor]
@@ -63,22 +63,22 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Alignment {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> camber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> toe { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        [JsonConverter(typeof(ImmutableWheelsData<double>.JsonConverter))]
         public ImmutableWheelsData<double> staticCamber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        [JsonConverter(typeof(ImmutableWheelsData<double>.JsonConverter))]
         public ImmutableWheelsData<double> toeOutLinear { get; }
 
 
@@ -233,19 +233,19 @@ namespace KLPlugins.RaceEngineer.Car {
         public int aRBRear { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> wheelRate { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> bumpStopRateUp { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> bumpStopRateDn { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> bumpStopWindow { get; }
 
         [JsonProperty(Required = Required.Always)]
@@ -278,19 +278,19 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Dampers {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> bumpSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> bumpFast { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> reboundSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> reboundFast { get; }
 
         [JsonConstructor]
@@ -309,11 +309,11 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class AeroBalance {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<int>))]
+        [JsonConverter(typeof(ImmutableWheelsData<int>.JsonConverter))]
         public ImmutableWheelsData<int> rideHeight { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ImmutableWheelsDataJsonConverter<double>))]
+        [JsonConverter(typeof(ImmutableWheelsData<double>.JsonConverter))]
         public ImmutableWheelsData<double> rodLength { get; }
 
         [JsonProperty(Required = Required.Always)]
