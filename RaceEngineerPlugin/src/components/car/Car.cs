@@ -361,11 +361,14 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class TyreInfo {
         [JsonConverter(typeof(FrontRearLutJsonConverter))]
+        [JsonProperty(Required = Required.Always)]
         public FrontRear<Lut> IdealPresCurve { get; }
 
         [JsonConverter(typeof(FrontRearLutJsonConverter))]
+        [JsonProperty(Required = Required.Always)]
         public FrontRear<Lut> IdealTempCurve { get; }
 
+        [JsonProperty(Required = Required.Always)]
         public string? ShortName { get; }
 
         [JsonIgnore]
@@ -501,6 +504,7 @@ namespace KLPlugins.RaceEngineer.Car {
     /// 
     /// </summary>
     public class CarInfo(Dictionary<string, TyreInfo> tyres) {
+        [JsonProperty(Required = Required.Always)]
         public Dictionary<string, TyreInfo> Tyres { get; } = tyres;
 
         internal void Reset() {
