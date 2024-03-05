@@ -152,7 +152,7 @@ namespace KLPlugins.RaceEngineer.Car {
             string pluginsCarDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{this.Name}.json";
             string ACRawDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\{carid}";
 
-            CarInfo.Partial partialInfo = new();
+            CarInfo.Partial partialInfo = new(null);
 
             // 1. Try to read car specific data file
             try {
@@ -165,6 +165,8 @@ namespace KLPlugins.RaceEngineer.Car {
             } catch (IOException) {
                 //
             }
+
+
 
             if (partialInfo.IsFullyInitializedAC()) {
                 RaceEngineerPlugin.LogInfo($"Read complete car info from '{pluginsCarDataPath}'");
@@ -546,6 +548,11 @@ namespace KLPlugins.RaceEngineer.Car {
             [JsonProperty]
             internal Dictionary<string, TyreInfo.Partial>? Tyres { get; set; }
 
+            [JsonConstructor]
+            internal Partial(Dictionary<string, TyreInfo.Partial>? tyres) {
+                this.Tyres = tyres;
+            }
+
             internal void FillGaps(Partial other) {
                 if (other.Tyres == null) return;
 
@@ -564,11 +571,11 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             internal bool IsFullyInitialized() {
-                return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitialized());
+                return this.Tyres != null && this.Tyres.Count != 0 && this.Tyres.All(a => a.Value.IsFullyInitialized());
             }
 
             internal bool IsFullyInitializedAC() {
-                return this.Tyres != null && this.Tyres.All(a => a.Value.IsFullyInitializedAC());
+                return this.Tyres != null && this.Tyres.Count != 0 && this.Tyres.All(a => a.Value.IsFullyInitializedAC());
             }
         }
     }
