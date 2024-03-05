@@ -132,7 +132,8 @@ namespace KLPlugins.RaceEngineer.Car {
             }
 
             try {
-                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(File.ReadAllText(fname).Replace("\"", "'"), new LutJsonConverter());
+                var txt = File.ReadAllText(fname).Replace("\"", "'");
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt);
                 if (partial != null) {
                     this.Info = CarInfo.FromPartial(partial);
                 }
@@ -156,7 +157,7 @@ namespace KLPlugins.RaceEngineer.Car {
             // 1. Try to read car specific data file
             try {
                 var txt = File.ReadAllText(pluginsCarDataPath).Replace("\"", "'");
-                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt, new LutJsonConverter());
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt);
 
                 if (partial != null) {
                     partialInfo = partial;
@@ -180,7 +181,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Info = CarInfo.FromPartialAndACData(partialInfo, acinfo);
 
                 // Write the data out, so that we don't need to go through it next time
-                var json = JsonConvert.SerializeObject(this.Info, Formatting.Indented, new LutJsonConverter(), new FrontRearJsonConverter<double>(), new FrontRearJsonConverter<Lut>());
+                var json = JsonConvert.SerializeObject(this.Info, Formatting.Indented);
                 File.WriteAllText(pluginsCarDataPath, json);
 
                 RaceEngineerPlugin.LogInfo($"Read partial car info from '{pluginsCarDataPath}'. Filled the gaps from AC's raw files. Wrote out '{pluginsCarDataPath}'.");
@@ -194,7 +195,7 @@ namespace KLPlugins.RaceEngineer.Car {
             var defDataPath = $@"{RaceEngineerPlugin.GameDataPath}\cars\def.json";
             try {
                 var txt = File.ReadAllText(defDataPath).Replace("\"", "'");
-                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt, new LutJsonConverter());
+                var partial = JsonConvert.DeserializeObject<CarInfo.Partial>(txt);
 
                 if (partial != null) {
                     RaceEngineerPlugin.LogInfo($"Read car info from '{pluginsCarDataPath}'. Filled the gaps from def file '{defDataPath}'.");
@@ -865,56 +866,62 @@ namespace KLPlugins.RaceEngineer.Car {
         public bool Equals(Lut other) {
             return this.X.SequenceEqual(other.X) && this.Y.SequenceEqual(other.Y);
         }
-    }
 
-    internal class LutJsonConverter : JsonConverter<Lut> {
-        public override void WriteJson(JsonWriter writer, Lut value, JsonSerializer serializer) {
-            writer.WriteStartArray();
+        internal class JsonConverter : JsonConverter<Lut> {
+            public override void WriteJson(JsonWriter writer, Lut? value, JsonSerializer serializer) {
+                if (value == null) {
+                    writer.WriteNull();
+                    return;
+                }
 
-            for (int i = 0; i < value.X.Count; i++) {
                 writer.WriteStartArray();
-                writer.WriteValue(value.X[i]);
-                writer.WriteValue(value.Y[i]);
+
+                for (int i = 0; i < value.X.Count; i++) {
+                    writer.WriteStartArray();
+                    writer.WriteValue(value.X[i]);
+                    writer.WriteValue(value.Y[i]);
+                    writer.WriteEndArray();
+                }
+
                 writer.WriteEndArray();
             }
 
-            writer.WriteEndArray();
-        }
+            public override Lut ReadJson(JsonReader reader, Type objectType, Lut? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+                var xs = new List<double>();
+                var ys = new List<double>();
 
-        public override Lut ReadJson(JsonReader reader, Type objectType, Lut existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            var xs = new List<double>();
-            var ys = new List<double>();
-
-            if (reader.TokenType != JsonToken.StartArray) {
-                throw new Exception($"Invalid JSON. Expected '{JsonToken.StartArray}'. Found '{reader.TokenType}: {reader.Value}'.");
-            }
-
-            double ReadNumber(JsonReader reader) {
-                reader.Read();
-                return Convert.ToDouble(reader.Value);
-            }
-
-            while (reader.Read()) {
-                if (reader.TokenType == JsonToken.StartArray) {
-                    var x = ReadNumber(reader);
-                    var y = ReadNumber(reader);
-
-                    xs.Add((double)x!);
-                    ys.Add((double)y!);
-
-                    reader.Read(); // eat array end
-                    if (reader.TokenType != JsonToken.EndArray) {
-                        throw new Exception($"Invalid JSON. Expected '{JsonToken.EndArray}'. Found '{reader.TokenType}: {reader.Value}'.");
-                    }
-                    continue;
+                if (reader.TokenType != JsonToken.StartArray) {
+                    throw new Exception($"Invalid JSON. Expected '{JsonToken.StartArray}'. Found '{reader.TokenType}: {reader.Value}'.");
                 }
 
-                if (reader.TokenType == JsonToken.EndArray) break;
+                double ReadNumber(JsonReader reader) {
+                    reader.Read();
+                    return Convert.ToDouble(reader.Value);
+                }
+
+                while (reader.Read()) {
+                    if (reader.TokenType == JsonToken.StartArray) {
+                        var x = ReadNumber(reader);
+                        var y = ReadNumber(reader);
+
+                        xs.Add((double)x!);
+                        ys.Add((double)y!);
+
+                        reader.Read(); // eat array end
+                        if (reader.TokenType != JsonToken.EndArray) {
+                            throw new Exception($"Invalid JSON. Expected '{JsonToken.EndArray}'. Found '{reader.TokenType}: {reader.Value}'.");
+                        }
+                        continue;
+                    }
+
+                    if (reader.TokenType == JsonToken.EndArray) break;
+                }
+
+                return new Lut(xs.ToImmutableList(), ys.ToImmutableList());
+
+
             }
-
-            return new Lut(xs.ToImmutableList(), ys.ToImmutableList());
-
-
         }
     }
+
 }
