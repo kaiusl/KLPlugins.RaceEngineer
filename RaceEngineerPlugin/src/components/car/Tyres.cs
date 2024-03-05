@@ -40,8 +40,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public WheelsData<double> TempMiddleAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> TempOuterAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
 
-        private MultiPointLinearInterpolator PresNormalizerF { get; set; }
-        private MultiPointLinearInterpolator PresNormalizerR { get; set; }
+        private MultiPointLinearInterpolator _presNormalizerF { get; set; }
+        private MultiPointLinearInterpolator _presNormalizerR { get; set; }
         public WheelsData<double> PresNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> PresMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
         public WheelsData<double> PresMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
@@ -95,8 +95,8 @@ namespace KLPlugins.RaceEngineer.Car {
             this._tempNormalizerF = DefTempNormalizer();
             this._tempNormalizerR = DefTempNormalizer();
 
-            this.PresNormalizerF = DefPresNormalizer();
-            this.PresNormalizerR = DefPresNormalizer();
+            this._presNormalizerF = DefPresNormalizer();
+            this._presNormalizerR = DefPresNormalizer();
 
 
             this.Reset();
@@ -137,8 +137,8 @@ namespace KLPlugins.RaceEngineer.Car {
             this.TempMaxNormalized.Reset();
             this.TempAvgNormalized.Reset();
 
-            this.PresNormalizerF = DefPresNormalizer();
-            this.PresNormalizerR = DefPresNormalizer();
+            this._presNormalizerF = DefPresNormalizer();
+            this._presNormalizerR = DefPresNormalizer();
             this.PresNormalized.Reset();
             this.PresMinNormalized.Reset();
             this.PresAvgNormalized.Reset();
@@ -241,10 +241,10 @@ namespace KLPlugins.RaceEngineer.Car {
         private void UpdateNormalizedData(GameData data, bool isInMenu) {
             if (!isInMenu) {
                 if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                    this.PresNormalized.FL = this.PresNormalizerF.Interpolate(data.NewData.TyrePressureFrontLeft);
-                    this.PresNormalized.FR = this.PresNormalizerF.Interpolate(data.NewData.TyrePressureFrontRight);
-                    this.PresNormalized.RL = this.PresNormalizerR.Interpolate(data.NewData.TyrePressureRearLeft);
-                    this.PresNormalized.RR = this.PresNormalizerR.Interpolate(data.NewData.TyrePressureRearRight);
+                    this.PresNormalized.FL = this._presNormalizerF.Interpolate(data.NewData.TyrePressureFrontLeft);
+                    this.PresNormalized.FR = this._presNormalizerF.Interpolate(data.NewData.TyrePressureFrontRight);
+                    this.PresNormalized.RL = this._presNormalizerR.Interpolate(data.NewData.TyrePressureRearLeft);
+                    this.PresNormalized.RR = this._presNormalizerR.Interpolate(data.NewData.TyrePressureRearRight);
                 }
 
                 if ((WheelFlags.Color & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
@@ -258,22 +258,22 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void UpdateOverLapNormalizedData(Values v) {
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                this.PresMinNormalized.FL = this.PresNormalizerF.Interpolate(this.PresOverLap.FL.Min);
-                this.PresMinNormalized.FR = this.PresNormalizerF.Interpolate(this.PresOverLap.FR.Min);
-                this.PresMinNormalized.RL = this.PresNormalizerR.Interpolate(this.PresOverLap.RL.Min);
-                this.PresMinNormalized.RR = this.PresNormalizerR.Interpolate(this.PresOverLap.RR.Min);
+                this.PresMinNormalized.FL = this._presNormalizerF.Interpolate(this.PresOverLap.FL.Min);
+                this.PresMinNormalized.FR = this._presNormalizerF.Interpolate(this.PresOverLap.FR.Min);
+                this.PresMinNormalized.RL = this._presNormalizerR.Interpolate(this.PresOverLap.RL.Min);
+                this.PresMinNormalized.RR = this._presNormalizerR.Interpolate(this.PresOverLap.RR.Min);
             }
             if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                this.PresMaxNormalized.FL = this.PresNormalizerF.Interpolate(this.PresOverLap.FL.Max);
-                this.PresMaxNormalized.FR = this.PresNormalizerF.Interpolate(this.PresOverLap.FR.Max);
-                this.PresMaxNormalized.RL = this.PresNormalizerR.Interpolate(this.PresOverLap.RL.Max);
-                this.PresMaxNormalized.RR = this.PresNormalizerR.Interpolate(this.PresOverLap.RR.Max);
+                this.PresMaxNormalized.FL = this._presNormalizerF.Interpolate(this.PresOverLap.FL.Max);
+                this.PresMaxNormalized.FR = this._presNormalizerF.Interpolate(this.PresOverLap.FR.Max);
+                this.PresMaxNormalized.RL = this._presNormalizerR.Interpolate(this.PresOverLap.RL.Max);
+                this.PresMaxNormalized.RR = this._presNormalizerR.Interpolate(this.PresOverLap.RR.Max);
             }
             if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.TyrePresFlags) != 0) {
-                this.PresAvgNormalized.FL = this.PresNormalizerF.Interpolate(this.PresOverLap.FL.Avg);
-                this.PresAvgNormalized.FR = this.PresNormalizerF.Interpolate(this.PresOverLap.FR.Avg);
-                this.PresAvgNormalized.RL = this.PresNormalizerR.Interpolate(this.PresOverLap.RL.Avg);
-                this.PresAvgNormalized.RR = this.PresNormalizerR.Interpolate(this.PresOverLap.RR.Avg);
+                this.PresAvgNormalized.FL = this._presNormalizerF.Interpolate(this.PresOverLap.FL.Avg);
+                this.PresAvgNormalized.FR = this._presNormalizerF.Interpolate(this.PresOverLap.FR.Avg);
+                this.PresAvgNormalized.RL = this._presNormalizerR.Interpolate(this.PresOverLap.RL.Avg);
+                this.PresAvgNormalized.RR = this._presNormalizerR.Interpolate(this.PresOverLap.RR.Avg);
             }
 
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.TyreTempFlags) != 0) {
@@ -373,8 +373,8 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Info = TyreInfo.Default();
             }
 
-            this.PresNormalizerF = new(this.Info.IdealPresCurve.F);
-            this.PresNormalizerR = new(this.Info.IdealPresCurve.R);
+            this._presNormalizerF = new(this.Info.IdealPresCurve.F);
+            this._presNormalizerR = new(this.Info.IdealPresCurve.R);
             this._tempNormalizerF = new(this.Info.IdealTempCurve.F);
             this._tempNormalizerR = new(this.Info.IdealTempCurve.R);
         }
@@ -635,8 +635,8 @@ namespace KLPlugins.RaceEngineer.Car {
             RaceEngineerPlugin.LogInfo("Tyres.ResetColors()");
             this._tempNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
             this._tempNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyreTempNormalizationLut);
-            this.PresNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
-            this.PresNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this._presNormalizerF = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
+            this._presNormalizerR = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.TyrePresNormalizationLut);
         }
 
         private void ResetValues() {

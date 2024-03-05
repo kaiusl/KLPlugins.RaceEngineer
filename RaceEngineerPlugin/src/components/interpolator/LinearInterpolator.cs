@@ -21,7 +21,7 @@ namespace KLPlugins.RaceEngineer.Interpolator {
     /// Color interpolator between any number of colors.
     /// </summary>
     public class MultiPointLinearInterpolator {
-        public int NumPoints;
+        public int NumPoints { get; }
 
         private readonly double[] _ys;
         private double[] _xs;
