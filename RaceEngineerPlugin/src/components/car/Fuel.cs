@@ -15,10 +15,9 @@ namespace KLPlugins.RaceEngineer.Car {
         public double LastUsedPerLap { get; private set; }
         public ReadonlyFixedSizeDequeStatsView PrevUsedPerLap => this._prevUsedPerLap.AsReadonlyView();
 
-        private FixedSizeDequeStats _prevUsedPerLap { get; }
+        private readonly FixedSizeDequeStats _prevUsedPerLap = new(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
 
         internal Fuel() {
-            this._prevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
             this.Reset();
         }
 

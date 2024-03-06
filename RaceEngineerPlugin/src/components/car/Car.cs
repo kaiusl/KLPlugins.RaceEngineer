@@ -27,9 +27,9 @@ namespace KLPlugins.RaceEngineer.Car {
 
         // NOTE: It's important to never reassign these values. 
         // The property exports to SimHub rely on the fact that they point to one place always.
-        public Tyres Tyres { get; } = new();
-        public Brakes Brakes { get; } = new();
-        public Fuel Fuel { get; } = new();
+        public readonly Tyres Tyres = new();
+        public readonly Brakes Brakes = new();
+        public readonly Fuel Fuel = new();
 
         internal Car() {
             RaceEngineerPlugin.LogInfo("Created new Car");

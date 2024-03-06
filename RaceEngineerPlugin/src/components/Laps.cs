@@ -14,13 +14,13 @@ namespace KLPlugins.RaceEngineer.Laps {
         public ReadonlyFixedSizeDequeStatsView PrevS1Times => this._prevS1Times.AsReadonlyView();
         public ReadonlyFixedSizeDequeStatsView PrevS2Times => this._prevS2Times.AsReadonlyView();
         public ReadonlyFixedSizeDequeStatsView PrevS3Times => this._prevS3Times.AsReadonlyView();
-
-        private FixedSizeDequeStats _prevTimes { get; }
-        private FixedSizeDequeStats _prevS1Times { get; }
-        private FixedSizeDequeStats _prevS2Times { get; }
-        private FixedSizeDequeStats _prevS3Times { get; }
         public int StintNr { get; private set; }
         public int StintLaps { get; private set; }
+
+        private readonly FixedSizeDequeStats _prevTimes;
+        private readonly FixedSizeDequeStats _prevS1Times;
+        private readonly FixedSizeDequeStats _prevS2Times;
+        private readonly FixedSizeDequeStats _prevS3Times;
 
         private double _maxTime = 1000;
 

@@ -13,11 +13,9 @@ namespace KLPlugins.RaceEngineer {
         public double TrackTemp { get; private set; }
         public double AirTempAtLapStart { get; private set; }
         public double TrackTempAtLapStart { get; private set; }
+        public string WeatherSummary { get; private set; } = "";
 
-        private List<WeatherPoint> _forecast { get; }
-
-        public string WeatherSummary = "";
-
+        private readonly List<WeatherPoint> _forecast = [];
         private bool _isInitialForecastAdded = false;
         private double? _initalForecastTime = null;
         private int _daysSinceStart = 0;
@@ -25,7 +23,6 @@ namespace KLPlugins.RaceEngineer {
         // Keep track of weather changes, predict exact time for weather change
 
         internal Weather() {
-            this._forecast = [];
             this.Reset();
         }
 

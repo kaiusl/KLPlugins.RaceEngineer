@@ -48,36 +48,36 @@ namespace KLPlugins.RaceEngineer.Car {
 
         // NOTE: It's important to never reassign WheelsData values. 
         // The property exports to SimHub rely on the fact that they point to one place always.
-        private WheelsData<double> _idealInputPres { get; }
-        private WheelsData<double> _predictedIdealInputPresDry { get; }
-        private WheelsData<double> _predictedIdealInputPresNowWet { get; }
-        private WheelsData<double> _predictedIdealInputPresFutureWet { get; }
-        private WheelsData<double> _currentInputPres { get; }
-        private WheelsData<double> _pressDeltaToIdeal { get; }
-        private WheelsData<double> _presLoss { get; }
-        private WheelsData<bool> _presLossLap { get; }
+        private readonly WheelsData<double> _idealInputPres = new(double.NaN);
+        private readonly WheelsData<double> _predictedIdealInputPresDry = new(double.NaN);
+        private readonly WheelsData<double> _predictedIdealInputPresNowWet = new(double.NaN);
+        private readonly WheelsData<double> _predictedIdealInputPresFutureWet = new(double.NaN);
+        private readonly WheelsData<double> _currentInputPres = new(double.NaN);
+        private readonly WheelsData<double> _pressDeltaToIdeal = new(double.NaN);
+        private readonly WheelsData<double> _presLoss = new(0.0);
+        private readonly WheelsData<bool> _presLossLap = new(false);
         private const double NORMALIZED_DATA_DEF_VALUE = -1.0;
-        private WheelsData<double> _tempNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempInnerAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempMiddleAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _tempOuterAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _presNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _presMinNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _presMaxNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsData<double> _presAvgNormalized { get; } = new(NORMALIZED_DATA_DEF_VALUE);
-        private WheelsStats _presOverLap { get; }
-        private WheelsStats _tempOverLap { get; }
-        private WheelsStats _tempInnerOverLap { get; }
-        private WheelsStats _tempMiddleOverLap { get; }
-        private WheelsStats _tempOuterOverLap { get; }
-        private MultiPointLinearInterpolator _tempNormalizerF { get; set; }
-        private MultiPointLinearInterpolator _tempNormalizerR { get; set; }
-        private MultiPointLinearInterpolator _presNormalizerF { get; set; }
-        private MultiPointLinearInterpolator _presNormalizerR { get; set; }
-        private Dictionary<string, Dictionary<int, int>> _setLaps { get; }
+        private readonly WheelsData<double> _tempNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempMinNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempMaxNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempAvgNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempInnerAvgNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempMiddleAvgNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _tempOuterAvgNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _presNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _presMinNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _presMaxNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsData<double> _presAvgNormalized = new(NORMALIZED_DATA_DEF_VALUE);
+        private readonly WheelsStats _presOverLap = new();
+        private readonly WheelsStats _tempOverLap = new();
+        private readonly WheelsStats _tempInnerOverLap = new();
+        private readonly WheelsStats _tempMiddleOverLap = new();
+        private readonly WheelsStats _tempOuterOverLap = new();
+        private MultiPointLinearInterpolator _tempNormalizerF = DefTempNormalizer();
+        private MultiPointLinearInterpolator _tempNormalizerR = DefTempNormalizer();
+        private MultiPointLinearInterpolator _presNormalizerF = DefPresNormalizer();
+        private MultiPointLinearInterpolator _presNormalizerR = DefPresNormalizer();
+        private readonly Dictionary<string, Dictionary<int, int>> _setLaps = [];
         internal InputTyrePresPredictor? InputTyrePresPredictorDry { get; private set; }
         internal InputTyrePresPredictor? InputTyrePresPredictorNowWet { get; private set; }
         internal InputTyrePresPredictor? InputTyrePresPredictorFutureWet { get; private set; }
@@ -94,44 +94,18 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public Tyres() {
             RaceEngineerPlugin.LogInfo("Created new Tyres");
-            this._presOverLap = new WheelsStats();
-            this._tempOverLap = new WheelsStats();
-            this._tempInnerOverLap = new WheelsStats();
-            this._tempMiddleOverLap = new WheelsStats();
-            this._tempOuterOverLap = new WheelsStats();
-            this._idealInputPres = new(double.NaN);
-            this._predictedIdealInputPresDry = new(double.NaN);
-            this._predictedIdealInputPresNowWet = new(double.NaN);
-            this._predictedIdealInputPresFutureWet = new(double.NaN);
-            this._currentInputPres = new(double.NaN);
-            this._pressDeltaToIdeal = new(double.NaN);
-            this._presLoss = new(0.0);
-            this._presLossLap = new(false);
-            this._setLaps = [];
-
-            this._tempNormalizerF = DefTempNormalizer();
-            this._tempNormalizerR = DefTempNormalizer();
-
-            this._presNormalizerF = DefPresNormalizer();
-            this._presNormalizerR = DefPresNormalizer();
-
-
-            this.Reset();
         }
 
         public void Reset() {
             this.Name = null;
-
-            for (int i = 0; i < 4; i++) {
-                this._idealInputPres[i] = double.NaN;
-                this._predictedIdealInputPresDry[i] = double.NaN;
-                this._predictedIdealInputPresNowWet[i] = double.NaN;
-                this._predictedIdealInputPresFutureWet[i] = double.NaN;
-                this._currentInputPres[i] = double.NaN;
-                this._pressDeltaToIdeal[i] = double.NaN;
-                this._presLoss[i] = 0.0;
-                this._presLossLap[i] = false;
-            }
+            this._idealInputPres.Reset();
+            this._predictedIdealInputPresDry.Reset();
+            this._predictedIdealInputPresNowWet.Reset();
+            this._predictedIdealInputPresFutureWet.Reset();
+            this._currentInputPres.Reset();
+            this._pressDeltaToIdeal.Reset();
+            this._presLoss.Reset();
+            this._presLossLap.Reset();
 
             this._presOverLap.Reset();
             this._tempOverLap.Reset();

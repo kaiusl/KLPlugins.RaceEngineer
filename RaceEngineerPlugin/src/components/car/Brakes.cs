@@ -19,13 +19,11 @@ namespace KLPlugins.RaceEngineer.Car {
         // The property exports to SimHub rely on the fact that they point to one place always.
         private readonly WheelsStats _tempOverLap = new();
         private const double NORMALIZED_TEMP_DEF_VALUE = -1.0;
-        private WheelsData<double> _tempNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        private WheelsData<double> _tempMinNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        private WheelsData<double> _tempMaxNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        private WheelsData<double> _tempAvgNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-
-
-        private MultiPointLinearInterpolator _tempNormalizer { get; set; }
+        private readonly WheelsData<double> _tempNormalized = new(NORMALIZED_TEMP_DEF_VALUE);
+        private readonly WheelsData<double> _tempMinNormalized = new(NORMALIZED_TEMP_DEF_VALUE);
+        private readonly WheelsData<double> _tempMaxNormalized = new(NORMALIZED_TEMP_DEF_VALUE);
+        private readonly WheelsData<double> _tempAvgNormalized = new(NORMALIZED_TEMP_DEF_VALUE);
+        private MultiPointLinearInterpolator _tempNormalizer;
         private readonly WheelsRunningStats _tempRunning = new();
         private DateTime _lastSampleTimeSec = DateTime.Now;
 
