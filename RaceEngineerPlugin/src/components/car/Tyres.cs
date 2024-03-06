@@ -539,7 +539,7 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.Info.IdealPresRange.F.Avg,
                             this.Info.IdealPresRange.R.Avg
                         );
-                        preds.CopyTo(this._predictedIdealInputPresDry, 0);
+                        preds.CopyTo(this._predictedIdealInputPresDry);
                     } else {
                         if (v.Car.Setup != null && v.Track.Name != null && v.Car.Name != null) {
                             this.InitInputTyrePresPredictorDry(v.Track.Name, v.Car.Name, v.Car.Setup.advancedSetup.aeroBalance.brakeDuct.ToArray(), v.Db);
@@ -566,7 +566,7 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.Info.IdealPresRange.F.Avg,
                             this.Info.IdealPresRange.R.Avg
                         );
-                        preds.CopyTo(this._predictedIdealInputPresNowWet, 0);
+                        preds.CopyTo(this._predictedIdealInputPresNowWet);
                     }
                 }
 
@@ -585,7 +585,7 @@ namespace KLPlugins.RaceEngineer.Car {
                             this.Info.IdealPresRange.F.Avg,
                             this.Info.IdealPresRange.R.Avg
                         );
-                        preds.CopyTo(this._predictedIdealInputPresFutureWet, 0);
+                        preds.CopyTo(this._predictedIdealInputPresFutureWet);
                     }
                 }
             }

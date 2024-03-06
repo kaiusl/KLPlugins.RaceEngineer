@@ -580,37 +580,66 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    internal class WheelsData<T> {
+    internal interface IWheelsData<T> {
+        public T FL { get; }
+        public T FR { get; }
+        public T RL { get; }
+        public T RR { get; }
+
+        public T this[int index] { get; }
+    }
+
+    internal class WheelsData<T> : IWheelsData<T> {
         private Func<T> _defGenerator { get; set; }
-        private T[] _data { get; set; } = new T[4];
 
         internal WheelsData(Func<T> defGenerator) {
             this._defGenerator = defGenerator;
-            for (int i = 0; i < 4; i++) {
-                this._data[i] = this._defGenerator();
-            }
+            this.FL = this._defGenerator();
+            this.FR = this._defGenerator();
+            this.RL = this._defGenerator();
+            this.RR = this._defGenerator();
         }
 
         internal WheelsData(T def) : this(() => def) { }
 
         internal void Reset() {
-            for (int i = 0; i < 4; i++) {
-                this._data[i] = this._defGenerator();
+            this.FL = this._defGenerator();
+            this.FR = this._defGenerator();
+            this.RL = this._defGenerator();
+            this.RR = this._defGenerator();
+        }
+
+        public T FL { get; internal set; }
+        public T FR { get; internal set; }
+        public T RL { get; internal set; }
+        public T RR { get; internal set; }
+
+        public T this[int index] {
+            get {
+                return index switch {
+                    0 => this.FL,
+                    1 => this.FR,
+                    2 => this.RL,
+                    3 => this.RR,
+                    _ => throw new IndexOutOfRangeException()
+                };
+            }
+            internal set {
+                switch (index) {
+                    case 0: this.FL = value; break;
+                    case 1: this.FR = value; break;
+                    case 2: this.RL = value; break;
+                    case 3: this.RR = value; break;
+                    default: throw new IndexOutOfRangeException();
+                }
             }
         }
 
-        public T FL { get => this._data[0]; internal set => this._data[0] = value; }
-        public T FR { get => this._data[1]; internal set => this._data[1] = value; }
-        public T RL { get => this._data[2]; internal set => this._data[2] = value; }
-        public T RR { get => this._data[3]; internal set => this._data[3] = value; }
-
-        public T this[int index] {
-            get => this._data[index];
-            internal set => this._data[index] = value;
-        }
-
-        internal void CopyTo(WheelsData<T> other, int index) {
-            this._data.CopyTo(other._data, index);
+        internal void CopyTo(WheelsData<T> other) {
+            other.FL = this.FL;
+            other.FR = this.FR;
+            other.RL = this.RL;
+            other.RR = this.RR;
         }
 
         /// <summary>
@@ -623,46 +652,50 @@ namespace KLPlugins.RaceEngineer.Car {
         /// </summary>
         /// <returns></returns>
         public ReadonlyWheelsDataView<T> AsReadonlyView() {
-            return new ReadonlyWheelsDataView<T>(this._data);
+            return new ReadonlyWheelsDataView<T>(this);
         }
 
         public ImmutableWheelsData<T> ToImmutableWheelsDataShallow() {
-            return new(this._data[0], this._data[1], this._data[2], this._data[3]);
+            return new(this.FL, this.FR, this.RL, this.RR);
         }
     }
 
-    public readonly struct ReadonlyWheelsDataView<T> {
-        private readonly T[] _data { get; }
+    public readonly struct ReadonlyWheelsDataView<T> : IWheelsData<T> {
+        private readonly WheelsData<T> _data;
 
-        public ReadonlyWheelsDataView(T[] values) {
-            if (values.Length != 4) {
-                throw new Exception($"Invalid values for wheels data. Expected 4 values. Got {values.Length}.");
-            }
-
+        internal ReadonlyWheelsDataView(WheelsData<T> values) {
             this._data = values;
         }
 
-        public T FL => this._data[0];
-        public T FR => this._data[1];
-        public T RL => this._data[2];
-        public T RR => this._data[3];
+        public T FL => this._data.FL;
+        public T FR => this._data.FR;
+        public T RL => this._data.RL;
+        public T RR => this._data.RR;
 
         public T this[int index] => this._data[index];
 
         public ImmutableWheelsData<T> ToImmutableWheelsDataShallow() {
-            return new(this._data[0], this._data[1], this._data[2], this._data[3]);
+            return this._data.ToImmutableWheelsDataShallow();
         }
     }
 
-    public class ImmutableWheelsData<T>(T fl, T fr, T rl, T rr) {
-        private T[] _data { get; } = [fl, fr, rl, rr];
+    public class ImmutableWheelsData<T>(T fl, T fr, T rl, T rr) : IWheelsData<T> {
+        public T FL => fl;
+        public T FR => fr;
+        public T RL => rl;
+        public T RR => rr;
 
-        public T FL => this._data[0];
-        public T FR => this._data[1];
-        public T RL => this._data[2];
-        public T RR => this._data[3];
-
-        public T this[int index] => this._data[index];
+        public T this[int index] {
+            get {
+                return index switch {
+                    0 => this.FL,
+                    1 => this.FR,
+                    2 => this.RL,
+                    3 => this.RR,
+                    _ => throw new IndexOutOfRangeException()
+                };
+            }
+        }
     }
 
     internal class ImmutableWheelsDataAsArrayJsonConverter<T> : JsonConverter<ImmutableWheelsData<T>> {
