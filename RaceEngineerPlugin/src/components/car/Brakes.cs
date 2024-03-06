@@ -14,10 +14,17 @@ namespace KLPlugins.RaceEngineer.Car {
         public MultiPointLinearInterpolator TempNormalizer { get; private set; }
 
         private const double NORMALIZED_TEMP_DEF_VALUE = -1.0;
-        public WheelsData<double> TempNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        public WheelsData<double> TempMinNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        public WheelsData<double> TempMaxNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
-        public WheelsData<double> TempAvgNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        public ReadonlyWheelsData<double> TempNormalized => this._tempNormalized.AsReadonlyView();
+        public ReadonlyWheelsData<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
+        public ReadonlyWheelsData<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
+        public ReadonlyWheelsData<double> TempAvgNormalized => this._tempAvgNormalized.AsReadonlyView();
+
+        // NOTE: It's important to never reassign these values. 
+        // The property exports to SimHub rely on the fact that they point to one place always.
+        private WheelsData<double> _tempNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        private WheelsData<double> _tempMinNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        private WheelsData<double> _tempMaxNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
+        private WheelsData<double> _tempAvgNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
 
         private readonly WheelsRunningStats _tempRunning = new();
         private DateTime _lastSampleTimeSec = DateTime.Now;
@@ -34,10 +41,10 @@ namespace KLPlugins.RaceEngineer.Car {
             this.LapsNr = 0;
             this.TempOverLap.Reset();
             this.TempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
-            this.TempNormalized.Reset();
-            this.TempMinNormalized.Reset();
-            this.TempMaxNormalized.Reset();
-            this.TempAvgNormalized.Reset();
+            this._tempNormalized.Reset();
+            this._tempMinNormalized.Reset();
+            this._tempMaxNormalized.Reset();
+            this._tempAvgNormalized.Reset();
             this._tempRunning.Reset();
         }
 
@@ -98,27 +105,27 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void UpdateNormalizedData(GameData data, Values v) {
             if (!v.Booleans.NewData.IsInMenu && (WheelFlags.Color & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
-                this.TempNormalized.FL = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureFrontLeft);
-                this.TempNormalized.FR = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureFrontRight);
-                this.TempNormalized.RL = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureRearLeft);
-                this.TempNormalized.RR = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureRearRight);
+                this._tempNormalized.FL = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureFrontLeft);
+                this._tempNormalized.FR = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureFrontRight);
+                this._tempNormalized.RL = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureRearLeft);
+                this._tempNormalized.RR = this.TempNormalizer.Interpolate(data.NewData.BrakeTemperatureRearRight);
             }
         }
 
         private void UpdateNormalizedDataOverLap(Values v) {
             if ((WheelFlags.MinColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
                 for (int i = 0; i < 4; i++) {
-                    this.TempMinNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Min);
+                    this._tempMinNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Min);
                 }
             }
             if ((WheelFlags.MaxColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
                 for (int i = 0; i < 4; i++) {
-                    this.TempMaxNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Max);
+                    this._tempMaxNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Max);
                 }
             }
             if ((WheelFlags.AvgColor & RaceEngineerPlugin.Settings.BrakeTempFlags) != 0) {
                 for (int i = 0; i < 4; i++) {
-                    this.TempAvgNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Avg);
+                    this._tempAvgNormalized[0] = this.TempNormalizer.Interpolate(this.TempOverLap[0].Avg);
                 }
             }
 

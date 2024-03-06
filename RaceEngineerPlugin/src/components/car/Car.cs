@@ -580,7 +580,7 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    public class WheelsData<T> {
+    internal class WheelsData<T> {
         private Func<T> _defGenerator { get; set; }
         private T[] _data { get; set; } = new T[4];
 
@@ -611,6 +611,19 @@ namespace KLPlugins.RaceEngineer.Car {
 
         internal void CopyTo(WheelsData<T> other, int index) {
             this._data.CopyTo(other._data, index);
+        }
+
+        /// <summary>
+        /// Creates a readonly view of the wheels data.
+        /// 
+        /// Note that this container and the returned container share the underlying data storage.
+        /// Thus while the returned container is itself readonly, the parent (this class) is not 
+        /// and anyone having access to it can still modify it. Thus the data in the returned container
+        /// may change between two accesses.
+        /// </summary>
+        /// <returns></returns>
+        public ReadonlyWheelsData<T> AsReadonlyView() {
+            return new ReadonlyWheelsData<T>(this._data);
         }
     }
 

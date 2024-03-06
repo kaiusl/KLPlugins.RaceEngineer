@@ -254,7 +254,7 @@ namespace KLPlugins.RaceEngineer {
             addStats("Fuel.NeededInSession", this.Values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
-            void addTyres(string name, WheelsData<double> values) {
+            void addTyres(string name, ReadonlyWheelsData<double> values) {
                 this.AttachDelegate(name + "." + Car.Tyres.Names.FL, () => values.FL);
                 this.AttachDelegate(name + "." + Car.Tyres.Names.FR, () => values.FR);
                 this.AttachDelegate(name + "." + Car.Tyres.Names.RL, () => values.RL);
@@ -269,7 +269,7 @@ namespace KLPlugins.RaceEngineer {
             addTyres("Tyres.PresLoss", this.Values.Car.Tyres.PresLoss);
             addTyres("Tyres.PresAvgDeltaToIdeal", this.Values.Car.Tyres.PressDeltaToIdeal);
 
-            void addTyresNormalized<T>(string name, WheelsData<T> values, WheelFlags flag) {
+            void addTyresNormalized<T>(string name, ReadonlyWheelsData<T> values, WheelFlags flag) {
                 if ((WheelFlags.Color & flag) != 0) {
                     this.AttachDelegate(name + "." + Car.Tyres.Names.FL + "." + NORMALIZED_KEYWORD, () => values.FL);
                     this.AttachDelegate(name + "." + Car.Tyres.Names.FR + "." + NORMALIZED_KEYWORD, () => values.FR);
@@ -282,14 +282,21 @@ namespace KLPlugins.RaceEngineer {
             addTyresNormalized("Tyres.Temp", this.Values.Car.Tyres.TempNormalized, Settings.TyreTempFlags);
             addTyresNormalized("Brakes.Temp", this.Values.Car.Brakes.TempNormalized, Settings.BrakeTempFlags);
 
-            void addTyreStatsNormalized<T>(string name, WheelsData<T> values, string statname) {
+            void addTyreStatsNormalized<T>(string name, ReadonlyWheelsData<T> values, string statname) {
                 this.AttachDelegate(name + "." + Car.Tyres.Names.FL + "." + statname + "." + NORMALIZED_KEYWORD, () => values.FL);
                 this.AttachDelegate(name + "." + Car.Tyres.Names.FR + "." + statname + "." + NORMALIZED_KEYWORD, () => values.FR);
                 this.AttachDelegate(name + "." + Car.Tyres.Names.RL + "." + statname + "." + NORMALIZED_KEYWORD, () => values.RL);
                 this.AttachDelegate(name + "." + Car.Tyres.Names.RR + "." + statname + "." + NORMALIZED_KEYWORD, () => values.RR);
             }
 
-            void addTyresStats<T>(string name, Stats.WheelsStats values, WheelsData<T> min, WheelsData<T> avg, WheelsData<T> max, WheelFlags flags) {
+            void addTyresStats<T>(
+                string name,
+                Stats.WheelsStats values,
+                ReadonlyWheelsData<T> min,
+                ReadonlyWheelsData<T> avg,
+                ReadonlyWheelsData<T> max,
+                WheelFlags flags
+            ) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Min & flags) != 0) {
                         this.AttachDelegate(n + "." + MIN_KEYWORD, () => v.Min);
@@ -348,7 +355,7 @@ namespace KLPlugins.RaceEngineer {
                 Settings.BrakeTempFlags
             );
 
-            void addTyresStatsOnlyAvg<T>(string name, Stats.WheelsStats values, WheelsData<T> avg, WheelFlags flags) {
+            void addTyresStatsOnlyAvg<T>(string name, Stats.WheelsStats values, ReadonlyWheelsData<T> avg, WheelFlags flags) {
                 void _addStats(string n, Stats.Stats v) {
                     if ((WheelFlags.Avg & flags) != 0) {
                         this.AttachDelegate(n + ".Avg", () => v.Avg);

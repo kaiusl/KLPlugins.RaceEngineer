@@ -11,6 +11,8 @@ namespace KLPlugins.RaceEngineer {
     /// Storage and calculation of new properties
     /// </summary>
     public sealed class Values {
+        // NOTE: It's important to never reassign these values. 
+        // The property exports to SimHub rely on the fact that they point to one place always.
         public Booleans.Booleans Booleans { get; } = new();
         public Car.Car Car { get; } = new();
         public Track.Track Track { get; } = new();

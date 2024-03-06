@@ -55,7 +55,7 @@ namespace KLPlugins.RaceEngineer.Database {
         internal int StintNr;
         internal string StartTime;
         internal string? TyreCompound;
-        internal WheelsData<double> TyrePresIn;
+        internal ReadonlyWheelsData<double> TyrePresIn;
         internal int BrakePadFront;
         internal int BrakePadRear;
         internal int BrakePadNr;
