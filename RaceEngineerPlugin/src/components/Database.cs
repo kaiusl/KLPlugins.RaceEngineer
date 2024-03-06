@@ -62,8 +62,8 @@ namespace KLPlugins.RaceEngineer.Database {
         internal int BrakeDuctFront;
         internal int BrakeDuctRear;
         internal int TyreSet;
-        internal ImmutableWheelsData<int> Camber;
-        internal ImmutableWheelsData<int> Toe;
+        internal ReadonlyWheelsData<int> Camber;
+        internal ReadonlyWheelsData<int> Toe;
         internal int CasterLf;
         internal int CasterRf;
 
@@ -123,7 +123,7 @@ namespace KLPlugins.RaceEngineer.Database {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
 
-        private static string WheelsDataToString<T>(ImmutableWheelsData<T> a) {
+        private static string WheelsDataToString<T>(ReadonlyWheelsData<T> a) {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
     }

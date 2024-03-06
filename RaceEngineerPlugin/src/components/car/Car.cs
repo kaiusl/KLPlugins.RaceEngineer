@@ -614,12 +614,12 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    public class ImmutableWheelsData<T> {
+    public class ReadonlyWheelsData<T> {
         private T[] _data { get; set; }
 
-        internal ImmutableWheelsData(T fl, T fr, T rl, T rr) : this([fl, fr, rl, rr]) { }
+        internal ReadonlyWheelsData(T fl, T fr, T rl, T rr) : this([fl, fr, rl, rr]) { }
 
-        internal ImmutableWheelsData(T[] values) {
+        internal ReadonlyWheelsData(T[] values) {
             if (values.Length != 4) {
                 throw new Exception($"Invalid values for wheels data. Expected 4 values. Got {values.Length}.");
             }
@@ -635,8 +635,8 @@ namespace KLPlugins.RaceEngineer.Car {
         public T this[int index] => this._data[index];
 
 
-        internal class JsonConverter : JsonConverter<ImmutableWheelsData<T>> {
-            public override void WriteJson(JsonWriter writer, ImmutableWheelsData<T>? value, JsonSerializer serializer) {
+        internal class AsArrayJsonConverter : JsonConverter<ReadonlyWheelsData<T>> {
+            public override void WriteJson(JsonWriter writer, ReadonlyWheelsData<T>? value, JsonSerializer serializer) {
                 if (value == null) {
                     writer.WriteNull();
                     return;
@@ -644,7 +644,7 @@ namespace KLPlugins.RaceEngineer.Car {
                 serializer.Serialize(writer, value._data);
             }
 
-            public override ImmutableWheelsData<T> ReadJson(JsonReader reader, Type objectType, ImmutableWheelsData<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            public override ReadonlyWheelsData<T> ReadJson(JsonReader reader, Type objectType, ReadonlyWheelsData<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
                 var xs = serializer.Deserialize<T[]>(reader) ?? throw new Exception("Invalid JSON");
                 if (xs.Length != 4) {
                     throw new Exception("Invalid JSON");

@@ -14,7 +14,7 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static readonly ImmutableWheelsData<string> Names = new("11", "12", "21", "22");
+        public static readonly ReadonlyWheelsData<string> Names = new("11", "12", "21", "22");
 
         public string? Name { get; private set; }
 
