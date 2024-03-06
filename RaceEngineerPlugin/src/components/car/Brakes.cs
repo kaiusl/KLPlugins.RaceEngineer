@@ -9,8 +9,7 @@ namespace KLPlugins.RaceEngineer.Car {
     public class Brakes {
         public int LapsNr { get; private set; }
         public int SetNr { get; private set; }
-        public WheelsStats TempOverLap { get; }
-
+        public ReadonlyWheelsStatsView TempOverLap => this._tempOverLap.AsReadonlyView();
         public ReadonlyWheelsDataView<double> TempNormalized => this._tempNormalized.AsReadonlyView();
         public ReadonlyWheelsDataView<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
         public ReadonlyWheelsDataView<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
@@ -18,6 +17,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         // NOTE: It's important to never reassign these values. 
         // The property exports to SimHub rely on the fact that they point to one place always.
+        private readonly WheelsStats _tempOverLap = new();
         private const double NORMALIZED_TEMP_DEF_VALUE = -1.0;
         private WheelsData<double> _tempNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
         private WheelsData<double> _tempMinNormalized { get; } = new(NORMALIZED_TEMP_DEF_VALUE);
@@ -32,14 +32,13 @@ namespace KLPlugins.RaceEngineer.Car {
         internal Brakes() {
             this.SetNr = 0;
             this.LapsNr = 0;
-            this.TempOverLap = new();
             this._tempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
         }
 
         internal void Reset() {
             this.SetNr = 0;
             this.LapsNr = 0;
-            this.TempOverLap.Reset();
+            this._tempOverLap.Reset();
             this._tempNormalizer = new MultiPointLinearInterpolator(RaceEngineerPlugin.Settings.BrakeTempNormalizationLut);
             this._tempNormalized.Reset();
             this._tempMinNormalized.Reset();
@@ -52,7 +51,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         internal void OnLapFinished(Values v) {
             this.LapsNr += 1;
-            this.TempOverLap.Update(this._tempRunning);
+            this._tempOverLap.Update(this._tempRunning);
             this._tempRunning.Reset();
             this.UpdateNormalizedDataOverLap(v);
         }

@@ -31,7 +31,6 @@ namespace KLPlugins.RaceEngineer.Deque {
     public class FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
         public int Capacity => this._data.Capacity;
         public int Count => this._data.Count;
-        public Stats.Stats Stats { get; } = new Stats.Stats();
         public double Min => this.Stats.Min;
         public double Max => this.Stats.Max;
         public double Avg => this.Stats.Avg;
@@ -39,6 +38,8 @@ namespace KLPlugins.RaceEngineer.Deque {
         public double Median => this.Stats.Median;
         public double Q1 => this.Stats.Q1;
         public double Q3 => this.Stats.Q3;
+
+        internal Stats.Stats Stats { get; } = new Stats.Stats();
 
         private Deque<double> _data { get; } = new Deque<double>(size);
 

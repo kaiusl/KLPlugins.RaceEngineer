@@ -1,17 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+
+using KLPlugins.RaceEngineer.Car;
 
 using MathNet.Numerics.Statistics;
 
 using SimHub.Plugins.OutputPlugins.Dash.GLCDTemplating;
 
 namespace KLPlugins.RaceEngineer.Stats {
+    interface IStats {
+        public double Min { get; }
+        public double Max { get; }
+        public double Avg { get; }
+        public double Std { get; }
+        public double Median { get; }
+        public double Q1 { get; }
+        public double Q3 { get; }
+    }
+
     /// <summary>
     /// Base class to build different statistics implementations
     /// </summary>
-    public class Stats {
+    internal class Stats : IStats {
         public static readonly ImmutableArray<string> Names = ImmutableArray.Create("Min", "Max", "Avg", "Std", "Median", "Q1", "Q3");
         private double[] _data { get; }
         public double Min { get => this._data[0]; set => this._data[0] = value; }
@@ -61,79 +71,122 @@ namespace KLPlugins.RaceEngineer.Stats {
             this.Std = o.StandardDeviation;
         }
 
-        public double this[int key] => this._data[key];
+        internal ReadonlyStatsView AsReadonlyView() {
+            return new ReadonlyStatsView(this);
+        }
 
+    }
+
+    public readonly struct ReadonlyStatsView : IStats {
+        private readonly Stats _stats;
+        public double Min => this._stats.Min;
+        public double Max => this._stats.Max;
+        public double Avg => this._stats.Avg;
+        public double Std => this._stats.Std;
+        public double Median => this._stats.Median;
+        public double Q1 => this._stats.Q1;
+        public double Q3 => this._stats.Q3;
+
+        internal ReadonlyStatsView(Stats stats) {
+            this._stats = stats;
+        }
     }
 
 
     /// <summary>
     /// Convenience class to simplyfy handling statistics of all four wheels.
     /// </summary>
-    public class WheelsStats {
-        private Stats[] _data { get; }
-        public Stats FL => this._data[0];
-        public Stats FR => this._data[1];
-        public Stats RL => this._data[2];
-        public Stats RR => this._data[3];
+    internal class WheelsStats : IWheelsData<Stats> {
+        public Stats FL { get; } = new();
+        public Stats FR { get; } = new();
+        public Stats RL { get; } = new();
+        public Stats RR { get; } = new();
 
         private const int _size = 4;
 
-        internal WheelsStats() {
-            this._data = [new(), new(), new(), new()];
-        }
+        internal WheelsStats() { }
 
         internal WheelsStats(WheelsRunningStats o) {
-            this._data = new Stats[_size];
-            for (int i = 0; i < _size; i++) {
-                this._data[i] = new(o[i]);
-            }
+            this.Update(o);
         }
 
         internal void Reset() {
-            for (int i = 0; i < _size; i++) {
-                this._data[i].Reset();
-            }
+            this.FL.Reset();
+            this.FR.Reset();
+            this.RL.Reset();
+            this.RR.Reset();
         }
 
         internal void Update(WheelsRunningStats o) {
-            for (int i = 0; i < _size; i++) {
-                this._data[i].Set(o[i]);
-            }
+            this.FL.Set(o.FL);
+            this.FR.Set(o.FR);
+            this.RL.Set(o.RL);
+            this.RR.Set(o.RR);
         }
 
-        public Stats this[int key] => this._data[key];
+        public Stats this[int key] => key switch {
+            0 => this.FL,
+            1 => this.FR,
+            2 => this.RL,
+            3 => this.RR,
+            _ => throw new IndexOutOfRangeException()
+        };
 
+        internal ReadonlyWheelsStatsView AsReadonlyView() {
+            return new ReadonlyWheelsStatsView(this);
+        }
+    }
+
+    public readonly struct ReadonlyWheelsStatsView : IWheelsData<ReadonlyStatsView> {
+        private readonly WheelsStats _stats;
+        public ReadonlyStatsView FL => this._stats.FL.AsReadonlyView();
+        public ReadonlyStatsView FR => this._stats.FR.AsReadonlyView();
+
+        public ReadonlyStatsView RL => this._stats.RL.AsReadonlyView();
+
+        public ReadonlyStatsView RR => this._stats.RR.AsReadonlyView();
+
+        public ReadonlyStatsView this[int index] => this._stats[index].AsReadonlyView();
+
+        internal ReadonlyWheelsStatsView(WheelsStats stats) {
+            this._stats = stats;
+        }
     }
 
     /// <summary>
     /// Convenience class to simplyfy handling running statistics of all four wheels.
     /// </summary>
-    public class WheelsRunningStats {
-        private RunningStatistics[] _data { get; }
-        public RunningStatistics Fl => this._data[0];
-        public RunningStatistics FR => this._data[1];
-        public RunningStatistics Rl => this._data[2];
-        public RunningStatistics RR => this._data[3];
+    internal class WheelsRunningStats : IWheelsData<RunningStatistics> {
+        public RunningStatistics FL { get; private set; } = new();
+        public RunningStatistics FR { get; private set; } = new();
+        public RunningStatistics RL { get; private set; } = new();
+        public RunningStatistics RR { get; private set; } = new();
 
         private const int _SIZE = 4;
 
-        internal WheelsRunningStats() {
-            this._data = [new(), new(), new(), new()];
-        }
+        internal WheelsRunningStats() { }
 
         internal void Reset() {
-            for (int i = 0; i < _SIZE; i++) {
-                this._data[i] = new();
-            }
+            this.FL = new();
+            this.FR = new();
+            this.RL = new();
+            this.RR = new();
         }
 
         internal void Update(double[] values) {
-            for (int i = 0; i < _SIZE; i++) {
-                this._data[i].Push(values[i]);
-            }
+            this.FL.Push(values[0]);
+            this.FR.Push(values[1]);
+            this.RL.Push(values[2]);
+            this.RR.Push(values[3]);
         }
 
-        internal RunningStatistics this[int key] => this._data[key];
+        public RunningStatistics this[int key] => key switch {
+            0 => this.FL,
+            1 => this.FR,
+            2 => this.RL,
+            3 => this.RR,
+            _ => throw new IndexOutOfRangeException()
+        };
 
     }
 
