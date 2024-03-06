@@ -21,21 +21,18 @@ namespace KLPlugins.RaceEngineer.Car {
     /// Store and update car related values
     /// </summary>
     public class Car {
-        public string? Name { get; private set; }
-        public CarInfo Info { get; private set; }
-        public CarSetup? Setup { get; private set; }
-        public Tyres Tyres { get; private set; }
-        public Brakes Brakes { get; private set; }
-        public Fuel Fuel { get; private set; }
+        public string? Name { get; private set; } = null;
+        public CarInfo Info { get; private set; } = new([]);
+        public CarSetup? Setup { get; private set; } = null;
+
+        // NOTE: It's important to never reassign these values. 
+        // The property exports to SimHub rely on the fact that they point to one place always.
+        public Tyres Tyres { get; } = new();
+        public Brakes Brakes { get; } = new();
+        public Fuel Fuel { get; } = new();
 
         internal Car() {
             RaceEngineerPlugin.LogInfo("Created new Car");
-            this.Name = null;
-            this.Info = new([]);
-            this.Setup = null;
-            this.Tyres = new Tyres();
-            this.Brakes = new Brakes();
-            this.Fuel = new Fuel();
         }
 
         internal void Reset() {
