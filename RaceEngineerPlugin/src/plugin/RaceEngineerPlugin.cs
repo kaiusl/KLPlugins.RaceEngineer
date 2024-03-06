@@ -242,11 +242,11 @@ namespace KLPlugins.RaceEngineer {
                 }
             }
 
-            addStats("Laps.Time", this.Values.Laps.PrevTimes.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S1Time", this.Values.Laps.PrevS1Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S2Time", this.Values.Laps.PrevS2Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Laps.S3Time", this.Values.Laps.PrevS3Times.Stats, Settings.PrevLapsStatsFlags);
-            addStats("Fuel.UsedPerLap", this.Values.Car.Fuel.PrevUsedPerLap.Stats, Settings.PrevFuelPerLapStatsFlags);
+            addStats("Laps.Time", this.Values.Laps.PrevTimes, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S1Time", this.Values.Laps.PrevS1Times, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S2Time", this.Values.Laps.PrevS2Times, Settings.PrevLapsStatsFlags);
+            addStats("Laps.S3Time", this.Values.Laps.PrevS3Times, Settings.PrevLapsStatsFlags);
+            addStats("Fuel.UsedPerLap", this.Values.Car.Fuel.PrevUsedPerLap, Settings.PrevFuelPerLapStatsFlags);
             addStats("Fuel.LapsRemaining", this.Values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
             addStats("Fuel.TimeRemaining", this.Values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
             addStats("Session.LapsRemaining", this.Values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
@@ -377,7 +377,7 @@ namespace KLPlugins.RaceEngineer {
 
 
             // this is a hacky but the only way this works is if the indices in `values[x]` are directly written in
-            void addPrevData(string name, FixedSizeDequeStats values) {
+            void addPrevData(string name, ReadonlyFixedSizeDequeStatsView values) {
 #pragma warning disable IDE0011 // Add braces
                 if (Settings.NumPreviousValuesStored > 0) this.AttachDelegate(name + ".0", () => values[0]);
                 if (Settings.NumPreviousValuesStored > 1) this.AttachDelegate(name + ".1", () => values[1]);

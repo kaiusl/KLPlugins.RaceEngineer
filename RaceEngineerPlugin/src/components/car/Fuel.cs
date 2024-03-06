@@ -13,10 +13,12 @@ namespace KLPlugins.RaceEngineer.Car {
         public double Remaining { get; private set; }
         public double RemainingAtLapStart { get; private set; }
         public double LastUsedPerLap { get; private set; }
-        public FixedSizeDequeStats PrevUsedPerLap { get; private set; }
+        public ReadonlyFixedSizeDequeStatsView PrevUsedPerLap => this._prevUsedPerLap.AsReadonlyView();
+
+        private FixedSizeDequeStats _prevUsedPerLap { get; }
 
         internal Fuel() {
-            this.PrevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
+            this._prevUsedPerLap = new FixedSizeDequeStats(RaceEngineerPlugin.Settings.NumPreviousValuesStored, RemoveOutliers.None);
             this.Reset();
         }
 
@@ -25,14 +27,14 @@ namespace KLPlugins.RaceEngineer.Car {
             this.Remaining = 0.0;
             this.RemainingAtLapStart = 0.0;
             this.LastUsedPerLap = 0.0;
-            this.PrevUsedPerLap.Fill(double.NaN);
+            this._prevUsedPerLap.Fill(double.NaN);
         }
 
         #region On... METHODS
 
         internal void OnNewEvent(GameData data, Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
-                this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
+                this._prevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
@@ -40,7 +42,7 @@ namespace KLPlugins.RaceEngineer.Car {
             this.Reset();
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
-                this.PrevUsedPerLap.AddToFront(pd.fuelUsed);
+                this._prevUsedPerLap.AddToFront(pd.fuelUsed);
             }
         }
 
@@ -51,7 +53,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
             if (v.Booleans.NewData.SavePrevLap) {
                 RaceEngineerPlugin.LogInfo($"Stored fuel used '{this.LastUsedPerLap}' to deque.");
-                this.PrevUsedPerLap.AddToFront(this.LastUsedPerLap);
+                this._prevUsedPerLap.AddToFront(this.LastUsedPerLap);
             }
         }
 

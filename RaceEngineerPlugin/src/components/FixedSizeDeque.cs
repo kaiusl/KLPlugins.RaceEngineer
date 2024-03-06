@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using KLPlugins.RaceEngineer.Stats;
+
 using MathNet.Numerics.Statistics;
 
 using Nito.Collections;
 
 namespace KLPlugins.RaceEngineer.Deque {
 
-    public enum RemoveOutliers {
+    internal enum RemoveOutliers {
         None,
         Lower,
         Upper,
@@ -28,29 +30,27 @@ namespace KLPlugins.RaceEngineer.Deque {
     /// Initializes a new instance of the <see cref="FixedSizeDequeStats"/> class.
     /// </remarks>
     /// <param name="size">The size.</param>
-    public class FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) {
+    internal class FixedSizeDequeStats(int size, RemoveOutliers removeOutliers) : IStats {
         public int Capacity => this._data.Capacity;
         public int Count => this._data.Count;
-        public double Min => this.Stats.Min;
-        public double Max => this.Stats.Max;
-        public double Avg => this.Stats.Avg;
-        public double Std => this.Stats.Std;
-        public double Median => this.Stats.Median;
-        public double Q1 => this.Stats.Q1;
-        public double Q3 => this.Stats.Q3;
+        public double Min => this._stats.Min;
+        public double Max => this._stats.Max;
+        public double Avg => this._stats.Avg;
+        public double Std => this._stats.Std;
+        public double Median => this._stats.Median;
+        public double Q1 => this._stats.Q1;
+        public double Q3 => this._stats.Q3;
 
-        internal Stats.Stats Stats { get; } = new Stats.Stats();
-
-        private Deque<double> _data { get; } = new Deque<double>(size);
-
+        private readonly Deque<double> _data = new(size);
         private double _lowerBound = double.NegativeInfinity;
         private double _upperBound = double.PositiveInfinity;
         private readonly RemoveOutliers _removeOutliers = removeOutliers;
+        private readonly Stats.Stats _stats = new();
         private DescriptiveStatistics? _descriptiveStats;
 
         internal void Clear() {
             this._data.Clear();
-            this.Stats.Reset();
+            this._stats.Reset();
             this._lowerBound = double.NegativeInfinity;
             this._upperBound = double.PositiveInfinity;
         }
@@ -79,10 +79,10 @@ namespace KLPlugins.RaceEngineer.Deque {
                 this._descriptiveStats = new(data);
             }
 
-            this.Stats.Avg = this._descriptiveStats.Mean;
-            this.Stats.Std = this._descriptiveStats.StandardDeviation;
-            this.Stats.Min = this._descriptiveStats.Minimum;
-            this.Stats.Max = this._descriptiveStats.Maximum;
+            this._stats.Avg = this._descriptiveStats.Mean;
+            this._stats.Std = this._descriptiveStats.StandardDeviation;
+            this._stats.Min = this._descriptiveStats.Minimum;
+            this._stats.Max = this._descriptiveStats.Maximum;
 
             if (RaceEngineerPlugin.Settings.Log) {
                 string txt = "Data = [";
@@ -100,9 +100,9 @@ namespace KLPlugins.RaceEngineer.Deque {
             if (data.Count() > 1) {
                 var s = Statistics.FiveNumberSummary(data);
 
-                this.Stats.Q1 = s[1];
-                this.Stats.Median = s[2];
-                this.Stats.Q3 = s[3];
+                this._stats.Q1 = s[1];
+                this._stats.Median = s[2];
+                this._stats.Q3 = s[3];
 
                 var iqr3 = 3 * (this.Q3 - this.Q1);
                 this._lowerBound = this.Q1 - iqr3;
@@ -118,5 +118,28 @@ namespace KLPlugins.RaceEngineer.Deque {
         }
 
         public double this[int key] => this._data[key];
+
+        public ReadonlyFixedSizeDequeStatsView AsReadonlyView() {
+            return new ReadonlyFixedSizeDequeStatsView(this);
+        }
+    }
+
+    public readonly struct ReadonlyFixedSizeDequeStatsView : IStats {
+        private readonly FixedSizeDequeStats _stats;
+        public int Capacity => this._stats.Capacity;
+        public int Count => this._stats.Count;
+        public double Min => this._stats.Min;
+        public double Max => this._stats.Max;
+        public double Avg => this._stats.Avg;
+        public double Std => this._stats.Std;
+        public double Median => this._stats.Median;
+        public double Q1 => this._stats.Q1;
+        public double Q3 => this._stats.Q3;
+
+        internal ReadonlyFixedSizeDequeStatsView(FixedSizeDequeStats stats) {
+            this._stats = stats;
+        }
+
+        public double this[int key] => this._stats[key];
     }
 }

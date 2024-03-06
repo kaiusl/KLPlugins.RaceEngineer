@@ -10,10 +10,15 @@ namespace KLPlugins.RaceEngineer.Laps {
 
     public class Laps {
         public double LastTime { get; private set; }
-        public FixedSizeDequeStats PrevTimes { get; private set; }
-        public FixedSizeDequeStats PrevS1Times { get; private set; }
-        public FixedSizeDequeStats PrevS2Times { get; private set; }
-        public FixedSizeDequeStats PrevS3Times { get; private set; }
+        public ReadonlyFixedSizeDequeStatsView PrevTimes => this._prevTimes.AsReadonlyView();
+        public ReadonlyFixedSizeDequeStatsView PrevS1Times => this._prevS1Times.AsReadonlyView();
+        public ReadonlyFixedSizeDequeStatsView PrevS2Times => this._prevS2Times.AsReadonlyView();
+        public ReadonlyFixedSizeDequeStatsView PrevS3Times => this._prevS3Times.AsReadonlyView();
+
+        private FixedSizeDequeStats _prevTimes { get; }
+        private FixedSizeDequeStats _prevS1Times { get; }
+        private FixedSizeDequeStats _prevS2Times { get; }
+        private FixedSizeDequeStats _prevS3Times { get; }
         public int StintNr { get; private set; }
         public int StintLaps { get; private set; }
 
@@ -24,22 +29,22 @@ namespace KLPlugins.RaceEngineer.Laps {
             this.StintLaps = 0;
             var numValues = RaceEngineerPlugin.Settings.NumPreviousValuesStored;
             var outliersStrategy = RemoveOutliers.Upper;
-            this.PrevTimes = new(numValues, outliersStrategy);
-            this.PrevS1Times = new(numValues, outliersStrategy);
-            this.PrevS2Times = new(numValues, outliersStrategy);
-            this.PrevS3Times = new(numValues, outliersStrategy);
-            this.PrevTimes.Fill(double.NaN);
-            this.PrevS1Times.Fill(double.NaN);
-            this.PrevS2Times.Fill(double.NaN);
-            this.PrevS3Times.Fill(double.NaN);
+            this._prevTimes = new(numValues, outliersStrategy);
+            this._prevS1Times = new(numValues, outliersStrategy);
+            this._prevS2Times = new(numValues, outliersStrategy);
+            this._prevS3Times = new(numValues, outliersStrategy);
+            this._prevTimes.Fill(double.NaN);
+            this._prevS1Times.Fill(double.NaN);
+            this._prevS2Times.Fill(double.NaN);
+            this._prevS3Times.Fill(double.NaN);
         }
 
         internal void Reset() {
             RaceEngineerPlugin.LogInfo("Laps.Reset()");
-            this.PrevTimes.Fill(double.NaN);
-            this.PrevS1Times.Fill(double.NaN);
-            this.PrevS2Times.Fill(double.NaN);
-            this.PrevS3Times.Fill(double.NaN);
+            this._prevTimes.Fill(double.NaN);
+            this._prevS1Times.Fill(double.NaN);
+            this._prevS2Times.Fill(double.NaN);
+            this._prevS3Times.Fill(double.NaN);
             this._maxTime = 1000;
             this.LastTime = 0.0;
             this.StintNr = 0;
@@ -49,7 +54,7 @@ namespace KLPlugins.RaceEngineer.Laps {
         internal void OnNewEvent(GameData data, Values v) {
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 //RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
-                this.PrevTimes.AddToFront(pd.lapTime);
+                this._prevTimes.AddToFront(pd.lapTime);
             }
         }
 
@@ -58,7 +63,7 @@ namespace KLPlugins.RaceEngineer.Laps {
 
             foreach (Database.PrevData pd in v.Db.GetPrevSessionData(data, v)) {
                 //RaceEngineerPlugin.LogInfo($"Read laptime '{pd.lapTime}' from database.");
-                this.PrevTimes.AddToFront(pd.lapTime);
+                this._prevTimes.AddToFront(pd.lapTime);
             }
         }
 
@@ -72,11 +77,11 @@ namespace KLPlugins.RaceEngineer.Laps {
             this.LastTime = data.NewData.LastLapTime.TotalSeconds;
             if (v.Booleans.NewData.SavePrevLap) {
                 RaceEngineerPlugin.LogInfo($"Added laptime '{this.LastTime}' to deque.");
-                this.PrevTimes.AddToFront(this.LastTime);
-                this.PrevS1Times.AddToFront(data.NewData.Sector1LastLapTime?.TotalSeconds ?? -1.0);
-                this.PrevS2Times.AddToFront(data.NewData.Sector2LastLapTime?.TotalSeconds ?? -1.0);
-                this.PrevS3Times.AddToFront(data.NewData.Sector3LastLapTime?.TotalSeconds ?? -1.0);
-                this._maxTime = this.PrevTimes.Min + 30;
+                this._prevTimes.AddToFront(this.LastTime);
+                this._prevS1Times.AddToFront(data.NewData.Sector1LastLapTime?.TotalSeconds ?? -1.0);
+                this._prevS2Times.AddToFront(data.NewData.Sector2LastLapTime?.TotalSeconds ?? -1.0);
+                this._prevS3Times.AddToFront(data.NewData.Sector3LastLapTime?.TotalSeconds ?? -1.0);
+                this._maxTime = this._prevTimes.Min + 30;
             }
         }
     }
