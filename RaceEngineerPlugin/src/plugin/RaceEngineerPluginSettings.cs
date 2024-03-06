@@ -130,7 +130,8 @@ namespace KLPlugins.RaceEngineer {
         Std = 1 << 3,
         Median = 1 << 4,
         Q1 = 1 << 5,
-        Q3 = 1 << 6
+        Q3 = 1 << 6,
+        All = ~0
     }
 
 

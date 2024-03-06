@@ -18,10 +18,16 @@ namespace KLPlugins.RaceEngineer.Stats {
         public double Q3 { get; }
     }
 
+    interface IMinMaxAvg<T> {
+        public T Min { get; }
+        public T Max { get; }
+        public T Avg { get; }
+    }
+
     /// <summary>
     /// Base class to build different statistics implementations
     /// </summary>
-    internal class Stats : IStats {
+    internal class Stats : IStats, IMinMaxAvg<double> {
         public static readonly ImmutableArray<string> Names = ImmutableArray.Create("Min", "Max", "Avg", "Std", "Median", "Q1", "Q3");
         private double[] _data { get; }
         public double Min { get => this._data[0]; set => this._data[0] = value; }
@@ -77,7 +83,7 @@ namespace KLPlugins.RaceEngineer.Stats {
 
     }
 
-    public readonly struct ReadonlyStatsView : IStats {
+    public readonly struct ReadonlyStatsView : IStats, IMinMaxAvg<double> {
         private readonly Stats _stats;
         public double Min => this._stats.Min;
         public double Max => this._stats.Max;
@@ -190,10 +196,40 @@ namespace KLPlugins.RaceEngineer.Stats {
 
     }
 
-    public class MinMaxAvg<T>(T min, T max, T avg) {
-        public T Min { get; internal set; } = min;
-        public T Max { get; internal set; } = max;
-        public T Avg { get; internal set; } = avg;
+    internal class MinMaxAvg<T>(T min, T max, T avg) : IMinMaxAvg<T> {
+        public T Min { get; set; } = min;
+        public T Max { get; set; } = max;
+        public T Avg { get; set; } = avg;
+
+        internal void Set(T value) {
+            this.Min = value;
+            this.Max = value;
+            this.Avg = value;
+        }
+
+        internal ReadonlyMinMaxAvgView<T> AsReadonlyView() {
+            return new ReadonlyMinMaxAvgView<T>(this);
+        }
     }
+
+    public readonly struct ReadonlyMinMaxAvgView<T> : IMinMaxAvg<T> {
+        private readonly MinMaxAvg<T> _stats;
+
+        public T Min => this._stats.Min;
+        public T Max => this._stats.Max;
+        public T Avg => this._stats.Avg;
+
+        internal ReadonlyMinMaxAvgView(MinMaxAvg<T> stats) {
+            this._stats = stats;
+        }
+    }
+
+    public class ImmutableMinMaxAvg<T>(T min, T max, T avg) : IMinMaxAvg<T> {
+        public T Min { get; } = min;
+        public T Max { get; } = max;
+        public T Avg { get; } = avg;
+    }
+
+
 
 }

@@ -360,10 +360,10 @@ namespace KLPlugins.RaceEngineer.Car {
         public string? ShortName { get; }
 
         [JsonIgnore]
-        public FrontRear<MinMaxAvg<double>> IdealPresRange { get; }
+        public FrontRear<ImmutableMinMaxAvg<double>> IdealPresRange { get; }
 
         [JsonIgnore]
-        public FrontRear<MinMaxAvg<double>> IdealTempRange { get; }
+        public FrontRear<ImmutableMinMaxAvg<double>> IdealTempRange { get; }
 
         public TyreInfo(FrontRear<Lut> idealPresCurve, FrontRear<Lut> idealTempCurve, string? shortName = null) {
             this.IdealPresCurve = idealPresCurve;
@@ -374,12 +374,12 @@ namespace KLPlugins.RaceEngineer.Car {
             this.IdealTempRange = new(FindIdealMinMaxAvg(idealTempCurve.F), FindIdealMinMaxAvg(idealTempCurve.R));
         }
 
-        private static MinMaxAvg<double> FindIdealMinMaxAvg(Lut lut) {
+        private static ImmutableMinMaxAvg<double> FindIdealMinMaxAvg(Lut lut) {
             var ienum = lut.Where(x => x.Item2 == 0.0).Select(x => x.Item1);
             var min = ienum.First();
             var max = ienum.Last();
 
-            return new MinMaxAvg<double>(min, max, (min + max) / 2.0);
+            return new ImmutableMinMaxAvg<double>(min, max, (min + max) / 2.0);
         }
 
         internal static TyreInfo Default() {
