@@ -614,8 +614,8 @@ namespace KLPlugins.RaceEngineer.Car {
         }
     }
 
-    public class ReadonlyWheelsData<T> {
-        private T[] _data { get; set; }
+    public readonly struct ReadonlyWheelsData<T> {
+        private readonly T[] _data { get; }
 
         internal ReadonlyWheelsData(T fl, T fr, T rl, T rr) : this([fl, fr, rl, rr]) { }
 
@@ -633,25 +633,25 @@ namespace KLPlugins.RaceEngineer.Car {
         public T RR => this._data[3];
 
         public T this[int index] => this._data[index];
+    }
 
+    internal class ReadonlyWheelsDataAsArrayJsonConverter<T> : JsonConverter<ReadonlyWheelsData<T>> {
+        public override void WriteJson(JsonWriter writer, ReadonlyWheelsData<T> value, JsonSerializer serializer) {
+            writer.WriteStartArray();
+            writer.WriteValue(value.FL);
+            writer.WriteValue(value.FR);
+            writer.WriteValue(value.RL);
+            writer.WriteValue(value.RR);
+            writer.WriteEndArray();
+        }
 
-        internal class AsArrayJsonConverter : JsonConverter<ReadonlyWheelsData<T>> {
-            public override void WriteJson(JsonWriter writer, ReadonlyWheelsData<T>? value, JsonSerializer serializer) {
-                if (value == null) {
-                    writer.WriteNull();
-                    return;
-                }
-                serializer.Serialize(writer, value._data);
+        public override ReadonlyWheelsData<T> ReadJson(JsonReader reader, Type objectType, ReadonlyWheelsData<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            var xs = serializer.Deserialize<T[]>(reader) ?? throw new Exception("Invalid JSON");
+            if (xs.Length != 4) {
+                throw new Exception("Invalid JSON");
             }
 
-            public override ReadonlyWheelsData<T> ReadJson(JsonReader reader, Type objectType, ReadonlyWheelsData<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
-                var xs = serializer.Deserialize<T[]>(reader) ?? throw new Exception("Invalid JSON");
-                if (xs.Length != 4) {
-                    throw new Exception("Invalid JSON");
-                }
-
-                return new(xs);
-            }
+            return new(xs);
         }
     }
 

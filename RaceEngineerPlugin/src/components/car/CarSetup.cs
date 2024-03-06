@@ -51,7 +51,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public int tyreCompound { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> tyrePressure { get; }
 
         [JsonConstructor]
@@ -63,22 +63,22 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Alignment {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> camber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> toe { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<double>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
         public ReadonlyWheelsData<double> staticCamber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<double>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
         public ReadonlyWheelsData<double> toeOutLinear { get; }
 
 
@@ -233,19 +233,19 @@ namespace KLPlugins.RaceEngineer.Car {
         public int aRBRear { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> wheelRate { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> bumpStopRateUp { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> bumpStopRateDn { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> bumpStopWindow { get; }
 
         [JsonProperty(Required = Required.Always)]
@@ -278,19 +278,19 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Dampers {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> bumpSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> bumpFast { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> reboundSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> reboundFast { get; }
 
         [JsonConstructor]
@@ -309,11 +309,11 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class AeroBalance {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<int>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
         public ReadonlyWheelsData<int> rideHeight { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsData<double>.AsArrayJsonConverter))]
+        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
         public ReadonlyWheelsData<double> rodLength { get; }
 
         [JsonProperty(Required = Required.Always)]
