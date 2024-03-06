@@ -622,17 +622,19 @@ namespace KLPlugins.RaceEngineer.Car {
         /// may change between two accesses.
         /// </summary>
         /// <returns></returns>
-        public ReadonlyWheelsData<T> AsReadonlyView() {
-            return new ReadonlyWheelsData<T>(this._data);
+        public ReadonlyWheelsDataView<T> AsReadonlyView() {
+            return new ReadonlyWheelsDataView<T>(this._data);
+        }
+
+        public ImmutableWheelsData<T> ToImmutableWheelsDataShallow() {
+            return new(this._data[0], this._data[1], this._data[2], this._data[3]);
         }
     }
 
-    public readonly struct ReadonlyWheelsData<T> {
+    public readonly struct ReadonlyWheelsDataView<T> {
         private readonly T[] _data { get; }
 
-        internal ReadonlyWheelsData(T fl, T fr, T rl, T rr) : this([fl, fr, rl, rr]) { }
-
-        internal ReadonlyWheelsData(T[] values) {
+        public ReadonlyWheelsDataView(T[] values) {
             if (values.Length != 4) {
                 throw new Exception($"Invalid values for wheels data. Expected 4 values. Got {values.Length}.");
             }
@@ -646,10 +648,30 @@ namespace KLPlugins.RaceEngineer.Car {
         public T RR => this._data[3];
 
         public T this[int index] => this._data[index];
+
+        public ImmutableWheelsData<T> ToImmutableWheelsDataShallow() {
+            return new(this._data[0], this._data[1], this._data[2], this._data[3]);
+        }
     }
 
-    internal class ReadonlyWheelsDataAsArrayJsonConverter<T> : JsonConverter<ReadonlyWheelsData<T>> {
-        public override void WriteJson(JsonWriter writer, ReadonlyWheelsData<T> value, JsonSerializer serializer) {
+    public class ImmutableWheelsData<T>(T fl, T fr, T rl, T rr) {
+        private T[] _data { get; } = [fl, fr, rl, rr];
+
+        public T FL => this._data[0];
+        public T FR => this._data[1];
+        public T RL => this._data[2];
+        public T RR => this._data[3];
+
+        public T this[int index] => this._data[index];
+    }
+
+    internal class ImmutableWheelsDataAsArrayJsonConverter<T> : JsonConverter<ImmutableWheelsData<T>> {
+        public override void WriteJson(JsonWriter writer, ImmutableWheelsData<T>? value, JsonSerializer serializer) {
+            if (value == null) {
+                writer.WriteNull();
+                return;
+            }
+
             writer.WriteStartArray();
             writer.WriteValue(value.FL);
             writer.WriteValue(value.FR);
@@ -658,17 +680,15 @@ namespace KLPlugins.RaceEngineer.Car {
             writer.WriteEndArray();
         }
 
-        public override ReadonlyWheelsData<T> ReadJson(JsonReader reader, Type objectType, ReadonlyWheelsData<T> existingValue, bool hasExistingValue, JsonSerializer serializer) {
+        public override ImmutableWheelsData<T> ReadJson(JsonReader reader, Type objectType, ImmutableWheelsData<T>? existingValue, bool hasExistingValue, JsonSerializer serializer) {
             var xs = serializer.Deserialize<T[]>(reader) ?? throw new Exception("Invalid JSON");
             if (xs.Length != 4) {
                 throw new Exception("Invalid JSON");
             }
 
-            return new(xs);
+            return new(xs[0], xs[1], xs[2], xs[3]);
         }
     }
-
-
 
     internal class ACTyreInfo(
         string name,

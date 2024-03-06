@@ -14,29 +14,29 @@ using KLPlugins.RaceEngineer.Stats;
 namespace KLPlugins.RaceEngineer.Car {
 
     public class Tyres {
-        public static readonly ReadonlyWheelsData<string> Names = new("11", "12", "21", "22");
+        public static readonly ImmutableWheelsData<string> Names = new("11", "12", "21", "22");
 
         public string? Name { get; private set; }
 
-        public ReadonlyWheelsData<double> IdealInputPres => this._idealInputPres.AsReadonlyView();
-        public ReadonlyWheelsData<double> PredictedIdealInputPresDry => this._predictedIdealInputPresDry.AsReadonlyView();
-        public ReadonlyWheelsData<double> PredictedIdealInputPresNowWet => this._predictedIdealInputPresNowWet.AsReadonlyView();
-        public ReadonlyWheelsData<double> PredictedIdealInputPresFutureWet => this._predictedIdealInputPresFutureWet.AsReadonlyView();
-        public ReadonlyWheelsData<double> CurrentInputPres => this._currentInputPres.AsReadonlyView();
-        public ReadonlyWheelsData<double> PressDeltaToIdeal => this._pressDeltaToIdeal.AsReadonlyView();
-        public ReadonlyWheelsData<double> PresLoss => this._presLoss.AsReadonlyView();
-        public ReadonlyWheelsData<bool> PresLossLap => this._presLossLap.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempNormalized => this._tempNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempAvgNormalized => this._tempAvgNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempInnerAvgNormalized => this._tempInnerAvgNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempMiddleAvgNormalized => this._tempMiddleAvgNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempOuterAvgNormalized => this._tempOuterAvgNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> PresNormalized => this._presNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> PresMinNormalized => this._presMinNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> PresMaxNormalized => this._presMaxNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> PresAvgNormalized => this._presAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> IdealInputPres => this._idealInputPres.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PredictedIdealInputPresDry => this._predictedIdealInputPresDry.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PredictedIdealInputPresNowWet => this._predictedIdealInputPresNowWet.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PredictedIdealInputPresFutureWet => this._predictedIdealInputPresFutureWet.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> CurrentInputPres => this._currentInputPres.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PressDeltaToIdeal => this._pressDeltaToIdeal.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PresLoss => this._presLoss.AsReadonlyView();
+        public ReadonlyWheelsDataView<bool> PresLossLap => this._presLossLap.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempNormalized => this._tempNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempAvgNormalized => this._tempAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempInnerAvgNormalized => this._tempInnerAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempMiddleAvgNormalized => this._tempMiddleAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempOuterAvgNormalized => this._tempOuterAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PresNormalized => this._presNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PresMinNormalized => this._presMinNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PresMaxNormalized => this._presMaxNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> PresAvgNormalized => this._presAvgNormalized.AsReadonlyView();
         public int CurrentTyreSet { get; private set; }
         public WheelsStats PresOverLap { get; }
         public WheelsStats TempOverLap { get; }

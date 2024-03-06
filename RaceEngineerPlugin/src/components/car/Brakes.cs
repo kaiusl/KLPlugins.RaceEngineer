@@ -14,10 +14,10 @@ namespace KLPlugins.RaceEngineer.Car {
         public MultiPointLinearInterpolator TempNormalizer { get; private set; }
 
         private const double NORMALIZED_TEMP_DEF_VALUE = -1.0;
-        public ReadonlyWheelsData<double> TempNormalized => this._tempNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
-        public ReadonlyWheelsData<double> TempAvgNormalized => this._tempAvgNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempNormalized => this._tempNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempMinNormalized => this._tempMinNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempMaxNormalized => this._tempMaxNormalized.AsReadonlyView();
+        public ReadonlyWheelsDataView<double> TempAvgNormalized => this._tempAvgNormalized.AsReadonlyView();
 
         // NOTE: It's important to never reassign these values. 
         // The property exports to SimHub rely on the fact that they point to one place always.

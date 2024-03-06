@@ -51,11 +51,11 @@ namespace KLPlugins.RaceEngineer.Car {
         public int tyreCompound { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> tyrePressure { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> tyrePressure { get; }
 
         [JsonConstructor]
-        internal TyreSetup(int tyreCompound, ReadonlyWheelsData<int> tyrePressure) {
+        internal TyreSetup(int tyreCompound, ImmutableWheelsData<int> tyrePressure) {
             this.tyreCompound = tyreCompound;
             this.tyrePressure = tyrePressure;
         }
@@ -63,23 +63,23 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Alignment {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> camber { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> camber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> toe { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> toe { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
-        public ReadonlyWheelsData<double> staticCamber { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<double>))]
+        public ImmutableWheelsData<double> staticCamber { get; }
 
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
-        public ReadonlyWheelsData<double> toeOutLinear { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<double>))]
+        public ImmutableWheelsData<double> toeOutLinear { get; }
 
 
         [JsonProperty(Required = Required.Always)]
@@ -95,10 +95,10 @@ namespace KLPlugins.RaceEngineer.Car {
 
         [JsonConstructor]
         internal Alignment(
-            ReadonlyWheelsData<int> camber,
-            ReadonlyWheelsData<int> toe,
-            ReadonlyWheelsData<double> staticCamber,
-            ReadonlyWheelsData<double> toeOutLinear,
+            ImmutableWheelsData<int> camber,
+            ImmutableWheelsData<int> toe,
+            ImmutableWheelsData<double> staticCamber,
+            ImmutableWheelsData<double> toeOutLinear,
             int casterLF,
              int casterRF,
              int steerRatio
@@ -233,20 +233,20 @@ namespace KLPlugins.RaceEngineer.Car {
         public int aRBRear { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> wheelRate { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> wheelRate { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> bumpStopRateUp { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopRateUp { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> bumpStopRateDn { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopRateDn { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> bumpStopWindow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpStopWindow { get; }
 
         [JsonProperty(Required = Required.Always)]
         public int brakeTorque { get; }
@@ -258,10 +258,10 @@ namespace KLPlugins.RaceEngineer.Car {
         internal MechanicalBalance(
             int aRBFront,
             int aRBRear,
-            ReadonlyWheelsData<int> wheelRate,
-            ReadonlyWheelsData<int> bumpStopRateUp,
-            ReadonlyWheelsData<int> bumpStopRateDn,
-            ReadonlyWheelsData<int> bumpStopWindow,
+            ImmutableWheelsData<int> wheelRate,
+            ImmutableWheelsData<int> bumpStopRateUp,
+            ImmutableWheelsData<int> bumpStopRateDn,
+            ImmutableWheelsData<int> bumpStopWindow,
             int brakeTorque,
             int brakeBias
         ) {
@@ -278,27 +278,27 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class Dampers {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> bumpSlow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> bumpFast { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> bumpFast { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> reboundSlow { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> reboundSlow { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> reboundFast { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> reboundFast { get; }
 
         [JsonConstructor]
         internal Dampers(
-            ReadonlyWheelsData<int> bumpSlow,
-            ReadonlyWheelsData<int> bumpFast,
-            ReadonlyWheelsData<int> reboundSlow,
-            ReadonlyWheelsData<int> reboundFast
+            ImmutableWheelsData<int> bumpSlow,
+            ImmutableWheelsData<int> bumpFast,
+            ImmutableWheelsData<int> reboundSlow,
+            ImmutableWheelsData<int> reboundFast
         ) {
             this.bumpSlow = bumpSlow;
             this.bumpFast = bumpFast;
@@ -309,12 +309,12 @@ namespace KLPlugins.RaceEngineer.Car {
 
     public class AeroBalance {
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<int>))]
-        public ReadonlyWheelsData<int> rideHeight { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<int>))]
+        public ImmutableWheelsData<int> rideHeight { get; }
 
         [JsonProperty(Required = Required.Always)]
-        [JsonConverter(typeof(ReadonlyWheelsDataAsArrayJsonConverter<double>))]
-        public ReadonlyWheelsData<double> rodLength { get; }
+        [JsonConverter(typeof(ImmutableWheelsDataAsArrayJsonConverter<double>))]
+        public ImmutableWheelsData<double> rodLength { get; }
 
         [JsonProperty(Required = Required.Always)]
         public int splitter { get; }
@@ -327,8 +327,8 @@ namespace KLPlugins.RaceEngineer.Car {
 
         [JsonConstructor]
         internal AeroBalance(
-            ReadonlyWheelsData<int> rideHeight,
-            ReadonlyWheelsData<double> rodLength,
+            ImmutableWheelsData<int> rideHeight,
+            ImmutableWheelsData<double> rodLength,
             int splitter,
             int rearWing,
             ImmutableArray<int> brakeDuct

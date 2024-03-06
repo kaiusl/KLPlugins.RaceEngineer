@@ -29,15 +29,16 @@ namespace RaceEngineerPluginTests {
 
         [Fact]
         public void Serialize_ImmutableWheelsData() {
-            var data = new ReadonlyWheelsData<int>([1, 2, 3, 4]);
-            var json = JsonConvert.SerializeObject(data, new ReadonlyWheelsDataAsArrayJsonConverter<int>());
+            var data = new ReadonlyWheelsDataView<int>([1, 2, 3, 4]);
+            var json = JsonConvert.SerializeObject(data, new ImmutableWheelsDataAsArrayJsonConverter<int>());
             Assert.Equal("[1,2,3,4]", json);
         }
 
         [Fact]
         public void Deserialize_ImmutableWheelsData() {
             var s = "[1,2,3,4]";
-            var wheels = JsonConvert.DeserializeObject<ReadonlyWheelsData<int>>(s, new ReadonlyWheelsDataAsArrayJsonConverter<int>());
+            var wheels = JsonConvert.DeserializeObject<ImmutableWheelsData<int>>(s, new ImmutableWheelsDataAsArrayJsonConverter<int>());
+            Assert.NotNull(wheels);
             Assert.Equal(1, wheels.FL);
             Assert.Equal(2, wheels.FR);
             Assert.Equal(3, wheels.RL);

@@ -55,15 +55,15 @@ namespace KLPlugins.RaceEngineer.Database {
         internal int StintNr;
         internal string StartTime;
         internal string? TyreCompound;
-        internal ReadonlyWheelsData<double> TyrePresIn;
+        internal ImmutableWheelsData<double> TyrePresIn;
         internal int BrakePadFront;
         internal int BrakePadRear;
         internal int BrakePadNr;
         internal int BrakeDuctFront;
         internal int BrakeDuctRear;
         internal int TyreSet;
-        internal ReadonlyWheelsData<int> Camber;
-        internal ReadonlyWheelsData<int> Toe;
+        internal ImmutableWheelsData<int> Camber;
+        internal ImmutableWheelsData<int> Toe;
         internal int CasterLf;
         internal int CasterRf;
 
@@ -75,7 +75,7 @@ namespace KLPlugins.RaceEngineer.Database {
             this.StartTime = stime;
             this.TyreCompound = v.Car.Tyres.Name;
 
-            this.TyrePresIn = v.Car.Tyres.CurrentInputPres;
+            this.TyrePresIn = v.Car.Tyres.CurrentInputPres.ToImmutableWheelsDataShallow();
 
             if (RaceEngineerPlugin.Game.IsAcc) {
                 var rawDataNew = (ACSharedMemory.ACC.Reader.ACCRawData)data.NewData.GetRawDataObject();
@@ -115,15 +115,7 @@ namespace KLPlugins.RaceEngineer.Database {
 	Camber = {WheelsDataToString(this.Camber)}; Toe = {WheelsDataToString(this.Toe)}, Caster = [{this.CasterLf}, {this.CasterRf}]";
         }
 
-        private static string ArrayToString<T>(T[] a) {
-            return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
-        }
-
-        private static string WheelsDataToString<T>(WheelsData<T> a) {
-            return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
-        }
-
-        private static string WheelsDataToString<T>(ReadonlyWheelsData<T> a) {
+        private static string WheelsDataToString<T>(ImmutableWheelsData<T> a) {
             return $"[{a[0]}, {a[1]}, {a[2]}, {a[3]}]";
         }
     }
