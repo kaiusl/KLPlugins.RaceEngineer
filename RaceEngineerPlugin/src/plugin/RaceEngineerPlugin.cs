@@ -54,6 +54,8 @@ namespace KLPlugins.RaceEngineer {
         public Values Values { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+        private double _dataUpdateTime = 0;
+
         /// <summary>
         /// Called one time per game data update, contains all normalized game data, 
         /// raw data are intentionnally "hidden" under a generic object type (A plugin SHOULD NOT USE IT)
@@ -67,12 +69,14 @@ namespace KLPlugins.RaceEngineer {
             //if (!Game.IsAcc) { return; } // ATM only support ACC, some parts could probably work with other games but not tested yet, so let's be safe for now
 
             if (data.GameRunning && data.OldData != null && data.NewData != null) {
-                //var swatch = Stopwatch.StartNew();
+                var swatch = Stopwatch.StartNew();
 
                 this.Values.OnDataUpdate(data);
 
-                //swatch.Stop();
-                //TimeSpan ts = swatch.Elapsed;
+                swatch.Stop();
+                TimeSpan ts = swatch.Elapsed;
+
+                this._dataUpdateTime = ts.TotalMilliseconds;
                 //File.AppendAllText($"{SETTINGS.DataLocation}\\Logs\\timings\\RETiming_DataUpdate_{pluginStartTime}.txt", $"{ts.TotalMilliseconds}, {BoolToInt(values.booleans.NewData.IsInMenu)}, {BoolToInt(values.booleans.NewData.IsOnTrack)}, {BoolToInt(values.booleans.NewData.IsInPitLane)}, {BoolToInt(values.booleans.NewData.IsInPitBox)}, {BoolToInt(values.booleans.NewData.HasFinishedLap)}\n");
             }
         }
@@ -154,6 +158,8 @@ namespace KLPlugins.RaceEngineer {
             const string AVG_KEYWORD = "Avg";
             const string MAX_KEYWORD = "Max";
             const string STD_KEYWORD = "Std";
+
+            this.AttachDelegate("Perf.DataUpdate", () => this._dataUpdateTime);
 
             this.AttachDelegate("TimeOfDay", () => TimeSpan.FromSeconds(this.Values.Session.TimeOfDay));
             this.AttachDelegate("Session.Name.Pretty", () => SessionTypeMethods.ToPrettyString(this.Values.Session.SessionType));
