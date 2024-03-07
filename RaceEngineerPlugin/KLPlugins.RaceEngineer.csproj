@@ -37,7 +37,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\components\ACCRawData.cs" />
     <Compile Include="src\components\Booleans.cs" />
     <Compile Include="src\components\car\Brakes.cs" />
     <Compile Include="src\components\car\Car.cs" />
