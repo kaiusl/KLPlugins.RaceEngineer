@@ -98,7 +98,8 @@ namespace KLPlugins.RaceEngineer {
         internal void OnDataUpdate(GameData data) {
             // RawData.Update((SHACCRawData)data.NewData.GetRawDataObject());
 
-            if (this.Booleans.NewData.IsNewEvent) {
+            var isNewEvent = this.Booleans.NewData.IsNewEvent;
+            if (isNewEvent) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo($"OnNewEvent.");
                 var sessType = SessionTypeMethods.FromSHGameData(data);
@@ -138,7 +139,8 @@ namespace KLPlugins.RaceEngineer {
             this.RemainingInSession.OnRegularUpdate(data, this);
             this.RemainingOnFuel.OnRegularUpdate(this);
 
-            if (this.Booleans.NewData.IsLapFinished) {
+            var isLapFinished = this.Booleans.NewData.IsLapFinished;
+            if (isLapFinished) {
                 Stopwatch sw = Stopwatch.StartNew();
 
                 this.Booleans.OnLapFinished(data);
@@ -156,7 +158,8 @@ namespace KLPlugins.RaceEngineer {
                 RaceEngineerPlugin.LogFileSeparator();
             }
 
-            if (this.Session.IsNewSession) {
+            var isNewSession = this.Session.IsNewSession;
+            if (isNewSession) {
                 RaceEngineerPlugin.LogFileSeparator();
                 RaceEngineerPlugin.LogInfo("New session");
                 this.Booleans.OnNewSession(this);
@@ -167,11 +170,17 @@ namespace KLPlugins.RaceEngineer {
             }
 
             // We want to invoke these after all the data has been updated from our side
-            this.InvokeEvents(data, isNewStint);
+            this.InvokeEvents(
+                data,
+                isNewEvent: isNewEvent,
+                isNewStint: isNewStint,
+                isNewSession: isNewSession,
+                isLapFinished: isLapFinished
+            );
         }
 
-        private void InvokeEvents(GameData data, bool isNewStint) {
-            if (this.NewEventStarted != null && this.Booleans.NewData.IsNewEvent) {
+        private void InvokeEvents(GameData data, bool isNewEvent, bool isNewStint, bool isNewSession, bool isLapFinished) {
+            if (this.NewEventStarted != null && isNewEvent) {
                 this.NewEventStarted.Invoke(this, data);
             }
 
@@ -179,11 +188,11 @@ namespace KLPlugins.RaceEngineer {
                 this.NewStintStarted.Invoke(this, data);
             }
 
-            if (this.LapFinished != null && this.Booleans.NewData.IsLapFinished) {
+            if (this.LapFinished != null && isLapFinished) {
                 this.LapFinished.Invoke(this, data);
             }
 
-            if (this.NewSessionStarted != null && this.Session.IsNewSession) {
+            if (this.NewSessionStarted != null && isNewSession) {
                 this.NewSessionStarted.Invoke(this, data);
             }
         }
