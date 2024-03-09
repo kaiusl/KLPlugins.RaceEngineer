@@ -62,7 +62,7 @@ namespace KLPlugins.RaceEngineer.Interpolator {
             }
 
             if (value >= this._xs[this.NumPoints - 1]) {
-                return this._interpolators[this.NumPoints - 1].Interpolate(value);
+                return this._interpolators[this.NumPoints - 2].Interpolate(value);
             }
 
 
