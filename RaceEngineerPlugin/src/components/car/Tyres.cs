@@ -17,6 +17,7 @@ namespace KLPlugins.RaceEngineer.Car {
         public static readonly ImmutableWheelsData<string> Names = new("11", "12", "21", "22");
 
         public string? Name { get; private set; }
+        public string? ShortName { get; private set; }
 
         public ReadonlyWheelsDataView<double> IdealInputPres => this._idealInputPres.AsReadonlyView();
         public ReadonlyWheelsDataView<double> PredictedIdealInputPresDry => this._predictedIdealInputPresDry.AsReadonlyView();
@@ -98,6 +99,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         public void Reset() {
             this.Name = null;
+            this.ShortName = null;
             this._idealInputPres.Reset();
             this._predictedIdealInputPresDry.Reset();
             this._predictedIdealInputPresNowWet.Reset();
@@ -361,6 +363,7 @@ namespace KLPlugins.RaceEngineer.Car {
             if (v.Car.Info.Tyres.ContainsKey(this.Name)) {
                 RaceEngineerPlugin.LogInfo($"Tyre info found for '{this.Name}'.");
                 this.Info = v.Car.Info.Tyres[this.Name];
+                this.ShortName = this.Info.ShortName;
             } else if (v.Car.Info.Tyres.ContainsKey("def")) {
                 RaceEngineerPlugin.LogInfo($"Tyre info not found for '{this.Name}'. Using `def` values.");
                 this.Info = v.Car.Info.Tyres["def"];
@@ -369,10 +372,35 @@ namespace KLPlugins.RaceEngineer.Car {
                 this.Info = TyreInfo.Default();
             }
 
+            this.ShortName ??= this.GuessShortName();
+
             this._presNormalizerF = new(this.Info.IdealPresCurve.F);
             this._presNormalizerR = new(this.Info.IdealPresCurve.R);
             this._tempNormalizerF = new(this.Info.IdealTempCurve.F);
             this._tempNormalizerR = new(this.Info.IdealTempCurve.R);
+        }
+
+        private string? GuessShortName() {
+            if (this.Name == null) {
+                return null;
+            }
+
+            var name = this.Name.ToLower();
+            if (name.Contains("wet")) {
+                return "W";
+            } else if (name.Contains("ultra soft")) {
+                return "US";
+            } else if (name.Contains("super soft")) {
+                return "SS";
+            } else if (name.Contains("soft")) {
+                return "S";
+            } else if (name.Contains("medium")) {
+                return "M";
+            } else if (name.Contains("hard")) {
+                return "H";
+            }
+
+            return name.Substring(0, 1);
         }
 
         static MultiPointLinearInterpolator DefPresNormalizer() {
@@ -637,6 +665,7 @@ namespace KLPlugins.RaceEngineer.Car {
 
         private void ResetValues() {
             RaceEngineerPlugin.LogInfo("Tyres.ResetValues()");
+            this.ShortName = null;
             for (var i = 0; i < 4; i++) {
                 this._idealInputPres[i] = double.NaN;
                 this._pressDeltaToIdeal[i] = double.NaN;
