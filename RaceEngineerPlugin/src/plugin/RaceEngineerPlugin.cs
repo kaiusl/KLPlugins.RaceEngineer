@@ -180,22 +180,22 @@ namespace KLPlugins.RaceEngineer {
             this.AttachDelegate("Tyres.CurrentSetLaps", () => this.Values.Car.Tyres.GetCurrentSetLaps());
 
 
-            void addMinMaxAvg<T>(string name, IMinMaxAvg<T> value, StatsFlags settings) {
+            void addMinMaxAvg<T>(string name, Func<IMinMaxAvg<T>> value, StatsFlags settings) {
                 if ((StatsFlags.Min & settings) != 0) {
-                    this.AttachDelegate(name + "." + MIN_KEYWORD, () => value.Min);
+                    this.AttachDelegate(name + "." + MIN_KEYWORD, () => value().Min);
                 }
                 if ((StatsFlags.Max & settings) != 0) {
-                    this.AttachDelegate(name + "." + MAX_KEYWORD, () => value.Max);
+                    this.AttachDelegate(name + "." + MAX_KEYWORD, () => value().Max);
                 }
                 if ((StatsFlags.Avg & settings) != 0) {
-                    this.AttachDelegate(name + "." + AVG_KEYWORD, () => value.Avg);
+                    this.AttachDelegate(name + "." + AVG_KEYWORD, () => value().Avg);
                 }
             }
 
-            addMinMaxAvg("Tyres.Pres.Ideal.1", this.Values.Car.Tyres.Info.IdealPresRange.F, StatsFlags.All);
-            addMinMaxAvg("Tyres.Pres.Ideal.2", this.Values.Car.Tyres.Info.IdealPresRange.R, StatsFlags.All);
-            addMinMaxAvg("Tyres.Temp.Ideal.1", this.Values.Car.Tyres.Info.IdealTempRange.F, StatsFlags.All);
-            addMinMaxAvg("Tyres.Temp.Ideal.2", this.Values.Car.Tyres.Info.IdealTempRange.R, StatsFlags.All);
+            addMinMaxAvg("Tyres.Pres.Ideal.1", () => this.Values.Car.Tyres.Info.IdealPresRange.F, StatsFlags.All);
+            addMinMaxAvg("Tyres.Pres.Ideal.2", () => this.Values.Car.Tyres.Info.IdealPresRange.R, StatsFlags.All);
+            addMinMaxAvg("Tyres.Temp.Ideal.1", () => this.Values.Car.Tyres.Info.IdealTempRange.F, StatsFlags.All);
+            addMinMaxAvg("Tyres.Temp.Ideal.2", () => this.Values.Car.Tyres.Info.IdealTempRange.R, StatsFlags.All);
 
             this.AttachDelegate("Tyres.ShortName", () => this.Values.Car.Tyres.Info.ShortName);
 
@@ -260,11 +260,23 @@ namespace KLPlugins.RaceEngineer {
             addStats("Laps.S2Time", this.Values.Laps.PrevS2Times, Settings.PrevLapsStatsFlags);
             addStats("Laps.S3Time", this.Values.Laps.PrevS3Times, Settings.PrevLapsStatsFlags);
             addStats("Fuel.UsedPerLap", this.Values.Car.Fuel.PrevUsedPerLap, Settings.PrevFuelPerLapStatsFlags);
-            addMinMaxAvg("Fuel.LapsRemaining", this.Values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
-            addMinMaxAvg("Fuel.TimeRemaining", this.Values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
-            addMinMaxAvg("Session.LapsRemaining", this.Values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
-            addMinMaxAvg("Session.TimeRemaining", this.Values.RemainingInSession.Time, Settings.RemainingStatsFlags);
-            addMinMaxAvg("Fuel.NeededInSession", this.Values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
+
+            void addMinMaxAvgConstValue<T>(string name, IMinMaxAvg<T> value, StatsFlags settings) {
+                if ((StatsFlags.Min & settings) != 0) {
+                    this.AttachDelegate(name + "." + MIN_KEYWORD, () => value.Min);
+                }
+                if ((StatsFlags.Max & settings) != 0) {
+                    this.AttachDelegate(name + "." + MAX_KEYWORD, () => value.Max);
+                }
+                if ((StatsFlags.Avg & settings) != 0) {
+                    this.AttachDelegate(name + "." + AVG_KEYWORD, () => value.Avg);
+                }
+            }
+            addMinMaxAvgConstValue("Fuel.LapsRemaining", this.Values.RemainingOnFuel.Laps, Settings.RemainingStatsFlags);
+            addMinMaxAvgConstValue("Fuel.TimeRemaining", this.Values.RemainingOnFuel.Time, Settings.RemainingStatsFlags);
+            addMinMaxAvgConstValue("Session.LapsRemaining", this.Values.RemainingInSession.Laps, Settings.RemainingStatsFlags);
+            addMinMaxAvgConstValue("Session.TimeRemaining", this.Values.RemainingInSession.Time, Settings.RemainingStatsFlags);
+            addMinMaxAvgConstValue("Fuel.NeededInSession", this.Values.RemainingInSession.FuelNeeded, Settings.RemainingStatsFlags);
 
 
             void addTyres<T>(string name, IWheelsData<T> values) {
