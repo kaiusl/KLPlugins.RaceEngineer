@@ -90,8 +90,10 @@ namespace KLPlugins.RaceEngineer.Booleans {
         }
 
         internal void Update(GameData data, Values v) {
-            this.IsInMenu = data.NewData.AirTemperature == 0;
-            var wasInMenu = data.OldData.AirTemperature == 0;
+            this.IsInMenu = data.NewData.AirTemperature == 0 // ACC
+                || data.NewData.TyrePressureFrontLeft == 0; // RF2
+            var wasInMenu = data.OldData.AirTemperature == 0 // ACC
+                || data.OldData.TyrePressureFrontLeft == 0; // RF2
             this.EnteredMenu = !wasInMenu && this.IsInMenu;
             this.ExitedMenu = wasInMenu && !this.IsInMenu;
 
