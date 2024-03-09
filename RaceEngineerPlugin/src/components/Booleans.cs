@@ -90,17 +90,20 @@ namespace KLPlugins.RaceEngineer.Booleans {
         }
 
         internal void Update(GameData data, Values v) {
-            this.IsInMenu = data.NewData.AirTemperature == 0 // ACC
-                || data.NewData.TyrePressureFrontLeft == 0; // RF2
-            var wasInMenu = data.OldData.AirTemperature == 0 // ACC
-                || data.OldData.TyrePressureFrontLeft == 0; // RF2
+            // if our last update was in menu or if somehow our last wasn't but games was
+            var wasInMenu = this.IsInMenu
+                || data.OldData.AirTemperature == 0             // ACC
+                || data.OldData.TyrePressureFrontLeft == 0;     // RF2
+
+            this.IsInMenu = data.NewData.AirTemperature == 0    // ACC
+                || data.NewData.TyrePressureFrontLeft == 0;     // RF2
             this.EnteredMenu = !wasInMenu && this.IsInMenu;
             this.ExitedMenu = wasInMenu && !this.IsInMenu;
 
+            var wasInPitLane = this.IsInPitLane || data.OldData.IsInPitLane == 1;
+            var wasInPitBox = this.IsInPitBox || data.OldData.IsInPit == 1;
             this.IsInPitLane = data.NewData.IsInPitLane == 1;
             this.IsInPitBox = data.NewData.IsInPit == 1;
-            var wasInPitLane = data.OldData.IsInPitLane == 1;
-            var wasInPitBox = data.OldData.IsInPit == 1;
             this.EnteredPitLane = !wasInPitLane && this.IsInPitLane;
             this.ExitedPitLane = wasInPitLane && !this.IsInPitLane;
             this.EnteredPitBox = !wasInPitBox && this.IsInPitBox;
