@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using ACSharedMemory.ACC.MMFModels;
@@ -336,6 +336,11 @@ namespace KLPlugins.RaceEngineer.Car {
             } else if (RaceEngineerPlugin.Game.IsAc) {
                 var rawDataNew = (ACSharedMemory.Reader.ACRawData)data.NewData.GetRawDataObject();
                 newTyreName = rawDataNew.Graphics.TyreCompound;
+                // we assume every pit stop changes a tyre set too, not necessarily true
+                this.CurrentTyreSet += 1;
+            } else if (RaceEngineerPlugin.Game.IsRf2) {
+                var rawDataNew = (RfactorReader.RF2.WrapV2)data.NewData.GetRawDataObject();
+                newTyreName = Encoding.ASCII.GetString(rawDataNew.CurrentPlayerTelemetry.mFrontTireCompoundName);
                 // we assume every pit stop changes a tyre set too, not necessarily true
                 this.CurrentTyreSet += 1;
             } else {

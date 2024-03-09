@@ -198,6 +198,7 @@ namespace KLPlugins.RaceEngineer {
             addMinMaxAvg("Tyres.Temp.Ideal.2", () => this.Values.Car.Tyres.Info.IdealTempRange.R, StatsFlags.All);
 
             this.AttachDelegate("Tyres.ShortName", () => this.Values.Car.Tyres.Info.ShortName);
+            this.AttachDelegate("Tyres.LongName", () => this.Values.Car.Tyres.Name);
 
             this.AttachDelegate("Weather.Report", () => this.Values.Weather.WeatherSummary);
             this.AttachDelegate("Weather.AirTemp", () => this.Values.Weather.AirTemp);
